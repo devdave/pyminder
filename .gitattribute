@@ -1,0 +1,11 @@
+* text=LF
+
+.gitattribute text
+*.py text
+*.tsx text
+*.js text
+*.json text
+*.cjs text
+*.toml text
+*.yaml text
+*.yml text
