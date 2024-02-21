@@ -17,7 +17,8 @@
     "noEmit": true,
     "jsx": "react-jsx",
     "paths": {
-      "@/*": ["./src/*"],
+      "@src/*": ["./src/*"],
+      "@wsrc/*": ["./window_src/*"],
       "@test-utils": ["./test-utils"]
     }
   },

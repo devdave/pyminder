@@ -1,6 +1,7 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import tsconfigPaths from 'vite-tsconfig-paths';
+import {resolve} from 'node:path';
 
 export default defineConfig({
   plugins: [react(), tsconfigPaths()],
@@ -9,4 +10,12 @@ export default defineConfig({
     environment: 'jsdom',
     setupFiles: './vitest.setup.mjs',
   },
+  build: {
+    rollupOptions:{
+      input: {
+            main: resolve(__dirname, 'index.html'),
+            tasks: resolve(__dirname, 'window_src/tasks/index.html')
+      }
+    }
+  }
 });
