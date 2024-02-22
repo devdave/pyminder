@@ -69,7 +69,7 @@ def process_source(
     src_file: pathlib.Path,
     dest: pathlib.Path | None = None,
     header: pathlib.Path | None = None,
-):
+) -> None:
     module = ast.parse(src_file.read_text(), src_file.name, mode="exec")
 
     body = []
@@ -92,7 +92,7 @@ def process_source(
         dest.write_text(product, newline="\n")
 
 
-def process_class(class_elm: ast.ClassDef):
+def process_class(class_elm: ast.ClassDef) -> tuple[str, dict[str, FuncDef]]:
     cls_name = class_elm.name
     functions = {}
     for element in class_elm.body:
@@ -121,7 +121,7 @@ def sanitize_defaults(def_type):
     return def_type
 
 
-def process_function(func_elm: ast.FunctionDef):
+def process_function(func_elm: ast.FunctionDef) -> FuncDef:
     # unit tests... we don't need no stinking unit tests!
     # beeline for the args
 
@@ -278,7 +278,7 @@ def process_returntype(func_elm: ast.FunctionDef):
     return None
 
 
-def transform(payload: T.Tuple[str, set[str]]):
+def transform(payload: tuple[str, dict[str, FuncDef]]):
     cls_name, functions = payload
 
     template = jinja2.Template(template_body, newline_sequence="\n")
