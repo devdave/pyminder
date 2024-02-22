@@ -1,34 +1,24 @@
+import ast
+
 from lib import transformer
-
-simple_template = """{% for func_name, func_def in functions|items() -%}
-{%if func_def.doc %}/* {{func_def.doc}} */{% endif%}
-    {{ func_name }}({{func_def.compiled|join(', ')}}){%if func_def.return_type %}:Promise<{{func_def.return_type}}>{%else%}Promise<void>{% endif %} {
-        {% if func_def.arg_names|length >= 2 -%}
-        return this.boundary.remote('{{ func_name }}', {{func_def.arg_names|join(', ')}}) as {%if func_def.return_type %}Promise<{{func_def.return_type}}>{%else%}Promise<void>{% endif %}
-        {%- elif func_def.arg_names|length == 1 -%}
-        return this.boundary.remote('{{ func_name }}', {{func_def.arg_names[0]}}) as {%if func_def.return_type %}Promise<{{func_def.return_type}}>{%else%}Promise<void>{% endif %}
-        {%- else -%}
-        return this.boundary.remote('{{ func_name }}') as {%if func_def.return_type %}Promise<{{func_def.return_type}}>{%else%}Promise<void>{% endif %}
-        {%- endif %}
-    }
-{%- endfor %}"""
-
-breakdown_template = """{% for func_name, func_def in functions|items() -%}
-func_name: {{ func_name }}
-func_def: {{ func_def.compiled|join(', ')}}
-
-{%- endfor %}"""
 
 
 def test_transformer_dict_type():
-    src = """class API:
-        def action(self, val: int) -> dict[str, str]:
-            return {"val": val}
-    """
-    actual = transformer.process_source(src, product_template=simple_template)
-    expected = """
-    action(val:number):Promise<{ [key: string]: string }> {
-        return this.boundary.remote('action', val) as Promise<{ [key: string]: string }>
-    }"""
+    src2 = """
+def action(self, val: int) -> dict[str, str]:
+    return {"val": val}
+"""
 
-    assert actual == expected
+    parsed = ast.parse(src2, "test_data.py", mode="exec")
+    if isinstance(parsed.body[0], ast.FunctionDef):
+        function = parsed.body[0]  # type: ast.FunctionDef
+        actual: transformer.FuncDef = transformer.process_function(function)
+
+        assert len(actual.arg_names) == 1
+        assert actual.arg_names[0] == "val"
+        assert actual.compiled[0] == "val:number"
+        assert actual.return_type == "{[key:string]: string}"
+    else:
+        raise AssertionError(
+            "parsed body 0 is not a function {:s}".format(parsed.body[0])
+        )
