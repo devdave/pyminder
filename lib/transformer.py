@@ -66,30 +66,34 @@ def python2ts_types(typename: str | None) -> str:
 
 
 def process_source(
-    src_file: pathlib.Path,
+    src_file: pathlib.Path | str,
     dest: pathlib.Path | None = None,
     header: pathlib.Path | None = None,
-) -> None:
-    module = ast.parse(src_file.read_text(), src_file.name, mode="exec")
+    product_template: str = template_body,
+) -> str:
+    if isinstance(src_file, pathlib.Path):
+        module = ast.parse(src_file.read_text(), src_file.name, mode="exec")
+    else:
+        module = ast.parse(src_file, "raw_source.py", mode="exec")
 
     body = []
 
     for element in module.body:
         if isinstance(element, ast.ClassDef) and element.name == "API":
             payload = process_class(element)
-            clsbody = transform(payload)
+            clsbody = transform(payload, product_template)
             body.append(clsbody)
             break  # for now process only the first class in source
 
     product = "\n\n\n\n".join(body)
 
-    if dest is None:
-        print(product)
-    else:
-        if header is not None and header.is_file():
-            product = header.read_text() + product
+    if header is not None and header.is_file():
+        product = header.read_text() + product
 
+    if dest is not None:
         dest.write_text(product, newline="\n")
+
+    return product
 
 
 def process_class(class_elm: ast.ClassDef) -> tuple[str, dict[str, FuncDef]]:
@@ -278,10 +282,10 @@ def process_returntype(func_elm: ast.FunctionDef):
     return None
 
 
-def transform(payload: tuple[str, dict[str, FuncDef]]):
+def transform(payload: tuple[str, dict[str, FuncDef]], product_template: str):
     cls_name, functions = payload
 
-    template = jinja2.Template(template_body, newline_sequence="\n")
+    template = jinja2.Template(product_template, newline_sequence="\n")
     return template.render(cls_name=cls_name, functions=functions).replace("\r\n", "\n")
 
 
