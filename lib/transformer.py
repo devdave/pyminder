@@ -1,15 +1,14 @@
 import ast
 import pathlib
-
-from itertools import zip_longest
 import typing as T
+from itertools import zip_longest
 
 import jinja2
 import tap
 
 template_body = """
 interface Boundary {
-    remote: (method_name:string, ...args:[unknown?])=> Promise<unknown>
+    remote: (method_name:string, ...args:unknown[])=> Promise<unknown>
 }
 
 class APIBridge {
@@ -20,14 +19,13 @@ class APIBridge {
     }
 {% for func_name, func_def in functions|items() -%}
 {%if func_def.doc %}/* {{func_def.doc}} */{% endif%}
-
     {{ func_name }}({{func_def.compiled|join(', ')}}){%if func_def.return_type %}:Promise<{{func_def.return_type}}>{% endif %} {
-        {% if func_def.arg_names|length >= 2 %}
-        return this.boundary.remote('{{ func_name }}', {{func_def.arg_names|join(', ')}}) as {%if func_def.return_type %}Promise<{{func_def.return_type}}>{%else%}void{% endif %}
+        {% if func_def.arg_names|length >= 2 -%}
+        return this.boundary.remote('{{ func_name }}', {{func_def.arg_names|join(', ')}}) as {%if func_def.return_type %}Promise<{{func_def.return_type}}>{%else%}Promise<void>{% endif %}
         {%- elif func_def.arg_names|length == 1 -%}
-        return this.boundary.remote('{{ func_name }}', {{func_def.arg_names[0]}}) as {%if func_def.return_type %}Promise<{{func_def.return_type}}>{%else%}void{% endif %}
+        return this.boundary.remote('{{ func_name }}', {{func_def.arg_names[0]}}) as {%if func_def.return_type %}Promise<{{func_def.return_type}}>{%else%}Promise<void>{% endif %}
         {%- else -%}
-        return this.boundary.remote('{{ func_name }}') as {%if func_def.return_type %}Promise<{{func_def.return_type}}>{%else%}void{% endif %}
+        return this.boundary.remote('{{ func_name }}') as {%if func_def.return_type %}Promise<{{func_def.return_type}}>{%else%}Promise<void>{% endif %}
         {%- endif %}
     }
 {%- endfor %}
@@ -51,7 +49,7 @@ class FuncDef(T.NamedTuple):
     return_type: T.Optional[str]
 
 
-def python2ts_types(typename):
+def python2ts_types(typename: str | None) -> str:
     match typename:
         case "str":
             return "string"
@@ -61,6 +59,8 @@ def python2ts_types(typename):
             return "number"
         case "bool":
             return "boolean"
+        case None:
+            return "undefined"
         case _:
             return typename
 
@@ -192,6 +192,10 @@ def process_function(func_elm: ast.FunctionDef):
             else:
                 func_type = "any"
 
+        elif isinstance(arg.annotation, ast.BinOp):
+            left = python2ts_types(arg.annotation.left.id)
+            right = python2ts_types(arg.annotation.right.value)
+            func_type = f"{left} | {right}"
         elif arg.annotation is not None and hasattr(arg.annotation, "id"):
             func_type = python2ts_types(arg.annotation.id)
 
