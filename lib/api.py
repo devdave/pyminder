@@ -18,33 +18,30 @@ class API:
 
         self.timer = None
 
-    def info(self, message=None):
-        if message:
-            LOG.info("frontend->", message)
-        else:
-            LOG.info("frontend<>")
+    def info(self, message: str | None = None) -> None:
+        LOG.info("frontend-> {}", message)
 
-    def client_create(self, name):
+    def client_create(self, name: str) -> dict[str, str]:
         with self.app.get_db() as session:
             record = models.Client(name=name)
             session.add(record)
             session.commit()
             return dict(id=record.id, name=record.name)
 
-    def clients_list(self):
+    def clients_list(self) -> list[dict[str, str]]:
         with self.app.get_db() as session:
             return [
                 {"id": record.id, "name": record.name}
                 for record in models.Client.GetAll(session)
             ]
 
-    def client_get(self, client_id):
+    def client_get(self, client_id: int) -> dict[str, str]:
         with self.app.get_db() as session:
             record = models.Client.Fetch_by_id(session, client_id)
             if record:
                 return {"id": record.id, "name": record.name}
 
-    def client_update(self, client_id, client_name):
+    def client_update(self, client_id: int, client_name: str) -> dict[str, str]:
         with self.app.get_db() as session:
             record = models.Client.Fetch_by_id(session, client_id)
             if record:
@@ -53,26 +50,28 @@ class API:
                 session.commit()
                 return {"id": record.id, "name": record.name}
 
-    def client_destroy(self, client_id):
+    def client_destroy(self, client_id: int) -> bool:
         with self.app.get_db() as session:
             models.Client.Delete_By_Id(session, client_id)
             session.commit()
+            return True
+        return False
 
-    def projects_list_by_client_id(self, client_id):
+    def projects_list_by_client_id(self, client_id: int) -> list[dict[str, str]]:
         with self.app.get_db() as session:
             return [
                 {"id": record.id, "name": record.name}
                 for record in models.Project.GetByClient(session, client_id)
             ]
 
-    def tasks_lists_by_project_id(self, project_id):
+    def tasks_lists_by_project_id(self, project_id: int) -> list[dict[str, str]]:
         with self.app.get_db() as session:
             return [
                 {"id": record.id, "name": record.name}
                 for record in models.Task.GetByProject(session, project_id)
             ]
 
-    def events_lists_by_task_id(self, task_id):
+    def events_lists_by_task_id(self, task_id: int) -> list[dict[str, str]]:
         with self.app.get_db() as session:
             return [
                 dict(
