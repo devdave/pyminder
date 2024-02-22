@@ -50,7 +50,7 @@ def transform_api(dest: pathlib.Path):
 
     dest.touch(exist_ok=True)
     transformer.process_source(
-        (HERE / "lib" / "api.py"), dest, (HERE / "ui" / "lib" / "api_header.ts")
+        (HERE / "lib/api.py"), dest, (HERE / "ui/lib/api_header.ts.html")
     )
 
 

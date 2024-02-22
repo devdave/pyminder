@@ -1,27 +1,22 @@
-import { type Identifier } from '@src/types'
+import { type Client, type Identifier } from '@src/types'
 import APIBridge from '@src/api'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 
 export const useClientBroker = (api: APIBridge) => {
     const queryClient = useQueryClient()
 
-    const { mutate: createMutation } = useMutation<number, Error, string>({
+    const { mutate: createMutation } = useMutation<Client, Error, string>({
         mutationFn: (client_name) => api.client_create(client_name)
     })
 
-    const { mutate: updateMutation } = useMutation<
-        { id: Identifier; name: string },
-        Error,
-        { id: Identifier; name: string }
-    >({
+    const { mutate: updateMutation } = useMutation<Client, Error, Client>({
         mutationFn: ({ id, name }) => api.client_update(id, name)
     })
 
-    const fetch = (client_id: Identifier) =>
-        //query fetch
+    const useFetch = (client_id: Identifier) =>
         useQuery({ queryKey: ['client', client_id], queryFn: () => api.client_get(client_id) })
 
-    const get_all = () => useQuery({ queryKey: ['clients'], queryFn: () => api.clients_list() })
+    const useGetAll = () => useQuery({ queryKey: ['clients'], queryFn: () => api.clients_list() })
 
     const create = (client_name: string) =>
         new Promise((resolve, reject) => {
@@ -48,8 +43,8 @@ export const useClientBroker = (api: APIBridge) => {
     const destroy = (client_id: Identifier) => api.client_destroy(client_id)
 
     return {
-        fetch,
-        get_all,
+        fetch: useFetch,
+        getAll: useGetAll,
         create,
         update,
         destroy

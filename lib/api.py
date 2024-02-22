@@ -2,7 +2,7 @@ import time
 
 from application import Application
 from . import models
-from .app_types import Identifier
+from .app_types import Identifier, Client, Project, Task, Event
 from .log_helper import getLogger
 from .timer import Timer
 
@@ -21,27 +21,27 @@ class API:
     def info(self, message: str | None = None) -> None:
         LOG.info("frontend-> {}", message)
 
-    def client_create(self, name: str) -> dict[str, str]:
+    def client_create(self, name: str) -> Client:
         with self.app.get_db() as session:
             record = models.Client(name=name)
             session.add(record)
             session.commit()
-            return dict(id=record.id, name=record.name)
+            return Client(id=record.id, name=record.name)
 
-    def clients_list(self) -> list[dict[str, str]]:
+    def clients_list(self) -> list[Client]:
         with self.app.get_db() as session:
             return [
                 {"id": record.id, "name": record.name}
                 for record in models.Client.GetAll(session)
             ]
 
-    def client_get(self, client_id: int) -> dict[str, str]:
+    def client_get(self, client_id: Identifier) -> Client:
         with self.app.get_db() as session:
             record = models.Client.Fetch_by_id(session, client_id)
             if record:
                 return {"id": record.id, "name": record.name}
 
-    def client_update(self, client_id: int, client_name: str) -> dict[str, str]:
+    def client_update(self, client_id: Identifier, client_name: str) -> Client:
         with self.app.get_db() as session:
             record = models.Client.Fetch_by_id(session, client_id)
             if record:
@@ -50,32 +50,32 @@ class API:
                 session.commit()
                 return {"id": record.id, "name": record.name}
 
-    def client_destroy(self, client_id: int) -> bool:
+    def client_destroy(self, client_id: Identifier) -> bool:
         with self.app.get_db() as session:
             models.Client.Delete_By_Id(session, client_id)
             session.commit()
             return True
-        return False
 
-    def projects_list_by_client_id(self, client_id: int) -> list[dict[str, str]]:
+    def projects_list_by_client_id(self, client_id: Identifier) -> list[Project]:
         with self.app.get_db() as session:
             return [
-                {"id": record.id, "name": record.name}
+                Project(id=record.id, name=record.name, client_id=record.client_id)
                 for record in models.Project.GetByClient(session, client_id)
             ]
 
-    def tasks_lists_by_project_id(self, project_id: int) -> list[dict[str, str]]:
+    def tasks_lists_by_project_id(self, project_id: Identifier) -> list[Task]:
         with self.app.get_db() as session:
             return [
-                {"id": record.id, "name": record.name}
+                Task(id=record.id, name=record.name, project_id=record.project_id)
                 for record in models.Task.GetByProject(session, project_id)
             ]
 
-    def events_lists_by_task_id(self, task_id: int) -> list[dict[str, str]]:
+    def events_lists_by_task_id(self, task_id: Identifier) -> list[Event]:
         with self.app.get_db() as session:
             return [
-                dict(
+                Event(
                     id=record.id,
+                    task_id=record.task_id,
                     hours=record.hours,
                     minutes=record.minutes,
                     seconds=record.seconds,
