@@ -260,6 +260,18 @@ def process_args(func_args: T.List[ast.arg]):
 
 
 def process_returntype(func_elm: ast.FunctionDef):
+     # match func_elm.returns:
+    #     case ast.Subscript():
+    #         print("Subscript")
+    #         match func_elm.returns.value.id:
+    #             case "list":
+    #                 print("List")
+    #
+    #     case ast.Attribute():
+    #         print("Attribute")
+    #     case _:
+    #         print("No match")
+
     if isinstance(func_elm.returns, ast.Subscript):
         if (
             isinstance(func_elm.returns.value, ast.Name)
@@ -276,10 +288,22 @@ def process_returntype(func_elm: ast.FunctionDef):
                 elif isinstance(func_elm.returns.slice, ast.Name):
                     return f"{func_elm.returns.slice.id} | undefined "
 
+        elif getattr(func_elm.returns.value, "id", None) == "dict":
+            return process_dict_returntype(func_elm.returns)
+
     if isinstance(func_elm.returns, ast.Name):
         return python2ts_types(func_elm.returns.id)
 
     return None
+
+
+def process_dict_returntype(return_elm: ast.Subscript):
+    if len(return_elm.slice.dims) == 2:
+        left_side = python2ts_types(return_elm.slice.dims[0].id)
+        right_side = python2ts_types(return_elm.slice.dims[1].id)
+        return f"{{[key:{left_side}]: {right_side}}}"
+    else:
+        raise ValueError("I don't know how to handle dict[] {return_elm.slice.dims}")
 
 
 def transform(payload: tuple[str, dict[str, FuncDef]], product_template: str):
