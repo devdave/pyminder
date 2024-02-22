@@ -1,6 +1,7 @@
 import { MainTimer } from '@src/components/MainTimer/MainTimer'
 import { ColorSchemeToggle } from '@src/components/ColorSchemeToggle/ColorSchemeToggle'
-import { Center } from '@mantine/core'
+import { SmartSelect } from '@src/components/SmartSelect/SmartSelect'
+import { Center, Text } from '@mantine/core'
 import { useAppContext } from '@src/App.context'
 import { useState } from 'react'
 import { TimeObj } from '@src/types'
@@ -26,6 +27,25 @@ export function HomePage() {
         api.timer_start(id).then()
     }
 
+    const clientData = [
+        { id: '1', value: 'self' },
+        { id: '2', value: 'TwoBit' }
+    ]
+
+    const addClient = (clientName: string) => {
+        const index = clientData.length
+        clientData.push({ id: index.toString(), value: clientName })
+    }
+
+    const setClient = (clientId: string) => {
+        const client = clientData.find((c) => c.id === clientId)
+        if (client) {
+            alert(`Set to ${JSON.stringify(client)}`)
+        } else {
+            alert(`Failed to find ${clientId}`)
+        }
+    }
+
     return (
         <>
             <ColorSchemeToggle />
@@ -37,6 +57,17 @@ export function HomePage() {
                     pause={() => api.timer_pause().then()}
                     resume={() => api.timer_resume().then()}
                 />
+            </Center>
+            <Center>
+                <span>
+                    <Text>Client</Text>
+                    <SmartSelect
+                        allData={clientData}
+                        addData={addClient}
+                        setData={setClient}
+                        placeholder='Select Client'
+                    />
+                </span>
             </Center>
         </>
     )

@@ -11,6 +11,9 @@ dependencies:
   '@mantine/hooks':
     specifier: 7.5.1
     version: 7.5.1(react@18.2.0)
+  '@tanstack/react-query':
+    specifier: ^5.22.2
+    version: 5.22.2(react@18.2.0)
   react:
     specifier: ^18.2.0
     version: 18.2.0
@@ -3736,6 +3739,19 @@ packages:
       '@types/express': 4.17.21
       file-system-cache: 2.3.0
     dev: true
+
+  /@tanstack/query-core@5.22.2:
+    resolution: {integrity: sha512-z3PwKFUFACMUqe1eyesCIKg3Jv1mysSrYfrEW5ww5DCDUD4zlpTKBvUDaEjsfZzL3ULrFLDM9yVUxI/fega1Qg==}
+    dev: false
+
+  /@tanstack/react-query@5.22.2(react@18.2.0):
+    resolution: {integrity: sha512-TaxJDRzJ8/NWRT4lY2jguKCrNI6MRN+67dELzPjNUlvqzTxGANlMp68l7aC7hG8Bd1uHNxHl7ihv7MT50i/43A==}
+    peerDependencies:
+      react: ^18.0.0
+    dependencies:
+      '@tanstack/query-core': 5.22.2
+      react: 18.2.0
+    dev: false
 
   /@testing-library/dom@9.3.3:
     resolution: {integrity: sha512-fB0R+fa3AUqbLHWyxXa2kGVtf1Fe1ZZFr0Zp6AIbIAzXb2mKbEXl+PCQNUOaq5lbTab5tfctfXRNsWXxa2f7Aw==}

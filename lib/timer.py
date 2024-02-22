@@ -1,8 +1,12 @@
-import time
-import threading
 import math
+import threading
+import time
+
 from app_types import Identifier
 from application import Application
+from .log_helper import getLogger
+
+LOG = getLogger(__name__)
 
 
 class Timer(threading.Thread):
@@ -11,6 +15,7 @@ class Timer(threading.Thread):
     interval: int
     status: bool = True
     paused: bool = False
+    running: bool = False
     accumulated_seconds: int = 0
     now: float = 0
 
@@ -23,6 +28,7 @@ class Timer(threading.Thread):
         self.status = True
         self.paused = False
         self.running = False
+        self.accumulated_seconds = 0
 
     def pause(self):
         self.paused = True
@@ -35,7 +41,7 @@ class Timer(threading.Thread):
         self.status = False
 
     def run(self):
-        print("timer started", self.identifier)
+        LOG.debug("Timer started: {}", self.identifier)
         self.running = True
         self.now = time.time()
         while self.status:
@@ -52,7 +58,6 @@ class Timer(threading.Thread):
 
             time.sleep(self.interval)
 
-        print("timer stopping", self.identifier)
+        LOG.debug("timer stopping: {}", self.identifier)
         self.app.clearCallback(self.identifier)
-
         self.running = False

@@ -1,3 +1,4 @@
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import '@mantine/core/styles.css'
 import { MantineProvider } from '@mantine/core'
 import { Router } from '@src/Router'
@@ -8,6 +9,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { AppContext, AppContextValue } from '@src/App.context'
 import { Switchboard } from '@src/library/switchboard'
 
+const queryClient = new QueryClient()
 const boundary = new Boundary()
 
 export default function App() {
@@ -36,9 +38,11 @@ export default function App() {
 
     return (
         <MantineProvider theme={theme}>
-            <AppContext.Provider value={appContextValue}>
-                <Router />
-            </AppContext.Provider>
+            <QueryClientProvider client={queryClient}>
+                <AppContext.Provider value={appContextValue}>
+                    <Router />
+                </AppContext.Provider>
+            </QueryClientProvider>
         </MantineProvider>
     )
 }

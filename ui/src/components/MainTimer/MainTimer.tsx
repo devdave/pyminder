@@ -1,5 +1,6 @@
 import React from 'react'
 import { type TimeObj } from '@src/types'
+import { Center, Stack } from '@mantine/core'
 import classes from './MainTimer.module.css'
 
 interface MainTimerProps {
@@ -15,14 +16,14 @@ export const MainTimer: React.FC<MainTimerProps> = ({ time, start, stop, pause, 
     console.log(number)
 
     return (
-        <>
-            <span className='timer'>
-                <span className={classes.hours}>{time.hour}</span>
+        <Stack>
+            <Center className={classes.timer}>
+                <span className={classes.hours}>{time.hour.toString().padStart(2, '0')}</span>
                 <span>:</span>
-                <span className={classes.minutes}>{time.minute}</span>
+                <span className={classes.minutes}>{String(time.minute).padStart(2, '0')}</span>
                 <span>:</span>
-                <span className={classes.seconds}>{time.second}</span>
-            </span>
+                <span className={classes.seconds}>{String(time.second).padStart(2, '0')}</span>
+            </Center>
             <div>
                 <button
                     type='button'
@@ -49,6 +50,6 @@ export const MainTimer: React.FC<MainTimerProps> = ({ time, start, stop, pause, 
                     Resume
                 </button>
             </div>
-        </>
+        </Stack>
     )
 }

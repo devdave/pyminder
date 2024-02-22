@@ -109,7 +109,10 @@ def main(argv):
 
     app.main_window = webview.create_window(**window_args)
 
-    webview.start(debug=True)
+    if results.debug:
+        webview.start(debug=True)
+    else:
+        webview.start(http_server=True)
 
     if worker:
         import signal
