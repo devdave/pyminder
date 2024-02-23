@@ -61,6 +61,10 @@ def python2ts_types(typename: str | None) -> str:
             return "boolean"
         case None:
             return "undefined"
+        case "datetime":
+            return "string"
+        case "date":
+            return "string"
         case _:
             return typename
 
@@ -197,11 +201,23 @@ def process_function(func_elm: ast.FunctionDef) -> FuncDef:
                 func_type = "any"
 
         elif isinstance(arg.annotation, ast.BinOp):
-            left = python2ts_types(arg.annotation.left.id)
+            if hasattr(arg.annotation.left, "id"):
+                left = python2ts_types(arg.annotation.left.id)
+            else:
+                left = python2ts_types(arg.annotation.left.attr)
+
             right = python2ts_types(arg.annotation.right.value)
             func_type = f"{left} | {right}"
         elif arg.annotation is not None and hasattr(arg.annotation, "id"):
             func_type = python2ts_types(arg.annotation.id)
+
+        elif isinstance(arg.annotation, ast.Attribute) and arg.annotation.attr in [
+            "date",
+            "datetime",
+        ]:
+            func_type = python2ts_types(arg.annotation.attr)
+        else:
+            raise TypeError(f"Unable to process {func_elm} with {func_type}")
 
         arg_map[arg.arg] = f"{arg.arg}:{func_type}"
         if arg.arg in mapped_defaults and mapped_defaults[arg.arg] in (None, "None"):
@@ -245,6 +261,11 @@ def process_default_argument(defaultOp):
 
     elif hasattr(defaultOp, "val"):
         return defaultOp.val
+    elif isinstance(defaultOp, ast.BinOp) and isinstance(defaultOp.op, ast.BitOr):
+        left = python2ts_types(defaultOp.left.id)
+        right = python2ts_types(defaultOp.right.value)
+        return f"{left} | {right}"
+
     else:
         raise ValueError(
             f"I don't know how to handle {type(defaultOp)} {vars(defaultOp)}"

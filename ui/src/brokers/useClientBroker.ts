@@ -1,16 +1,30 @@
 import { type Client, type Identifier } from '@src/types'
 import APIBridge from '@src/api'
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useMutation, useQuery, useQueryClient, UseQueryResult } from '@tanstack/react-query'
 
-export const useClientBroker = (api: APIBridge) => {
+export interface clientBrokerReturns {
+    fetch: (client_id: Identifier) => UseQueryResult<Client>
+    getAll: () => UseQueryResult<Client[], Error>
+    create: (client_name: string) => Promise<Client>
+    update: (client_id: Identifier, name: string) => Promise<Client>
+    destroy: (client_id: Identifier) => Promise<boolean>
+}
+
+export const useClientBroker = (api: APIBridge): clientBrokerReturns => {
     const queryClient = useQueryClient()
 
-    const { mutate: createMutation } = useMutation<Client, Error, string>({
-        mutationFn: (client_name) => api.client_create(client_name)
+    const { mutateAsync: createMutation } = useMutation<Client, Error, string>({
+        mutationFn: (client_name) => api.client_create(client_name),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['clients'] }).then()
+        }
     })
 
-    const { mutate: updateMutation } = useMutation<Client, Error, Client>({
-        mutationFn: ({ id, name }) => api.client_update(id, name)
+    const { mutateAsync: updateMutation } = useMutation<Client, Error, Client>({
+        mutationFn: ({ id, name }) => api.client_update(id, name),
+        onSuccess: (client) => {
+            queryClient.invalidateQueries({ queryKey: ['client', client.id] })
+        }
     })
 
     const useFetch = (client_id: Identifier) =>
@@ -18,29 +32,16 @@ export const useClientBroker = (api: APIBridge) => {
 
     const useGetAll = () => useQuery({ queryKey: ['clients'], queryFn: () => api.clients_list() })
 
-    const create = (client_name: string) =>
-        new Promise((resolve, reject) => {
-            createMutation(client_name, {
-                onSuccess: (client_id) => {
-                    queryClient.invalidateQueries({ queryKey: ['clients'] }).then()
-                    resolve(client_id)
-                },
-                onError: (error) => reject(error)
-            })
-        })
+    const create = (client_name: string): Promise<Client> => createMutation(client_name)
 
     const update = (client_id: Identifier, client_name: string) =>
-        new Promise((resolve, reject) => {
-            updateMutation(
-                { id: client_id, name: client_name },
-                {
-                    onSuccess: (response) => resolve(response),
-                    onError: (error) => reject(error)
-                }
-            )
-        })
+        updateMutation({ id: client_id, name: client_name })
 
-    const destroy = (client_id: Identifier) => api.client_destroy(client_id)
+    const destroy = (client_id: Identifier) =>
+        api.client_destroy(client_id).then((status) => {
+            queryClient.invalidateQueries({ queryKey: ['clients'] }).then()
+            return status
+        })
 
     return {
         fetch: useFetch,

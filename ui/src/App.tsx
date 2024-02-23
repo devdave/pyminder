@@ -8,6 +8,9 @@ import APIBridge from '@src/api'
 import { useEffect, useMemo, useState } from 'react'
 import { AppContext, AppContextValue } from '@src/App.context'
 import { Switchboard } from '@src/library/switchboard'
+import { useClientBroker } from '@src/brokers/useClientBroker'
+import { useProjectBroker } from '@src/brokers/useProjectBroker'
+import { useTaskBroker } from '@src/brokers/useTaskBroker'
 
 const queryClient = new QueryClient()
 const boundary = new Boundary()
@@ -15,10 +18,18 @@ const boundary = new Boundary()
 export default function App() {
     const [isReady, setIsReady] = useState(false)
 
+    const api = new APIBridge(boundary)
+    const clientBroker = useClientBroker(api)
+    const projectBroker = useProjectBroker(api)
+    const taskBroker = useTaskBroker(api)
+
     const appContextValue = useMemo<AppContextValue>(
         () => ({
-            api: new APIBridge(boundary),
-            switchboard: new Switchboard()
+            api,
+            switchboard: new Switchboard(),
+            clientBroker,
+            projectBroker,
+            taskBroker
         }),
         []
     )

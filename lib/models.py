@@ -1,6 +1,5 @@
 import contextlib
 import datetime as DT
-import enum
 import pathlib
 
 from sqlalchemy import (
@@ -25,7 +24,8 @@ from sqlalchemy.orm import (
     sessionmaker,
 )
 
-from .app_types import TaskStatus
+from . import app_types
+from .app_types import TaskStatus, StopReasons
 from .log_helper import getLogger
 
 log = getLogger(__name__)
@@ -79,7 +79,8 @@ class Base(DeclarativeBase):
     @classmethod
     def Delete_By_Id(cls, session, client_id):
         stmt = delete(cls).where(cls.id == client_id)
-        session.execute(stmt)
+        result = session.execute(stmt)
+        return result.rowcount == 1
 
     @classmethod
     def GetAll(cls, session: Session):
@@ -114,6 +115,16 @@ class Project(Base):
     client: Mapped[Client] = relationship("Client", back_populates="projects")
 
     tasks: Mapped[list["Task"]] = relationship("Task", back_populates="project")
+
+    def to_dict(self):
+        return app_types.Project(
+            id=self.id,
+            name=self.name,
+            client_id=self.client_id,
+            seconds=self.seconds,
+            minutes=self.minutes,
+            hours=self.hours,
+        )
 
     @classmethod
     def GetByClient(cls, session, client_id):
@@ -161,6 +172,14 @@ class Task(Base):
 
     __table_args__ = (UniqueConstraint("project_id", "name", name="unique_task"),)
 
+    def to_dict(self):
+        return app_types.Task(
+            id=self.id,
+            name=self.name,
+            project_id=self.project_id,
+            status=self.status,
+        )
+
     @classmethod
     def GetByProject(cls, session, project_id):
         stmt = select(cls).where(cls.project_id == project_id)
@@ -203,12 +222,30 @@ class Event(Base):
 
     start_date: Mapped[DT.date] = mapped_column()
 
-    detail: Mapped[str] = mapped_column()
+    details: Mapped[str] = mapped_column()
     notes: Mapped[str] = mapped_column()
 
     duration: Mapped[int] = mapped_column()  # seconds
 
     entries: Mapped[list["Entry"]] = relationship("Event", back_populates="event")
+
+    def to_dict(self):
+        app_types.Event(
+            task_id=self.task_id,
+            start_date=self.start_date,
+            details=self.details,
+            notes=self.notes,
+            duration=self.duration,
+            entries=[entry.to_dict() for entry in self.entries],
+        )
+
+    def create_entry(
+        self, start: DT.date, end: DT.date, seconds: int, stop_reason: StopReasons
+    ):
+        entry = Entry(
+            event=self, start=start, end=end, seconds=seconds, stop_reason=stop_reason
+        )
+        self.entries.append(entry)
 
     @classmethod
     def GetByTask(cls, session, task_id):
@@ -228,22 +265,23 @@ class Event(Base):
         return sum(entry.hours for entry in self.entries)
 
 
-class StopReasons(enum.Enum):
-    PAUSED = "Paused"
-    FINISHED = "Finished"
-
-
 class Entry(Base):
     event_id: Mapped[int] = mapped_column(ForeignKey("Event.id"), index=True)
     event: Mapped[Event] = relationship("Event", back_populates="entries")
 
     started_on: Mapped[DT.datetime] = mapped_column()
     stopped_on: Mapped[DT.datetime] = mapped_column()
+    seconds: Mapped[int] = mapped_column()
     stop_reason: Mapped[StopReasons] = mapped_column()
 
-    @hybrid_property
-    def seconds(self):
-        return (self.stopped_on - self.started_on).seconds
+    def to_dict(self):
+        dict(
+            event_id=self.event_id,
+            started_on=self.started_on,
+            stopped_on=self.stopped_on,
+            seconds=self.seconds,
+            stop_reason=self.stop_reason.value,
+        )
 
     @hybrid_property
     def minutes(self):

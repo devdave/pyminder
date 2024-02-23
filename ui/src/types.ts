@@ -1,5 +1,17 @@
 export type Identifier = string | number
 
+export enum TaskStatus {
+    ACTIVE = 'active',
+    IN_PROGRESS = 'in_progress',
+    COMPLETE = 'complete',
+    CANCELLED = 'cancelled'
+}
+
+export enum StopReasons {
+    PAUSED = 'Paused',
+    FINISHED = 'Finished'
+}
+
 export interface Client {
     id: Identifier
     name: string
@@ -22,6 +34,15 @@ export interface Event {
     task_id: number
     hours: number
     minutes: number
+    seconds: number
+    entries: Entry[]
+}
+
+export interface Entry {
+    id: Identifier
+    event_id: Identifier
+    start_date: string
+    end_date: string
     seconds: number
 }
 
