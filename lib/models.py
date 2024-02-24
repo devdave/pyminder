@@ -115,7 +115,9 @@ class Base(DeclarativeBase):
 class Client(Base):
     name: Mapped[str] = mapped_column()
 
-    projects: Mapped[list["Project"]] = relationship("Project", back_populates="client")
+    projects: Mapped[list["Project"]] = relationship(
+        "Project", back_populates="client", cascade="all, delete-orphan"
+    )
 
 
 class Project(Base):
@@ -124,7 +126,9 @@ class Project(Base):
     client_id: Mapped[int] = mapped_column(ForeignKey("Client.id"), index=True)
     client: Mapped[Client] = relationship("Client", back_populates="projects")
 
-    tasks: Mapped[list["Task"]] = relationship("Task", back_populates="project")
+    tasks: Mapped[list["Task"]] = relationship(
+        "Task", back_populates="project", cascade="all, delete-orphan"
+    )
 
     __table_args__ = (UniqueConstraint("client_id", "name", name="unique_client"),)
 
@@ -180,7 +184,9 @@ class Task(Base):
     project: Mapped[Project] = relationship("Project", back_populates="tasks")
 
     status: Mapped[TaskStatus] = mapped_column(default=TaskStatus.ACTIVE)
-    events: Mapped[list["Event"]] = relationship("Event", back_populates="task")
+    events: Mapped[list["Event"]] = relationship(
+        "Event", back_populates="task", cascade="all, delete-orphan"
+    )
 
     __table_args__ = (UniqueConstraint("project_id", "name", name="unique_task"),)
 
@@ -242,7 +248,9 @@ class Event(Base):
 
     duration: Mapped[int] = mapped_column(default=0)  # seconds
 
-    entries: Mapped[list["Entry"]] = relationship("Entry", back_populates="event")
+    entries: Mapped[list["Entry"]] = relationship(
+        "Entry", back_populates="event", cascade="all, delete-orphan"
+    )
 
     __table_args__ = (UniqueConstraint("task_id", "start_date", name="unique_event"),)
 
