@@ -92,6 +92,12 @@ class APIBridge {
     entry_destroy(entry_id:Identifier):Promise<boolean> {
         return this.boundary.remote('entry_destroy', entry_id) as Promise<boolean>
     }
+    timer_check(): Promise<void> {
+        return this.boundary.remote('timer_check') as Promise<void>
+    }
+    timer_override(new_reciever:Identifier): Promise<void> {
+        return this.boundary.remote('timer_override', new_reciever) as Promise<void>
+    }
     timer_start(listener_id:Identifier, task_id:Identifier):Promise<Event> {
         return this.boundary.remote('timer_start', listener_id, task_id) as Promise<Event>
     }
