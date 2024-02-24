@@ -12,29 +12,33 @@ export enum StopReasons {
     FINISHED = 'Finished'
 }
 
+export interface HasTime {
+    hours: number
+    minutes: number
+    seconds: number
+}
+
 export interface Client {
     id: Identifier
     name: string
 }
 
-export interface Project {
+export interface Project extends HasTime {
     id: Identifier
     name: string
     client_id: number
 }
 
-export interface Task {
+export interface Task extends HasTime {
     id: Identifier
     name: string
     project_id: number
 }
 
-export interface Event {
+export interface Event extends HasTime {
     id: Identifier
     task_id: number
-    hours: number
-    minutes: number
-    seconds: number
+
     entries: Entry[]
 }
 

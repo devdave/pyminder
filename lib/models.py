@@ -1,7 +1,10 @@
 import contextlib
 import datetime as DT
+import enum
 import pathlib
+import typing as T
 
+import sqlalchemy
 from sqlalchemy import (
     select,
     update,
@@ -24,11 +27,13 @@ from sqlalchemy.orm import (
     sessionmaker,
 )
 
-from . import app_types
-from .app_types import TaskStatus, StopReasons
-from .log_helper import getLogger
+from lib import app_types
+from lib.app_types import TaskStatus, StopReasons, Identifier
+from lib.log_helper import getLogger
 
 log = getLogger(__name__)
+
+Self = T.TypeVar("Self", bound="Base")
 
 
 @contextlib.contextmanager
@@ -63,6 +68,10 @@ class Base(DeclarativeBase):
         default=None, server_default=func.now(), onupdate=func.now()
     )
 
+    type_annotation_map = {
+        enum.Enum: sqlalchemy.Enum(enum.Enum),
+    }
+
     @classmethod
     def Touch(cls, session: Session, fetch_id: int):
         stmt = update(cls).where(cls.id == fetch_id).values()
@@ -72,7 +81,7 @@ class Base(DeclarativeBase):
         self.updated_on = DT.datetime.now()
 
     @classmethod
-    def Fetch_by_id(cls, session: Session, fetch_id: int):
+    def Fetch_by_id(cls: type[Self], session: Session, fetch_id: Identifier) -> Self:
         stmt = select(cls).where(cls.id == fetch_id)
         return session.execute(stmt).scalars().one()
 
@@ -116,6 +125,8 @@ class Project(Base):
 
     tasks: Mapped[list["Task"]] = relationship("Task", back_populates="project")
 
+    __table_args__ = (UniqueConstraint("client_id", "name", name="unique_client"),)
+
     def to_dict(self):
         return app_types.Project(
             id=self.id,
@@ -151,15 +162,15 @@ class Project(Base):
 
     @hybrid_property
     def seconds(self):
-        return sum(self.tasks.seconds)
+        return sum(task.seconds for task in self.tasks)
 
     @hybrid_property
     def minutes(self):
-        return sum(self.tasks.minutes)
+        return sum(task.minutes for task in self.tasks)
 
     @hybrid_property
     def hours(self):
-        return sum(self.tasks.hours)
+        return sum(task.hours for task in self.tasks)
 
 
 class Task(Base):
@@ -172,12 +183,15 @@ class Task(Base):
 
     __table_args__ = (UniqueConstraint("project_id", "name", name="unique_task"),)
 
-    def to_dict(self):
+    def to_dict(self) -> dict[str, str | int]:
         return app_types.Task(
             id=self.id,
             name=self.name,
             project_id=self.project_id,
-            status=self.status,
+            status=self.status.value,
+            hours=self.hours,
+            minutes=self.minutes,
+            seconds=self.seconds,
         )
 
     @classmethod
@@ -222,12 +236,14 @@ class Event(Base):
 
     start_date: Mapped[DT.date] = mapped_column()
 
-    details: Mapped[str] = mapped_column()
-    notes: Mapped[str] = mapped_column()
+    details: Mapped[str] = mapped_column(default="")
+    notes: Mapped[str] = mapped_column(default="")
 
-    duration: Mapped[int] = mapped_column()  # seconds
+    duration: Mapped[int] = mapped_column(default=0)  # seconds
 
-    entries: Mapped[list["Entry"]] = relationship("Event", back_populates="event")
+    entries: Mapped[list["Entry"]] = relationship("Entry", back_populates="event")
+
+    __table_args__ = (UniqueConstraint("task_id", "start_date", name="unique_event"),)
 
     def to_dict(self):
         app_types.Event(
@@ -239,18 +255,36 @@ class Event(Base):
             entries=[entry.to_dict() for entry in self.entries],
         )
 
-    def create_entry(
-        self, start: DT.date, end: DT.date, seconds: int, stop_reason: StopReasons
-    ):
+    def create_entry(self, start: DT.date, end: DT.date, seconds: int) -> "Entry":
         entry = Entry(
-            event=self, start=start, end=end, seconds=seconds, stop_reason=stop_reason
+            event=self,
+            started_on=start,
+            stopped_on=end,
+            seconds=seconds,
+            stop_reason=StopReasons.PLACEHOLDER,
         )
         self.entries.append(entry)
+        return entry
 
     @classmethod
     def GetByTask(cls, session, task_id):
         stmt = select(cls).where(cls.task_id == task_id)
         return session.execute(stmt).scalars().all()
+
+    @classmethod
+    def GetOrCreateByDate(cls, session, task_id, my_date):
+        stmt = (
+            select(cls).where(cls.task_id == task_id).where(cls.start_date == my_date)
+        )
+        record = session.execute(stmt).scalar()
+        if record:
+            return record
+        else:
+            record = cls(task_id=task_id, start_date=my_date, duration=0)
+            session.add(record)
+            return record
+
+        pass
 
     @hybrid_property
     def seconds(self):
@@ -272,7 +306,7 @@ class Entry(Base):
     started_on: Mapped[DT.datetime] = mapped_column()
     stopped_on: Mapped[DT.datetime] = mapped_column()
     seconds: Mapped[int] = mapped_column()
-    stop_reason: Mapped[StopReasons] = mapped_column()
+    stop_reason: Mapped[StopReasons]
 
     def to_dict(self):
         dict(

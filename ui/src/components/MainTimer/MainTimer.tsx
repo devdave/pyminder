@@ -1,19 +1,50 @@
 import React from 'react'
 import { type TimeObj } from '@src/types'
-import { Center, Stack } from '@mantine/core'
+import { Button, Center, Stack } from '@mantine/core'
 import classes from './MainTimer.module.css'
 
 interface MainTimerProps {
+    enabled: boolean
     time: TimeObj
-    start: () => void
-    stop: () => unknown
-    pause: () => unknown
-    resume: () => unknown
+    startCB: () => void
+    stopCB: () => unknown
+    pauseCB: () => unknown
+    resumeCB: () => unknown
 }
 
-export const MainTimer: React.FC<MainTimerProps> = ({ time, start, stop, pause, resume }) => {
+export const MainTimer: React.FC<MainTimerProps> = ({
+    enabled,
+    time,
+    startCB,
+    stopCB,
+    pauseCB,
+    resumeCB
+}) => {
     const number = 123
     console.log(number)
+
+    const [isRunning, setRunning] = React.useState(false)
+    const [isPaused, setPaused] = React.useState(false)
+
+    const doStart = () => {
+        startCB()
+        setRunning(true)
+    }
+
+    const doStop = () => {
+        stopCB()
+        setRunning(false)
+    }
+
+    const doPause = () => {
+        pauseCB()
+        setPaused(true)
+    }
+
+    const doResume = () => {
+        resumeCB()
+        setPaused(false)
+    }
 
     return (
         <Stack>
@@ -25,30 +56,34 @@ export const MainTimer: React.FC<MainTimerProps> = ({ time, start, stop, pause, 
                 <span className={classes.seconds}>{String(time.second).padStart(2, '0')}</span>
             </Center>
             <div>
-                <button
+                <Button
+                    disabled={!enabled || isRunning}
                     type='button'
-                    onClick={start}
+                    onClick={doStart}
                 >
                     Start
-                </button>
-                <button
+                </Button>
+                <Button
+                    disabled={!enabled || !isRunning}
                     type='button'
-                    onClick={stop}
+                    onClick={doStop}
                 >
                     Stop
-                </button>
-                <button
+                </Button>
+                <Button
+                    disabled={!isRunning || isPaused}
                     type='button'
-                    onClick={pause}
+                    onClick={doPause}
                 >
                     Pause
-                </button>
-                <button
+                </Button>
+                <Button
+                    disabled={!isRunning || !isPaused}
                     type='button'
-                    onClick={resume}
+                    onClick={doResume}
                 >
                     Resume
-                </button>
+                </Button>
             </div>
         </Stack>
     )

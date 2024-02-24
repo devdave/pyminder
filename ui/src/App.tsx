@@ -1,4 +1,3 @@
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import '@mantine/core/styles.css'
 import { MantineProvider } from '@mantine/core'
 import { Router } from '@src/Router'
@@ -11,27 +10,30 @@ import { Switchboard } from '@src/library/switchboard'
 import { useClientBroker } from '@src/brokers/useClientBroker'
 import { useProjectBroker } from '@src/brokers/useProjectBroker'
 import { useTaskBroker } from '@src/brokers/useTaskBroker'
+import { useEventBroker } from '@src/brokers/useEventBroker'
 
-const queryClient = new QueryClient()
 const boundary = new Boundary()
+const switchboard = new Switchboard()
 
 export default function App() {
     const [isReady, setIsReady] = useState(false)
 
-    const api = new APIBridge(boundary)
+    const api = useMemo(() => new APIBridge(boundary), [])
     const clientBroker = useClientBroker(api)
     const projectBroker = useProjectBroker(api)
     const taskBroker = useTaskBroker(api)
+    const eventBroker = useEventBroker(api)
 
     const appContextValue = useMemo<AppContextValue>(
         () => ({
             api,
-            switchboard: new Switchboard(),
+            switchboard,
             clientBroker,
             projectBroker,
-            taskBroker
+            taskBroker,
+            eventBroker
         }),
-        []
+        [api, clientBroker, eventBroker, projectBroker, taskBroker]
     )
 
     useEffect(() => {
@@ -49,11 +51,9 @@ export default function App() {
 
     return (
         <MantineProvider theme={theme}>
-            <QueryClientProvider client={queryClient}>
-                <AppContext.Provider value={appContextValue}>
-                    <Router />
-                </AppContext.Provider>
-            </QueryClientProvider>
+            <AppContext.Provider value={appContextValue}>
+                <Router />
+            </AppContext.Provider>
         </MantineProvider>
     )
 }

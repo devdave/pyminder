@@ -59,8 +59,11 @@ class APIBridge {
     task_destroy(task_id:Identifier):Promise<boolean> {
         return this.boundary.remote('task_destroy', task_id) as Promise<boolean>
     }
-    event_create(task_id:Identifier, start_date:string | undefined = undefined, details:string | undefined = undefined, notes:string | undefined = undefined, duration:number | undefined = undefined):Promise<Event> {
-        return this.boundary.remote('event_create', task_id, start_date, details, notes, duration) as Promise<Event>
+    event_create(task_id:Identifier, start_date:string | undefined = undefined, details:string | undefined = undefined, notes:string | undefined = undefined):Promise<Event> {
+        return this.boundary.remote('event_create', task_id, start_date, details, notes) as Promise<Event>
+    }
+    events_get_or_create_by_date(task_id:Identifier, start_date:string | undefined = undefined):Promise<Event[]> {
+        return this.boundary.remote('events_get_or_create_by_date', task_id, start_date) as Promise<Event[]>
     }
     events_by_task_id(task_id:Identifier):Promise<Event[]> {
         return this.boundary.remote('events_by_task_id', task_id) as Promise<Event[]>
@@ -89,8 +92,8 @@ class APIBridge {
     entry_destroy(entry_id:Identifier):Promise<boolean> {
         return this.boundary.remote('entry_destroy', entry_id) as Promise<boolean>
     }
-    timer_start(listener_id:Identifier):Promise<boolean> {
-        return this.boundary.remote('timer_start', listener_id) as Promise<boolean>
+    timer_start(listener_id:Identifier, task_id:Identifier):Promise<Event> {
+        return this.boundary.remote('timer_start', listener_id, task_id) as Promise<Event>
     }
     timer_stop():Promise<boolean> {
         return this.boundary.remote('timer_stop') as Promise<boolean>

@@ -1,4 +1,5 @@
 import datetime
+import enum
 import typing as T
 from enum import Enum as pyEnum
 
@@ -13,9 +14,10 @@ class TaskStatus(pyEnum):
     CANCELLED = "cancelled"
 
 
-class StopReasons(pyEnum):
-    PAUSED = "Paused"
-    FINISHED = "Finished"
+class StopReasons(enum.Enum):
+    PLACEHOLDER = "placeholder"
+    PAUSED = "paused"
+    FINISHED = "finished"
 
 
 class Client(T.TypedDict):

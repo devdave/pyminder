@@ -22,7 +22,7 @@ const router = createBrowserRouter([
         errorElement: <Page404 />
     },
     {
-        path: '/index.html*',
+        path: '/index.html/*',
         element: <AppRoutes />,
         errorElement: <Page404 />
     }

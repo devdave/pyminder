@@ -2,7 +2,7 @@ import APIBridge from '@src/api'
 import { type Identifier } from '@src/types'
 
 interface ITimerReturn {
-    start: (hook_id: Identifier) => void
+    start: (hook_id: Identifier, task_id: Identifier) => void
     stop: () => void
     pause: () => void
     resume: () => void
@@ -11,9 +11,9 @@ interface ITimerReturn {
 export const TimerBroker = (api: APIBridge): ITimerReturn => {
     let updater_timer_id = null
 
-    const start = async (hook_id: Identifier) => {
+    const start = async (hook_id: Identifier, task_id: Identifier) => {
         updater_timer_id = hook_id
-        await api.timer_start(updater_timer_id)
+        await api.timer_start(updater_timer_id, task_id)
     }
 
     const stop = async () => {

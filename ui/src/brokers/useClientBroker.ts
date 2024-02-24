@@ -3,7 +3,7 @@ import APIBridge from '@src/api'
 import { useMutation, useQuery, useQueryClient, UseQueryResult } from '@tanstack/react-query'
 
 export interface clientBrokerReturns {
-    fetch: (client_id: Identifier) => UseQueryResult<Client>
+    fetch: (client_id: Identifier, enabled: boolean) => UseQueryResult<Client>
     getAll: () => UseQueryResult<Client[], Error>
     create: (client_name: string) => Promise<Client>
     update: (client_id: Identifier, name: string) => Promise<Client>
@@ -27,8 +27,8 @@ export const useClientBroker = (api: APIBridge): clientBrokerReturns => {
         }
     })
 
-    const useFetch = (client_id: Identifier) =>
-        useQuery({ queryKey: ['client', client_id], queryFn: () => api.client_get(client_id) })
+    const useFetch = (client_id: Identifier, enabled: boolean) =>
+        useQuery({ enabled, queryKey: ['client', client_id], queryFn: () => api.client_get(client_id) })
 
     const useGetAll = () => useQuery({ queryKey: ['clients'], queryFn: () => api.clients_list() })
 

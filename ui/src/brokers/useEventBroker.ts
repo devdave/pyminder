@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient, UseQueryResult } from '@tanstack/react-query'
 import APIBridge from '@src/api'
-import { Event, Identifier, StopReasons } from '@src/types'
+import { Entry, Event, Identifier, StopReasons } from '@src/types'
 
 export interface CreateEvent {
     task_id: Identifier
@@ -17,6 +17,7 @@ export interface UpdateEvent {
 }
 
 export interface CreateEntry {
+    task_id: Identifier
     event_id: Identifier
     start_dt: string
     end_dt: string
@@ -31,12 +32,13 @@ export interface UseEventBrokerReturn {
     update: (event_id: Identifier, details: string, notes: string) => Promise<Event>
     destroy: (event_id: Identifier) => Promise<boolean>
     addEntry: (
+        task_id: Identifier,
         event_id: Identifier,
         start_dt: string,
         end_dt: string,
         seconds: number,
         reason: StopReasons
-    ) => Promise<Event>
+    ) => Promise<Entry>
 }
 
 export const useEventBroker = (api: APIBridge): UseEventBrokerReturn => {
@@ -57,7 +59,7 @@ export const useEventBroker = (api: APIBridge): UseEventBrokerReturn => {
         }
     })
 
-    const { mutateAsync: addEntryMutation } = useMutation<Event, Error, CreateEntry>({
+    const { mutateAsync: addEntryMutation } = useMutation<Entry, Error, CreateEntry>({
         mutationFn: (payload) =>
             api.event_add_entry(
                 payload.event_id,
@@ -66,8 +68,8 @@ export const useEventBroker = (api: APIBridge): UseEventBrokerReturn => {
                 payload.seconds,
                 payload.reason
             ),
-        onSuccess: (event) => {
-            client.invalidateQueries({ queryKey: ['task', event.task_id, 'event', event.id] })
+        onSuccess: (event, context) => {
+            client.invalidateQueries({ queryKey: ['task', context.task_id, 'event', event.id] })
         }
     })
 
@@ -88,12 +90,13 @@ export const useEventBroker = (api: APIBridge): UseEventBrokerReturn => {
     const destroy = (event_id: Identifier) => api.event_destroy(event_id)
 
     const addEntry = (
+        task_id: Identifier,
         event_id: Identifier,
         start_dt: string,
         end_dt: string,
         seconds: number,
         reason: StopReasons
-    ) => addEntryMutation({ event_id, start_dt, end_dt, seconds, reason })
+    ) => addEntryMutation({ task_id, event_id, start_dt, end_dt, seconds, reason })
 
     return {
         fetch: useFetch,

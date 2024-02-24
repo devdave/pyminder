@@ -82,7 +82,7 @@ def main(argv):
 
     setup_logging()
 
-    app = Application(HERE, HERE)
+    app = Application(HERE, "events.sqlite3")
 
     if results.debug:
         print("Debug mode")

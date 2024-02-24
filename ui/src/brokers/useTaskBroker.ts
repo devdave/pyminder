@@ -14,8 +14,9 @@ export interface UpdateTask {
 }
 
 export interface UseTaskBrokerReturns {
-    fetch: (project_id: Identifier, task_id: Identifier) => UseQueryResult
-    useGetAllByProject: (project_id: Identifier) => UseQueryResult<Task[], Error>
+    invalidateTask: (project_id: Identifier, task_id: Identifier) => Promise<void>
+    fetch: (project_id: Identifier, task_id: Identifier, enabled: boolean) => UseQueryResult<Task>
+    getAllByProject: (project_id: Identifier, enabled: boolean) => UseQueryResult<Task[], Error>
     create: (project_id: Identifier, name: string) => Promise<Task>
     update: (task_id: Identifier, name: string, status: string) => Promise<Task>
     destroy: (taskId: Identifier) => Promise<boolean>
@@ -23,6 +24,10 @@ export interface UseTaskBrokerReturns {
 
 export const useTaskBroker = (api: APIBridge): UseTaskBrokerReturns => {
     const client = useQueryClient()
+
+    const invalidateTask = async (project_id: Identifier, task_id: Identifier) => {
+        await client.invalidateQueries({ queryKey: ['project', project_id, 'task', task_id] })
+    }
 
     const { mutateAsync: createMutation } = useMutation<Task, Error, CreateTask>({
         mutationFn: ({ project_id, name }) => api.task_create(project_id, name),
@@ -39,11 +44,16 @@ export const useTaskBroker = (api: APIBridge): UseTaskBrokerReturns => {
         }
     })
 
-    const useFetch = (project_id: Identifier, task_id: Identifier) =>
-        useQuery({ queryKey: ['project', project_id, 'task', task_id], queryFn: () => api.task_get(task_id) })
-
-    const useGetAllByProject = (project_id: Identifier) =>
+    const useFetch = (project_id: Identifier, task_id: Identifier, enabled: boolean) =>
         useQuery({
+            enabled,
+            queryKey: ['project', project_id, 'task', task_id],
+            queryFn: () => api.task_get(task_id)
+        })
+
+    const useGetAllByProject = (project_id: Identifier, enabled: boolean) =>
+        useQuery({
+            enabled,
             queryKey: ['project', project_id, 'tasks'],
             queryFn: () => api.tasks_lists_by_project_id(project_id)
         })
@@ -56,8 +66,9 @@ export const useTaskBroker = (api: APIBridge): UseTaskBrokerReturns => {
     const destroyTask = (id: Identifier) => api.task_destroy(id)
 
     return {
+        invalidateTask,
         fetch: useFetch,
-        useGetAllByProject,
+        getAllByProject: useGetAllByProject,
         create: createTask,
         update: updateTask,
         destroy: destroyTask

@@ -1,4 +1,5 @@
 import datetime
+       import datetime as DT
 import time
 
 from application import Application
@@ -68,7 +69,7 @@ class API:
 
     def project_create(self, client_id: Identifier, name: str) -> Project:
         with self.app.get_db() as session:
-            record = models.Project(name=name, Client=client_id)
+            record = models.Project(name=name, client_id=client_id)
             session.add(record)
             session.commit()
             return Project(id=record.id, name=record.name, client_id=record.client_id)
@@ -82,7 +83,7 @@ class API:
 
     def project_get(self, project_id: Identifier) -> Project:
         with self.app.get_db() as session:
-            return models.Project.Fetch_by_id(session, project_id)
+            return models.Project.Fetch_by_id(session, project_id).to_dict()
 
     def project_update(self, project_id: Identifier, project_name: str) -> Project:
         with self.app.get_db() as session:
@@ -99,7 +100,7 @@ class API:
 
     def task_create(self, project_id: Identifier, name: str) -> Task:
         with self.app.get_db() as session:
-            record = models.Task(name=name, Project=project_id)
+            record = models.Task(name=name, project_id=project_id)
             session.add(record)
             session.commit()
             return Task(id=record.id, name=record.name)
@@ -113,7 +114,7 @@ class API:
 
     def task_get(self, task_id: Identifier) -> Task:
         with self.app.get_db() as session:
-            return models.Task.Fetch_by_id(session, task_id)
+            return models.Task.Fetch_by_id(session, task_id).to_dict()
 
     def task_update(
         self, task_id: Identifier, name: str | None = None, status: str | None = None
@@ -151,6 +152,14 @@ class API:
             )
             session.add(record)
             session.commit()
+            return record.to_dict()
+
+    def events_get_or_create_by_date(
+        self, task_id: Identifier, start_date: datetime.date | None = None
+    ) -> list[Event]:
+        with self.app.get_db() as session:
+            my_date = start_date or datetime.date.today()
+            record = models.Event.GetOrCreateByDate(session, task_id, my_date)
             return record.to_dict()
 
     def events_by_task_id(self, task_id: Identifier) -> list[Event]:
@@ -239,19 +248,26 @@ class API:
         with self.app.get_db() as session:
             return models.Entry.Delete_By_Id(session, entry_id)
 
-    def timer_start(self, listener_id: Identifier) -> bool:
+    def timer_start(
+        self,
+        listener_id: Identifier,
+        task_id: Identifier,
+    ) -> Event:
+        with self.app.get_db() as session:
+            event = models.Event.GetOrCreateByDate(session, task_id, DT.date.today())
+
         print("timer_start", repr(listener_id))
         LOG.debug("timer_start {}", self.timer)
         if self.timer is None:
             LOG.debug("timer_starting for {}", listener_id)
-            self.timer = Timer(self.app, listener_id, 0.500)
+            self.timer = Timer(self.app, listener_id, event.id, 0.500)
 
             self.timer.start()
             LOG.debug("timer_started")
 
             return True
 
-        return False
+        return None
 
     def timer_stop(self) -> bool:
         if self.timer is not None:
