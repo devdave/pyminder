@@ -248,6 +248,14 @@ class API:
         with self.app.get_db() as session:
             return models.Entry.Delete_By_Id(session, entry_id)
 
+    def timer_check(self):
+        return self.timer and self.timer.running is True
+
+    def timer_override(self, new_reciever: Identifier):
+        old_reciever = self.timer.identifier
+        self.timer.identifier = new_reciever
+        self.app.clearCallback(old_reciever)
+
     def timer_start(
         self,
         listener_id: Identifier,
