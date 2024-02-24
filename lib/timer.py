@@ -39,7 +39,7 @@ class Timer(threading.Thread):
         with self.app.get_db() as session:
             event = models.Event.Fetch_by_id(session, event_id)
             record = event.create_entry(DT.datetime.now(), DT.datetime.now(), 0)
-
+            session.add(event)
             session.add(record)
             session.commit()
             self.entry_id = record.id

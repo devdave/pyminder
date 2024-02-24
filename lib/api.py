@@ -1,5 +1,5 @@
 import datetime
-       import datetime as DT
+ import datetime as DT
 import time
 
 from application import Application
@@ -253,21 +253,25 @@ class API:
         listener_id: Identifier,
         task_id: Identifier,
     ) -> Event:
+        event_id = None
         with self.app.get_db() as session:
             event = models.Event.GetOrCreateByDate(session, task_id, DT.date.today())
+            session.add(event)
+            session.commit()
+            event_id = event.id
 
-        print("timer_start", repr(listener_id))
         LOG.debug("timer_start {}", self.timer)
         if self.timer is None:
             LOG.debug("timer_starting for {}", listener_id)
-            self.timer = Timer(self.app, listener_id, event.id, 0.500)
+            self.timer = Timer(self.app, listener_id, event_id, 0.500)
 
             self.timer.start()
             LOG.debug("timer_started")
 
-            return True
-
-        return None
+        with self.app.get_db() as session:
+            return models.Event.GetOrCreateByDate(
+                session, task_id, DT.date.today()
+            ).to_dict()
 
     def timer_stop(self) -> bool:
         if self.timer is not None:
