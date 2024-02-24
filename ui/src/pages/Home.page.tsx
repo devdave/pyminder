@@ -163,7 +163,10 @@ export function HomePage() {
                 />
             </Center>
             <Center>
-                <Stack>
+                <Stack
+                    align='center'
+                    gap='xs'
+                >
                     <div>
                         <Text>Client</Text>
                         <SmartSelect
@@ -190,7 +193,7 @@ export function HomePage() {
                                 {selectedProject && (
                                     <span>
                                         {selectedProject.hours}:{selectedProject.minutes}:
-                                        {selectedProject.seconds}
+                                        {selectedProject.seconds.toString().padStart(2, '0')}
                                     </span>
                                 )}
                             </div>
