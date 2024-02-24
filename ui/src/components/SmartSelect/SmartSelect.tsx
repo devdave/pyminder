@@ -1,7 +1,7 @@
-// @flow
 import * as React from 'react'
 import { useState } from 'react'
-import { Combobox, InputBase, useCombobox } from '@mantine/core'
+import { ActionIcon, Combobox, InputBase, useCombobox } from '@mantine/core'
+import { IconX } from '@tabler/icons'
 import { type Identifier } from '@src/types'
 import { useLogger } from '@mantine/hooks'
 
@@ -10,6 +10,7 @@ type Props = {
     allData: { value: string; id: Identifier }[] | undefined
     addData: (newValue: string) => void
     setData: (data_id: Identifier) => void
+    deleteData: (id: Identifier, value: string) => void
     clearData: () => void
     placeholder: string
 }
@@ -19,6 +20,7 @@ export const SmartSelect: React.FC<Props> = ({
     allData,
     addData,
     setData,
+    deleteData,
     clearData,
     placeholder
 }) => {
@@ -48,6 +50,9 @@ export const SmartSelect: React.FC<Props> = ({
                 console.log('option set', option.id)
             }}
         >
+            <ActionIcon color='red'>
+                <IconX />
+            </ActionIcon>
             {option.value}
         </Combobox.Option>
     ))
@@ -59,9 +64,9 @@ export const SmartSelect: React.FC<Props> = ({
                 addData(search)
                 combobox.closeDropdown()
             } else if (options?.length === 1) {
-                const selected = filteredData?.at(0)
-                if (selected) {
-                    setData(selected.id)
+                const lastOption = filteredData?.at(0)
+                if (lastOption) {
+                    setData(lastOption.id)
                 }
             }
         }

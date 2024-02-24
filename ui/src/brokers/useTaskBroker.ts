@@ -15,6 +15,7 @@ export interface UpdateTask {
 
 export interface UseTaskBrokerReturns {
     invalidateTask: (project_id: Identifier, task_id: Identifier) => Promise<void>
+    invalidateTasks: (project_id: Identifier) => Promise<void>
     fetch: (project_id: Identifier, task_id: Identifier, enabled: boolean) => UseQueryResult<Task>
     getAllByProject: (project_id: Identifier, enabled: boolean) => UseQueryResult<Task[], Error>
     create: (project_id: Identifier, name: string) => Promise<Task>
@@ -27,6 +28,10 @@ export const useTaskBroker = (api: APIBridge): UseTaskBrokerReturns => {
 
     const invalidateTask = async (project_id: Identifier, task_id: Identifier) => {
         await client.invalidateQueries({ queryKey: ['project', project_id, 'task', task_id] })
+    }
+
+    const invalidateTasks = async (project_id: Identifier) => {
+        await client.invalidateQueries({ queryKey: ['project', project_id, 'tasks'] })
     }
 
     const { mutateAsync: createMutation } = useMutation<Task, Error, CreateTask>({
@@ -67,6 +72,7 @@ export const useTaskBroker = (api: APIBridge): UseTaskBrokerReturns => {
 
     return {
         invalidateTask,
+        invalidateTasks,
         fetch: useFetch,
         getAllByProject: useGetAllByProject,
         create: createTask,

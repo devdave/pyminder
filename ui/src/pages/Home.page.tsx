@@ -109,6 +109,15 @@ export function HomePage() {
         setSelectedTaskID(null)
     }
 
+    const deleteClient = (id: Identifier, value: string) => {
+        // eslint-disable-next-line no-alert
+        if (window.confirm(`Are you sure you want to delete this client ${value}?`)) {
+            clientBroker.destroy(id).then(() => {
+                clientBroker.invalidateClients()
+            })
+        }
+    }
+
     const addProject = (projectName: string) => {
         if (selectedClientID !== null && selectedClientID !== undefined) {
             projectBroker.create(selectedClientID, projectName).then((record) => {
@@ -130,6 +139,15 @@ export function HomePage() {
         setSelectedTaskID(null)
     }
 
+    const deleteProject = (id: Identifier, value: string) => {
+        // eslint-disable-next-line no-alert
+        if (window.confirm(`Are you sure you want to delete this, ${value} project?`)) {
+            projectBroker.destroy(id).then(() => {
+                projectBroker.invalidateProjects(selectedClientID as Identifier).then()
+            })
+        }
+    }
+
     const addTask = (taskName: string) => {
         if (selectedProjectId) {
             taskBroker.create(selectedProjectId, taskName).then((record) => {
@@ -147,6 +165,18 @@ export function HomePage() {
 
     const clearTask = () => {
         setSelectedTaskID(null)
+    }
+
+    const deleteSelectedTask = (id: Identifier, value: string) => {
+        // eslint-disable-next-line no-alert
+        const choice = window.confirm(`Are you sure you want to delete ${value} task?`)
+        if (choice) {
+            taskBroker.destroy(id).then(() => {
+                if (selectedProjectId) {
+                    taskBroker.invalidateTasks(selectedProjectId).then()
+                }
+            })
+        }
     }
 
     return (
@@ -175,6 +205,7 @@ export function HomePage() {
                             addData={addClient}
                             setData={setClient}
                             clearData={clearClient}
+                            deleteData={deleteClient}
                             placeholder='Select Client'
                         />
                     </div>
@@ -188,6 +219,7 @@ export function HomePage() {
                                     addData={addProject}
                                     setData={setProject}
                                     clearData={clearProject}
+                                    deleteData={deleteProject}
                                     placeholder='Select Client'
                                 />
                                 {selectedProject && (
@@ -208,6 +240,7 @@ export function HomePage() {
                                 addData={addTask}
                                 setData={setTask}
                                 clearData={clearTask}
+                                deleteData={deleteSelectedTask}
                                 placeholder='Select or create a new task'
                             />
                             {selectedTask && (
