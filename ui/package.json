@@ -21,6 +21,7 @@
   "dependencies": {
     "@mantine/core": "7.5.1",
     "@mantine/hooks": "7.5.1",
+    "@tabler/icons": "^2.47.0",
     "@tanstack/react-query": "^5.22.2",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
