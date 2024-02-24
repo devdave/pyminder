@@ -47,11 +47,12 @@ def db_with(db_url="sqlite:///test.sqlite3", echo=True):
         yield session
 
 
-def connect(db_path: pathlib.Path, echo=False):
+def connect(db_path: pathlib.Path, echo=False, create=True):
     engine = create_engine(
         f"sqlite:///{db_path}", echo=echo, pool_size=10, max_overflow=20
     )
-    Base.metadata.create_all(engine, checkfirst=True)
+    if create:
+        Base.metadata.create_all(engine, checkfirst=True)
 
     session_factory = sessionmaker(bind=engine)
 
@@ -288,7 +289,10 @@ class Event(Base):
 
     @hybrid_property
     def seconds(self):
-        return sum(entry.seconds for entry in self.entries)
+        time = sum(entry.seconds for entry in self.entries)
+        hours, remainder = divmod(time, 3600)
+        minutes, seconds = divmod(remainder, 60)
+        return int(seconds)
 
     @hybrid_property
     def minutes(self):
@@ -319,13 +323,14 @@ class Entry(Base):
 
     @hybrid_property
     def minutes(self):
-        minutes, remainder = divmod(self.seconds, 60)
-        return minutes
+        hours, remainder = divmod(self.seconds, 3600)
+        minutes, seconds = divmod(remainder, 60)
+        return int(minutes)
 
     @hybrid_property
     def hours(self):
         hours, remainder = divmod(self.seconds, 3600)
-        return hours
+        return int(hours)
 
     @classmethod
     def GetByEvent(cls, session, event_id):
