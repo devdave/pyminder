@@ -71,3 +71,5 @@ class TimeOwner(T.TypedDict):
     project: Project
     task: Task
     event: Event
+    isRunning: bool
+    isPaused: bool

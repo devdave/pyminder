@@ -61,4 +61,6 @@ export interface TimeOwner {
     project: Project
     task: Task
     event: Event
+    isRunning: boolean
+    isPaused: boolean
 }
