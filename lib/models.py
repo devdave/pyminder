@@ -119,6 +119,9 @@ class Client(Base):
         "Project", back_populates="client", cascade="all, delete-orphan"
     )
 
+    def to_dict(self):
+        return dict(name=self.name, id=self.id)
+
 
 class Project(Base):
     name: Mapped[str] = mapped_column()
