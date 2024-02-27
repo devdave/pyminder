@@ -254,7 +254,8 @@ class API:
 
     def timer_owner(self) -> TimeOwner:
         with self.app.get_db() as session:
-            event = models.Event.Fetch_by_id(session, self.timer)
+            entry = models.Entry.Fetch_by_id(session, self.timer.entry_id)
+            event = entry.event
             task = event.task
             project = task.project
             client = project.client
@@ -263,11 +264,13 @@ class API:
                 project=project.to_dict(),
                 task=task.to_dict(),
                 event=event.to_dict(),
+                isRunning=self.timer.running,
+                isPaused=self.timer.paused,
             )
 
     def timer_override(self, new_receiver: Identifier) -> None:
         old_receiver = self.timer.identifier
-        self.timer.identifier = new_reciever
+        self.timer.identifier = new_receiver
         self.app.clearCallback(old_receiver)
 
     def timer_start(
