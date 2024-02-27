@@ -1,7 +1,6 @@
-import { useState } from 'react'
+import React, { useState } from 'react'
 import { CloseButton, Combobox, InputBase, useCombobox } from '@mantine/core'
 import { Identifier } from '@src/types'
-import { useLogger } from '@mantine/hooks'
 import { find } from 'lodash'
 
 interface SelectCreatableProps {
@@ -10,6 +9,7 @@ interface SelectCreatableProps {
     createData: (value: string) => void
     setData: (id: Identifier | string) => void
     onClear: () => void
+    placeholder: string
 }
 
 export const SelectCreatable: React.FC<SelectCreatableProps> = ({
@@ -17,7 +17,8 @@ export const SelectCreatable: React.FC<SelectCreatableProps> = ({
     createData,
     selected,
     setData,
-    onClear
+    onClear,
+    placeholder
 }) => {
     const combobox = useCombobox({
         onDropdownClose: () => combobox.resetSelectedOption()
@@ -25,9 +26,6 @@ export const SelectCreatable: React.FC<SelectCreatableProps> = ({
 
     const [value, setValue] = useState<string | undefined>(selected?.value)
     const [search, setSearch] = useState(selected?.value || '')
-
-    useLogger('SmartSelectV2', [search, value, selected])
-    console.log('SmartSelectV2 log', search, value, selected, data)
 
     const exactOptionMatch = data.some((item) => item.value === search)
     const filteredOptions = exactOptionMatch
@@ -99,7 +97,7 @@ export const SelectCreatable: React.FC<SelectCreatableProps> = ({
                         combobox.closeDropdown()
                         setSearch(value || '')
                     }}
-                    placeholder='Search value'
+                    placeholder={placeholder}
                 />
             </Combobox.Target>
 

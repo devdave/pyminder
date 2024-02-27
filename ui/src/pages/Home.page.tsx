@@ -238,7 +238,7 @@ export function HomePage() {
                             setData={setClient}
                             // clearData={clearClient}
                             // deleteData={deleteClient}
-                            // placeholder='Select Client'
+                            placeholder='Select Client'
                             onClear={clearClient}
                         />
                     </div>
@@ -256,6 +256,7 @@ export function HomePage() {
                                     createData={addProject}
                                     setData={setProject}
                                     onClear={clearProject}
+                                    placeholder='Select Project'
                                 />
                                 {selectedProject && (
                                     <span>
@@ -279,6 +280,7 @@ export function HomePage() {
                                 createData={addTask}
                                 setData={setTask}
                                 onClear={clearTask}
+                                placeholder='Select Task'
                             />
                             {selectedTask && (
                                 <span>
