@@ -10,6 +10,8 @@ interface MainTimerProps {
     stopCB: () => unknown
     pauseCB: () => unknown
     resumeCB: () => unknown
+    currentlyRunning: boolean
+    currentlyPaused: boolean
 }
 
 export const MainTimer: React.FC<MainTimerProps> = ({
@@ -18,10 +20,12 @@ export const MainTimer: React.FC<MainTimerProps> = ({
     startCB,
     stopCB,
     pauseCB,
-    resumeCB
+    resumeCB,
+    currentlyRunning,
+    currentlyPaused
 }) => {
-    const [isRunning, setRunning] = React.useState(false)
-    const [isPaused, setPaused] = React.useState(false)
+    const [isRunning, setRunning] = React.useState(currentlyRunning)
+    const [isPaused, setPaused] = React.useState(currentlyPaused)
 
     const doStart = () => {
         startCB()

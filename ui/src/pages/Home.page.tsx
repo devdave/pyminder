@@ -10,10 +10,12 @@ export function HomePage() {
     const { api, switchboard, clientBroker, projectBroker, taskBroker } = useAppContext()
 
     const [currentTime, setCurrentTime] = useState<TimeObj>({ hour: 0, minute: 0, second: 0 })
+    const [isPaused, setIsPaused] = useState(false)
+    const [isRunning, setIsRunning] = useState(false)
 
     const [selectedClientID, setSelectedClientID] = useState<Identifier | null>(null)
-    const [selectedProjectId, setSelectedProjectId] = useState<Identifier | null>(null)
-    const [selectedTaskId, setSelectedTaskID] = useState<Identifier | null>(null)
+    const [selectedProjectID, setSelectedProjectID] = useState<Identifier | null>(null)
+    const [selectedTaskID, setSelectedTaskID] = useState<Identifier | null>(null)
 
     const { data: clients, isLoading: clientsAreLoading } = clientBroker.getAll()
 
@@ -24,8 +26,8 @@ export function HomePage() {
 
     const { data: selectedProject, isLoading: selectedProjectIsLoading } = projectBroker.fetch(
         selectedClientID as Identifier,
-        selectedProjectId as Identifier,
-        selectedProjectId !== null && selectedProjectId !== undefined
+        selectedProjectID as Identifier,
+        selectedProjectID !== null && selectedProjectID !== undefined
     )
 
     const { data: allProjects, isLoading: projectsAreLoading } = projectBroker.useGetAllByClient(
@@ -34,14 +36,14 @@ export function HomePage() {
     )
 
     const { data: allTasks, isLoading: tasksAreLoading } = taskBroker.getAllByProject(
-        selectedProjectId as Identifier,
-        selectedProjectId !== undefined && selectedProjectId !== null
+        selectedProjectID as Identifier,
+        selectedProjectID !== undefined && selectedProjectID !== null
     )
 
     const { data: selectedTask, isLoading: taskIsLoading } = taskBroker.fetch(
-        selectedProjectId as Identifier,
-        selectedTaskId as Identifier,
-        selectedTaskId !== undefined && selectedTaskId !== null
+        selectedProjectID as Identifier,
+        selectedTaskID as Identifier,
+        selectedTaskID !== undefined && selectedTaskID !== null
     )
 
     const timeChanged = (newTime: [number, number, number]) => {
@@ -56,9 +58,9 @@ export function HomePage() {
     const timeStop = () => {
         api.timer_stop().then(() => {
             projectBroker
-                .invalidateProject(selectedClientID as Identifier, selectedProjectId as Identifier)
+                .invalidateProject(selectedClientID as Identifier, selectedProjectID as Identifier)
                 .then()
-            taskBroker.invalidateTask(selectedProjectId as Identifier, selectedTaskId as Identifier).then()
+            taskBroker.invalidateTask(selectedProjectID as Identifier, selectedTaskID as Identifier).then()
         })
     }
 
@@ -66,7 +68,7 @@ export function HomePage() {
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-ignore
         const id = switchboard.generate(timeChanged)
-        await api.timer_start(id, selectedTaskId as Identifier)
+        await api.timer_start(id, selectedTaskID as Identifier)
     }
 
     useEffect(() => {
@@ -74,8 +76,10 @@ export function HomePage() {
             if (status) {
                 api.timer_owner().then((owner: TimeOwner) => {
                     setSelectedClientID(owner.client.id)
-                    setSelectedProjectId(owner.project.id)
+                    setSelectedProjectID(owner.project.id)
                     setSelectedTaskID(owner.task.id)
+                    setIsPaused(owner.isPaused)
+                    setIsRunning(owner.isRunning)
                     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
                     // @ts-ignore
                     const new_id = switchboard.generate(timeChanged)
@@ -137,7 +141,7 @@ export function HomePage() {
     const addProject = (projectName: string) => {
         if (selectedClientID !== null && selectedClientID !== undefined) {
             projectBroker.create(selectedClientID, projectName).then((record) => {
-                setSelectedProjectId(record.id)
+                setSelectedProjectID(record.id)
             })
         }
     }
@@ -146,27 +150,27 @@ export function HomePage() {
         console.log('project set', projectId)
 
         if (projectId !== null && projectId !== undefined) {
-            setSelectedProjectId(projectId)
+            setSelectedProjectID(projectId)
         }
     }
 
-    const clearProject = () => {
-        setSelectedProjectId(null)
-        setSelectedTaskID(null)
-    }
+    // const clearProject = () => {
+    //     setSelectedProjectID(null)
+    //     setSelectedTaskID(null)
+    // }
 
-    const deleteProject = (id: Identifier, value: string) => {
-        // eslint-disable-next-line no-alert
-        if (window.confirm(`Are you sure you want to delete this, ${value} project?`)) {
-            projectBroker.destroy(id).then(() => {
-                projectBroker.invalidateProjects(selectedClientID as Identifier).then()
-            })
-        }
-    }
+    // const deleteProject = (id: Identifier, value: string) => {
+    //     // eslint-disable-next-line no-alert
+    //     if (window.confirm(`Are you sure you want to delete this, ${value} project?`)) {
+    //         projectBroker.destroy(id).then(() => {
+    //             projectBroker.invalidateProjects(selectedClientID as Identifier).then()
+    //         })
+    //     }
+    // }
 
     const addTask = (taskName: string) => {
-        if (selectedProjectId) {
-            taskBroker.create(selectedProjectId, taskName).then((record) => {
+        if (selectedProjectID) {
+            taskBroker.create(selectedProjectID, taskName).then((record) => {
                 setSelectedTaskID(record.id)
             })
         }
@@ -179,33 +183,35 @@ export function HomePage() {
         }
     }
 
-    const clearTask = () => {
-        setSelectedTaskID(null)
-    }
+    // const clearTask = () => {
+    //     setSelectedTaskID(null)
+    // }
 
-    const deleteSelectedTask = (id: Identifier, value: string) => {
-        // eslint-disable-next-line no-alert
-        const choice = window.confirm(`Are you sure you want to delete ${value} task?`)
-        if (choice) {
-            taskBroker.destroy(id).then(() => {
-                if (selectedProjectId) {
-                    taskBroker.invalidateTasks(selectedProjectId).then()
-                }
-            })
-        }
-    }
+    // const deleteSelectedTask = (id: Identifier, value: string) => {
+    //     // eslint-disable-next-line no-alert
+    //     const choice = window.confirm(`Are you sure you want to delete ${value} task?`)
+    //     if (choice) {
+    //         taskBroker.destroy(id).then(() => {
+    //             if (selectedProjectID) {
+    //                 taskBroker.invalidateTasks(selectedProjectID).then()
+    //             }
+    //         })
+    //     }
+    // }
 
     return (
         <>
             <ColorSchemeToggle />
             <Center>
                 <MainTimer
-                    enabled={!!selectedTaskId}
+                    enabled={!!selectedTaskID}
                     time={currentTime}
                     startCB={startTime}
                     stopCB={() => timeStop()}
                     pauseCB={() => api.timer_pause().then()}
                     resumeCB={() => api.timer_resume().then()}
+                    currentlyRunning={isRunning}
+                    currentlyPaused={isPaused}
                 />
             </Center>
             <Center>
