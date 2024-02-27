@@ -1,6 +1,6 @@
 import { MainTimer } from '@src/components/MainTimer/MainTimer'
 import { ColorSchemeToggle } from '@src/components/ColorSchemeToggle/ColorSchemeToggle'
-import { Center, Stack, Text } from '@mantine/core'
+import { Button, Center, Stack, Text } from '@mantine/core'
 import { useAppContext } from '@src/App.context'
 import { useEffect, useState } from 'react'
 import { Client, Identifier, Project, Task, TimeObj, TimeOwner } from '@src/types'
@@ -120,11 +120,11 @@ export function HomePage() {
         }
     }
 
-    // const clearClient = () => {
-    //     setSelectedClientID(null)
-    //     setSelectedProjectId(null)
-    //     setSelectedTaskID(null)
-    // }
+    const clearClient = () => {
+        setSelectedClientID(null)
+        setSelectedProjectID(null)
+        setSelectedTaskID(null)
+    }
 
     // const deleteClient = (id: Identifier, value: string) => {
     //     setSelectedClientID(null)
@@ -154,10 +154,10 @@ export function HomePage() {
         }
     }
 
-    // const clearProject = () => {
-    //     setSelectedProjectID(null)
-    //     setSelectedTaskID(null)
-    // }
+    const clearProject = () => {
+        setSelectedProjectID(null)
+        setSelectedTaskID(null)
+    }
 
     // const deleteProject = (id: Identifier, value: string) => {
     //     // eslint-disable-next-line no-alert
@@ -183,9 +183,9 @@ export function HomePage() {
         }
     }
 
-    // const clearTask = () => {
-    //     setSelectedTaskID(null)
-    // }
+    const clearTask = () => {
+        setSelectedTaskID(null)
+    }
 
     // const deleteSelectedTask = (id: Identifier, value: string) => {
     //     // eslint-disable-next-line no-alert
@@ -198,6 +198,10 @@ export function HomePage() {
     //         })
     //     }
     // }
+
+    const open_window = (win_name: string) => {
+        api.open_window(win_name).then()
+    }
 
     return (
         <>
@@ -235,6 +239,7 @@ export function HomePage() {
                             // clearData={clearClient}
                             // deleteData={deleteClient}
                             // placeholder='Select Client'
+                            onClear={clearClient}
                         />
                     </div>
                     {projectsData && (
@@ -250,6 +255,7 @@ export function HomePage() {
                                     data={projectsData}
                                     createData={addProject}
                                     setData={setProject}
+                                    onClear={clearProject}
                                 />
                                 {selectedProject && (
                                     <span>
@@ -272,6 +278,7 @@ export function HomePage() {
                                 data={taskData}
                                 createData={addTask}
                                 setData={setTask}
+                                onClear={clearTask}
                             />
                             {selectedTask && (
                                 <span>
@@ -282,6 +289,9 @@ export function HomePage() {
                             )}
                         </div>
                     )}
+                    <div>
+                        <Button onClick={() => open_window('manage')}>Manage</Button>
+                    </div>
                 </Stack>
             </Center>
         </>

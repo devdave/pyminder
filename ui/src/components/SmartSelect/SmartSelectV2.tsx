@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Combobox, InputBase, useCombobox } from '@mantine/core'
+import { CloseButton, Combobox, InputBase, useCombobox } from '@mantine/core'
 import { Identifier } from '@src/types'
 import { useLogger } from '@mantine/hooks'
 import { find } from 'lodash'
@@ -9,9 +9,16 @@ interface SelectCreatableProps {
     selected: { value: string; id: Identifier } | undefined
     createData: (value: string) => void
     setData: (id: Identifier | string) => void
+    onClear: () => void
 }
 
-export const SelectCreatable: React.FC<SelectCreatableProps> = ({ data, createData, selected, setData }) => {
+export const SelectCreatable: React.FC<SelectCreatableProps> = ({
+    data,
+    createData,
+    selected,
+    setData,
+    onClear
+}) => {
     const combobox = useCombobox({
         onDropdownClose: () => combobox.resetSelectedOption()
     })
@@ -45,10 +52,6 @@ export const SelectCreatable: React.FC<SelectCreatableProps> = ({ data, createDa
                     createData(search)
                     setValue(search)
                 } else {
-                    // const data_id = find<{ id: Identifier; value: string }>(
-                    //     data,
-                    //     (element: { id: string; value: string }) => element.value === submitted_val
-                    // )
                     const selected_data = find(data, (element) => element.id === submitted_val)
 
                     // const data_id = { id: 2, value: 'self' }
@@ -67,8 +70,24 @@ export const SelectCreatable: React.FC<SelectCreatableProps> = ({ data, createDa
         >
             <Combobox.Target>
                 <InputBase
-                    rightSection={<Combobox.Chevron />}
+                    rightSection={
+                        value !== undefined ? (
+                            <CloseButton
+                                size='sm'
+                                onMouseDown={(event) => event.preventDefault()}
+                                onClick={() => {
+                                    setValue(undefined)
+                                    setSearch('')
+                                    onClear()
+                                }}
+                                aria-label='Clear value'
+                            />
+                        ) : (
+                            <Combobox.Chevron />
+                        )
+                    }
                     value={search}
+                    rightSectionPointerEvents={value === undefined ? 'none' : 'all'}
                     onChange={(event) => {
                         combobox.openDropdown()
                         combobox.updateSelectedOptionIndex()
@@ -81,7 +100,6 @@ export const SelectCreatable: React.FC<SelectCreatableProps> = ({ data, createDa
                         setSearch(value || '')
                     }}
                     placeholder='Search value'
-                    rightSectionPointerEvents='none'
                 />
             </Combobox.Target>
 

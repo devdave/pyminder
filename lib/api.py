@@ -321,4 +321,4 @@ class API:
         return False
 
     def open_window(self, win_name: str) -> bool:
-        return self.app.open_window(win_name)
+        return self.app.open_window(self, win_name)

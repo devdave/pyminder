@@ -98,8 +98,8 @@ class APIBridge {
     timer_owner():Promise<TimeOwner> {
         return this.boundary.remote('timer_owner') as Promise<TimeOwner>
     }
-    timer_override(new_reciever:Identifier): Promise<void> {
-        return this.boundary.remote('timer_override', new_reciever) as Promise<void>
+    timer_override(new_receiver:Identifier): Promise<void> {
+        return this.boundary.remote('timer_override', new_receiver) as Promise<void>
     }
     timer_start(listener_id:Identifier, task_id:Identifier):Promise<Event> {
         return this.boundary.remote('timer_start', listener_id, task_id) as Promise<Event>
@@ -112,6 +112,9 @@ class APIBridge {
     }
     timer_resume():Promise<boolean> {
         return this.boundary.remote('timer_resume') as Promise<boolean>
+    }
+    open_window(win_name:string):Promise<boolean> {
+        return this.boundary.remote('open_window', win_name) as Promise<boolean>
     }
 }
 
