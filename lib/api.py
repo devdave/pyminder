@@ -319,3 +319,6 @@ class API:
             self.timer.resume()
             return True
         return False
+
+    def open_window(self, win_name: str) -> bool:
+        return self.app.open_window(win_name)

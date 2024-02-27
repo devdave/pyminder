@@ -65,3 +65,8 @@ class Application:
         yield session
         session.close()
         del session
+
+    def open_window(self, win_name: str) -> bool:
+        valid = ["tasks", "reports", "manage"]
+        if win_name in valid:
+            pass
