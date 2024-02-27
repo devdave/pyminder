@@ -14,6 +14,8 @@ from sqlalchemy import (
     UniqueConstraint,
     and_,
     delete,
+    cast,
+    Integer,
 )
 from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.orm import (
@@ -347,3 +349,33 @@ class Entry(Base):
     def GetByEvent(cls, session, event_id):
         stmt = select(cls).where(cls.event_id == event_id)
         return session.execute(stmt).scalars().all()
+
+
+class Queries:
+    @classmethod
+    def BreakdownAll(cls, session):
+        stmt = (
+            select(
+                (func.strftime("%Y-%m-%d", Entry.started_on)).label("dtwhen"),
+                Client.name.label("cname"),
+                Project.name.label("pname"),
+                Task.name.label("tname"),
+                cast(
+                    func.round(func.sum(Entry.seconds) / 3600).label("hours"),
+                    Integer,
+                ),
+                cast(
+                    func.round(func.sum(Entry.seconds) % 3600 / 60).label("minutes"),
+                    Integer,
+                ),
+                func.count(Entry.id).label("entries"),
+            )
+            .select_from(Event)
+            .join(Entry, Entry.event_id == Event.id)
+            .join(Task, Event.task_id == Task.id)
+            .join(Project, Task.project_id == Project.id)
+            .join(Client, Project.client_id == Client.id)
+            .group_by("cname", "pname", "tname", "dtwhen")
+            .order_by("dtwhen")
+        )
+        return session.execute(stmt).all()
