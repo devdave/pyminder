@@ -20,9 +20,6 @@ export const MainTimer: React.FC<MainTimerProps> = ({
     pauseCB,
     resumeCB
 }) => {
-    const number = 123
-    console.log(number)
-
     const [isRunning, setRunning] = React.useState(false)
     const [isPaused, setPaused] = React.useState(false)
 

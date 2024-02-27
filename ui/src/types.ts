@@ -55,3 +55,10 @@ export interface TimeObj {
     minute: number
     second: number
 }
+
+export interface TimeOwner {
+    client: Client
+    project: Project
+    task: Task
+    event: Event
+}

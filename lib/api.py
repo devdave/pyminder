@@ -13,6 +13,7 @@ from .app_types import (
     StopReasons,
     Entry,
     TaskStatus,
+    TimeOwner,
 )
 from .log_helper import getLogger
 from .timer import Timer
@@ -248,13 +249,26 @@ class API:
         with self.app.get_db() as session:
             return models.Entry.Delete_By_Id(session, entry_id)
 
-    def timer_check(self):
-        return self.timer and self.timer.running is True
+    def timer_check(self) -> bool:
+        return self.timer is not None and self.timer.running is True
 
-    def timer_override(self, new_reciever: Identifier):
-        old_reciever = self.timer.identifier
+    def timer_owner(self) -> TimeOwner:
+        with self.app.get_db() as session:
+            event = models.Event.Fetch_by_id(session, self.timer)
+            task = event.task
+            project = task.project
+            client = project.client
+            return TimeOwner(
+                client=client.to_dict(),
+                project=project.to_dict(),
+                task=task.to_dict(),
+                event=event.to_dict(),
+            )
+
+    def timer_override(self, new_receiver: Identifier) -> None:
+        old_receiver = self.timer.identifier
         self.timer.identifier = new_reciever
-        self.app.clearCallback(old_reciever)
+        self.app.clearCallback(old_receiver)
 
     def timer_start(
         self,
@@ -277,9 +291,7 @@ class API:
             LOG.debug("timer_started")
 
         with self.app.get_db() as session:
-            return models.Event.GetOrCreateByDate(
-                session, task_id, DT.date.today()
-            ).to_dict()
+            return models.Event.Fetch_by_id(session, event_id).to_dict()
 
     def timer_stop(self) -> bool:
         if self.timer is not None:

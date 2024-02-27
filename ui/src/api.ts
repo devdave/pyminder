@@ -1,4 +1,4 @@
-import { type Identifier, type Client, type Project, type Task, type Event, type Entry } from '@src/types'
+import { type Identifier, type Client, type Project, type Task, type Event, type Entry, type TimeOwner } from '@src/types'
 
 interface Boundary {
     remote: (method_name:string, ...args:unknown[])=> Promise<unknown>
@@ -92,8 +92,11 @@ class APIBridge {
     entry_destroy(entry_id:Identifier):Promise<boolean> {
         return this.boundary.remote('entry_destroy', entry_id) as Promise<boolean>
     }
-    timer_check(): Promise<void> {
-        return this.boundary.remote('timer_check') as Promise<void>
+    timer_check():Promise<boolean> {
+        return this.boundary.remote('timer_check') as Promise<boolean>
+    }
+    timer_owner():Promise<TimeOwner> {
+        return this.boundary.remote('timer_owner') as Promise<TimeOwner>
     }
     timer_override(new_reciever:Identifier): Promise<void> {
         return this.boundary.remote('timer_override', new_reciever) as Promise<void>

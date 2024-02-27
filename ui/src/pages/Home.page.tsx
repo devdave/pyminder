@@ -1,11 +1,10 @@
 import { MainTimer } from '@src/components/MainTimer/MainTimer'
 import { ColorSchemeToggle } from '@src/components/ColorSchemeToggle/ColorSchemeToggle'
-import { SmartSelect } from '@src/components/SmartSelect/SmartSelect'
 import { Center, Stack, Text } from '@mantine/core'
 import { useAppContext } from '@src/App.context'
-import { useState } from 'react'
-import { Client, Identifier, Project, Task, TimeObj } from '@src/types'
-import { useLogger } from '@mantine/hooks'
+import { useEffect, useState } from 'react'
+import { Client, Identifier, Project, Task, TimeObj, TimeOwner } from '@src/types'
+import { SelectCreatable } from '@src/components/SmartSelect/SmartSelectV2'
 
 export function HomePage() {
     const { api, switchboard, clientBroker, projectBroker, taskBroker } = useAppContext()
@@ -45,8 +44,6 @@ export function HomePage() {
         selectedTaskId !== undefined && selectedTaskId !== null
     )
 
-    useLogger('Home', ['I am in hell'])
-
     const timeChanged = (newTime: [number, number, number]) => {
         console.log('tick', newTime)
         setCurrentTime(() => ({
@@ -71,6 +68,22 @@ export function HomePage() {
         const id = switchboard.generate(timeChanged)
         await api.timer_start(id, selectedTaskId as Identifier)
     }
+
+    useEffect(() => {
+        api.timer_check().then((status) => {
+            if (status) {
+                api.timer_owner().then((owner: TimeOwner) => {
+                    setSelectedClientID(owner.client.id)
+                    setSelectedProjectId(owner.project.id)
+                    setSelectedTaskID(owner.task.id)
+                    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                    // @ts-ignore
+                    const new_id = switchboard.generate(timeChanged)
+                    api.timer_override(new_id).then()
+                })
+            }
+        })
+    }, [])
 
     const clientData = clients?.map((element: Client) => ({ id: element.id, value: element.name }))
 
@@ -103,20 +116,23 @@ export function HomePage() {
         }
     }
 
-    const clearClient = () => {
-        setSelectedClientID(null)
-        setSelectedProjectId(null)
-        setSelectedTaskID(null)
-    }
+    // const clearClient = () => {
+    //     setSelectedClientID(null)
+    //     setSelectedProjectId(null)
+    //     setSelectedTaskID(null)
+    // }
 
-    const deleteClient = (id: Identifier, value: string) => {
-        // eslint-disable-next-line no-alert
-        if (window.confirm(`Are you sure you want to delete this client ${value}?`)) {
-            clientBroker.destroy(id).then(() => {
-                clientBroker.invalidateClients()
-            })
-        }
-    }
+    // const deleteClient = (id: Identifier, value: string) => {
+    //     setSelectedClientID(null)
+    //     setSelectedProjectId(null)
+    //     setSelectedTaskID(null)
+    //     // eslint-disable-next-line no-alert
+    //     if (window.confirm(`Are you sure you want to delete this client ${value}?`)) {
+    //         clientBroker.destroy(id).then(() => {
+    //             clientBroker.invalidateClients().then()
+    //         })
+    //     }
+    // }
 
     const addProject = (projectName: string) => {
         if (selectedClientID !== null && selectedClientID !== undefined) {
@@ -199,28 +215,35 @@ export function HomePage() {
                 >
                     <div>
                         <Text>Client</Text>
-                        <SmartSelect
-                            selected={{ value: selectedClient?.name, id: selectedClient?.id }}
-                            allData={clientData}
-                            addData={addClient}
+                        <SelectCreatable
+                            data={clientData || []}
+                            selected={
+                                selectedClient
+                                    ? { value: selectedClient?.name, id: selectedClient?.id }
+                                    : undefined
+                            }
+                            createData={addClient}
+                            // allData={clientData}
+                            // addData={addClient}
                             setData={setClient}
-                            clearData={clearClient}
-                            deleteData={deleteClient}
-                            placeholder='Select Client'
+                            // clearData={clearClient}
+                            // deleteData={deleteClient}
+                            // placeholder='Select Client'
                         />
                     </div>
                     {projectsData && (
                         <>
                             <div>
                                 <Text>Project</Text>
-                                <SmartSelect
-                                    selected={{ value: selectedProject?.name, id: selectedProject?.id }}
-                                    allData={projectsData}
-                                    addData={addProject}
+                                <SelectCreatable
+                                    selected={
+                                        selectedProject
+                                            ? { value: selectedProject?.name, id: selectedProject?.id }
+                                            : undefined
+                                    }
+                                    data={projectsData}
+                                    createData={addProject}
                                     setData={setProject}
-                                    clearData={clearProject}
-                                    deleteData={deleteProject}
-                                    placeholder='Select Client'
                                 />
                                 {selectedProject && (
                                     <span>
@@ -234,14 +257,15 @@ export function HomePage() {
                     {projectsData && taskData && (
                         <div>
                             <Text>Task</Text>
-                            <SmartSelect
-                                selected={{ value: selectedTask?.name, id: selectedTask?.id }}
-                                allData={taskData}
-                                addData={addTask}
+                            <SelectCreatable
+                                selected={
+                                    selectedTask
+                                        ? { value: selectedTask?.name, id: selectedTask?.id }
+                                        : undefined
+                                }
+                                data={taskData}
+                                createData={addTask}
                                 setData={setTask}
-                                clearData={clearTask}
-                                deleteData={deleteSelectedTask}
-                                placeholder='Select or create a new task'
                             />
                             {selectedTask && (
                                 <span>

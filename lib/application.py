@@ -43,7 +43,7 @@ class Application:
         import json
 
         temp = json.dumps(args)
-        script = f"window.callBack('{identifier}', {temp})"
+        script = f"window.criticalCallBack('{identifier}', {temp})"
         return self.main_window.evaluate_js(script)
 
     def clearCallback(self, identifier: Identifier):

@@ -64,3 +64,10 @@ class Entry(T.TypedDict):
     ended_on: datetime.date
     seconds: int
     stop_reason: str
+
+
+class TimeOwner(T.TypedDict):
+    client: Client
+    project: Project
+    task: Task
+    event: Event

@@ -9,6 +9,7 @@ declare global {
         returnCall: (identifier: Identifier, result: never) => void
         callBack: (identifier: Identifier, result: never) => void
         endCallback: (identifier: Identifier) => void
+        criticalCall: (identifier: Identifier, ...result: unknown[]) => unknown
     }
 }
 
@@ -18,10 +19,11 @@ export class Switchboard {
         this.callbacks = {}
         window.returnCall = this.returnVal.bind(this)
         window.callBack = this.callBack.bind(this)
+        window.criticalCall = this.criticalCallBack.bind(this)
         window.endCallback = this.finished.bind(this)
     }
 
-    public generate(callBack: () => void): Identifier {
+    public generate(callBack: (args: unknown) => void): Identifier {
         const id = this.generateId()
         this.callbacks[id] = callBack
         return id
@@ -52,6 +54,14 @@ export class Switchboard {
 
     public finished(identifier: Identifier) {
         this.deregister(identifier)
+    }
+
+    public criticalCallBack(identifier: Identifier, ...results: [unknown]) {
+        console.debug('criticalCallBack', identifier, results)
+        if (this.callbacks[identifier] === undefined) {
+            throw Error(`Missing callback with identifier ${identifier}"`)
+        }
+        return this.callbacks[identifier].apply(this, results)
     }
 
     public callBack(identifier: Identifier, ...results: [unknown]) {

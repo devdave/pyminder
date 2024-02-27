@@ -1,7 +1,7 @@
 import * as React from 'react'
 import { useState } from 'react'
-import { ActionIcon, Combobox, InputBase, useCombobox } from '@mantine/core'
-import { IconX } from '@tabler/icons'
+import { ActionIcon, Button, CloseButton, Combobox, Input, InputBase, useCombobox } from '@mantine/core'
+import { IconX } from '@tabler/icons-react'
 import { type Identifier } from '@src/types'
 import { useLogger } from '@mantine/hooks'
 
@@ -40,6 +40,23 @@ export const SmartSelect: React.FC<Props> = ({
             item.value.toLowerCase().indexOf(search.toLowerCase()) !== -1
     )
 
+    const handleDelete = (id: Identifier, target_name: string) => {
+        setSearch(() => '')
+        setValue(() => '')
+        clearData()
+        deleteData(id, target_name)
+    }
+
+    const handleNew = () => {
+        const name = window.prompt('Enter new name')
+        if (name && name.trim().length > 0) {
+            setValue(() => name)
+            setSearch(() => name)
+            addData(name)
+            combobox.closeDropdown()
+        }
+    }
+
     const options = filteredData?.map((option) => (
         <Combobox.Option
             selected={option.id === selected?.value}
@@ -50,14 +67,19 @@ export const SmartSelect: React.FC<Props> = ({
                 console.log('option set', option.id)
             }}
         >
-            <ActionIcon color='red'>
+            {option.value}
+            <ActionIcon
+                color='red'
+                size='xs'
+                onClick={() => handleDelete(option.id, option.value)}
+            >
                 <IconX />
             </ActionIcon>
-            {option.value}
         </Combobox.Option>
     ))
 
     const createOnEnter = (evt: { code: string }) => {
+        console.log('selected index', combobox.selectedOptionIndex)
         if (evt.code.toLowerCase() === 'enter') {
             const shouldMakeNew = options ? options.length <= 0 : true
             if (shouldMakeNew) {
@@ -79,6 +101,7 @@ export const SmartSelect: React.FC<Props> = ({
                 withinPortal={false}
                 onOptionSubmit={(val) => {
                     console.log('onsubmit', val)
+
                     if (val === '$create') {
                         addData(search)
                         setValue(() => search)
@@ -93,14 +116,31 @@ export const SmartSelect: React.FC<Props> = ({
             >
                 <Combobox.Target>
                     <InputBase
-                        rightSection={<Combobox.Chevron />}
-                        value={search}
+                        component='button'
+                        type='button'
+                        pointer
+                        rightSection={
+                            value !== null ? (
+                                <CloseButton
+                                    size='sm'
+                                    onMouseDown={(event) => event.preventDefault()}
+                                    onClick={() => {
+                                        setValue(null)
+                                        setSearch('')
+                                    }}
+                                    aria-label='Clear value'
+                                />
+                            ) : (
+                                <Combobox.Chevron />
+                            )
+                        }
                         onKeyUp={createOnEnter}
                         onChange={(event) => {
                             combobox.openDropdown()
                             combobox.updateSelectedOptionIndex()
                             console.log('onChange', event.currentTarget.value)
                             setSearch(event.currentTarget.value)
+                            setValue(event.currentTarget.value)
                             if (!event.currentTarget.value || event.currentTarget.value === '') {
                                 clearData()
                             }
@@ -112,13 +152,15 @@ export const SmartSelect: React.FC<Props> = ({
                             console.log('onblur', value, search)
                             // setSearch(value || '');
                         }}
-                        placeholder={placeholder}
-                        rightSectionPointerEvents='none'
-                    />
+                        rightSectionPointerEvents={value === null ? 'none' : 'all'}
+                    >
+                        {value || <Input.Placeholder>{placeholder}</Input.Placeholder>}
+                    </InputBase>
                 </Combobox.Target>
                 <Combobox.Dropdown>
                     <Combobox.Options>
                         {options}
+                        <Button onClick={handleNew}>Create new</Button>
                         {(options ? options.length <= 0 : true) && search.trim().length > 0 && (
                             <Combobox.Option
                                 value='$create'
