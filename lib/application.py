@@ -6,6 +6,9 @@ import webview
 
 import models
 from lib.app_types import Identifier
+from lib.log_helper import getLogger
+
+LOG = getLogger(__name__)
 
 
 class Application:
@@ -42,9 +45,15 @@ class Application:
     def tell(self, identifier: Identifier, *args):
         import json
 
+        def check_success(result):
+            LOG.debug(f"Checking {identifier} success {result}")
+
         temp = json.dumps(args)
-        script = f"window.criticalCallBack('{identifier}', {temp})"
-        return self.main_window.evaluate_js(script)
+        script = f"window.criticalCall('{identifier}', {temp})"
+        # LOG.debug(f"Telling {identifier} - `{script=}`")
+        response = self.main_window.evaluate_js(script, check_success)
+        # LOG.debug(f"Telling {identifier} - `{response=}`")
+        return response
 
     def clearCallback(self, identifier: Identifier):
         script = f"window.endCallback('{identifier}')"
