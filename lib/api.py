@@ -1,3 +1,4 @@
+import typing as T
 import datetime
 import datetime as DT
 import time
@@ -23,7 +24,7 @@ LOG = getLogger(__name__)
 
 class API:
     app: Application
-    timer: "Timer"
+    timer: T.Optional["Timer"]
 
     def __init__(self, app):
         self.app = app
@@ -38,12 +39,12 @@ class API:
             record = models.Client(name=name)
             session.add(record)
             session.commit()
-            return Client(id=record.id, name=record.name)
+            return Client(id=record.id, name=record.name, time=None)
 
     def clients_list(self) -> list[Client]:
         with self.app.get_db() as session:
             return [
-                {"id": record.id, "name": record.name}
+                Client(id=record.id, name=record.name, time=None)
                 for record in models.Client.GetAll(session)
             ]
 
@@ -51,7 +52,8 @@ class API:
         with self.app.get_db() as session:
             record = models.Client.Fetch_by_id(session, client_id)
             if record:
-                return {"id": record.id, "name": record.name}
+                all_time = models.Client.GetAllTime(session, record.id)
+                return {"id": record.id, "name": record.name, "time": all_time}
 
     def client_update(self, client_id: Identifier, client_name: str) -> Client:
         with self.app.get_db() as session:
@@ -60,7 +62,7 @@ class API:
                 record.name = client_name
                 session.add(record)
                 session.commit()
-                return {"id": record.id, "name": record.name}
+                return {"id": record.id, "name": record.name, "time": None}
 
     def client_destroy(self, client_id: Identifier) -> bool:
         with self.app.get_db() as session:
@@ -73,18 +75,27 @@ class API:
             record = models.Project(name=name, client_id=client_id)
             session.add(record)
             session.commit()
-            return Project(id=record.id, name=record.name, client_id=record.client_id)
+            return Project(
+                id=record.id, name=record.name, client_id=record.client_id, time=None
+            )
 
     def projects_list_by_client_id(self, client_id: Identifier) -> list[Project]:
         with self.app.get_db() as session:
             return [
-                Project(id=record.id, name=record.name, client_id=record.client_id)
+                Project(
+                    id=record.id,
+                    name=record.name,
+                    client_id=record.client_id,
+                    time=None,
+                )
                 for record in models.Project.GetByClient(session, client_id)
             ]
 
     def project_get(self, project_id: Identifier) -> Project:
         with self.app.get_db() as session:
-            return models.Project.Fetch_by_id(session, project_id).to_dict()
+            record = models.Project.Fetch_by_id(session, project_id).to_dict()
+            record["time"] = models.Project.GetAllTime(session, project_id)
+            return record
 
     def project_update(self, project_id: Identifier, project_name: str) -> Project:
         with self.app.get_db() as session:
@@ -93,7 +104,7 @@ class API:
                 record.name = project_name
                 session.add(record)
                 session.commit()
-            return record
+            return record.to_dict()
 
     def project_destroy(self, project_id: Identifier) -> bool:
         with self.app.get_db() as session:
@@ -104,18 +115,32 @@ class API:
             record = models.Task(name=name, project_id=project_id)
             session.add(record)
             session.commit()
-            return Task(id=record.id, name=record.name)
+            return Task(
+                id=record.id,
+                name=record.name,
+                time=None,
+                project_id=project_id,
+                status=record.status,
+            )
 
     def tasks_lists_by_project_id(self, project_id: Identifier) -> list[Task]:
         with self.app.get_db() as session:
             return [
-                Task(id=record.id, name=record.name, project_id=record.project_id)
+                Task(
+                    id=record.id,
+                    name=record.name,
+                    project_id=record.project_id,
+                    time=None,
+                    status=record.status,
+                )
                 for record in models.Task.GetByProject(session, project_id)
             ]
 
     def task_get(self, task_id: Identifier) -> Task:
         with self.app.get_db() as session:
-            return models.Task.Fetch_by_id(session, task_id).to_dict()
+            record = models.Task.Fetch_by_id(session, task_id).to_dict()
+            record["time"] = models.Task.GetAllTime(session, task_id)
+            return record
 
     def task_update(
         self, task_id: Identifier, name: str | None = None, status: str | None = None
@@ -175,11 +200,13 @@ class API:
         with self.app.get_db() as session:
             record = models.Event.Fetch_by_id(session, event_id)
             if record:
-                return record.to_dict()
+                record = record.to_dict()
+                record["time"] = models.Event.GetAllTime(session, event_id)
+                return record
 
     def event_update(
         self, event_id: Identifier, detail: str | None = None, notes: str | None = None
-    ) -> Event:
+    ) -> Event | None:
         with self.app.get_db() as session:
             record = models.Event.Fetch_by_id(session, event_id)
             if record:
@@ -189,6 +216,9 @@ class API:
                     record.notes = notes
                 session.add(record)
                 session.commit()
+                return record.to_dict()
+
+            return None
 
     def event_destroy(self, event_id: Identifier) -> bool:
         with self.app.get_db() as session:
@@ -206,7 +236,7 @@ class API:
             event = models.Event.Fetch_by_id(session, event_id)
             key = StopReasons[reason]
             entry = event.create_entry(
-                start=start_dt, end=end_dt, seconds=seconds, reason=key
+                start=start_dt, end=end_dt, seconds=seconds, stop_reason=key
             )
             session.add(event)
             session.commit()
@@ -280,7 +310,6 @@ class API:
         listener_id: Identifier,
         task_id: Identifier,
     ) -> Event:
-        event_id = None
         with self.app.get_db() as session:
             event = models.Event.GetOrCreateByDate(session, task_id, DT.date.today())
             session.add(event)

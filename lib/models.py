@@ -203,6 +203,7 @@ class Project(Base):
             id=self.id,
             name=self.name,
             client_id=self.client_id,
+            time=None,
         )
 
     @classmethod
@@ -264,9 +265,6 @@ class Task(Base):
             name=self.name,
             project_id=self.project_id,
             status=self.status.value,
-            hours=self.hours,
-            minutes=self.minutes,
-            seconds=self.seconds,
         )
 
     @classmethod
@@ -326,17 +324,22 @@ class Event(Base):
             start_date=self.start_date,
             details=self.details,
             notes=self.notes,
-            duration=self.duration,
             entries=[entry.to_dict() for entry in self.entries],
         )
 
-    def create_entry(self, start: DT.date, end: DT.date, seconds: int) -> "Entry":
+    def create_entry(
+        self,
+        start: DT.date,
+        end: DT.date,
+        seconds: int,
+        stop_reason=StopReasons.PLACEHOLDER,
+    ) -> "Entry":
         entry = Entry(
             event=self,
             started_on=start,
             stopped_on=end,
             seconds=seconds,
-            stop_reason=StopReasons.PLACEHOLDER,
+            stop_reason=stop_reason,
         )
         self.entries.append(entry)
         return entry
