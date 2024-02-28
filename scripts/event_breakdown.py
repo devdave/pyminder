@@ -18,7 +18,9 @@ select sum(E.seconds) as total,
 FROM Event left join main.Entry E on Event.id = E.event_id GROUP BY dtwhen
 """
 
-target = DT.datetime(2024, 2, 27)
+start_target = DT.datetime(2024, 2, 25)
+end_target = DT.datetime(2024, 2, 27)
+exact = DT.date(2024, 2, 23)
 
 with Session() as session:
     stmt = (
@@ -44,12 +46,14 @@ with Session() as session:
         .join(models.Client, models.Project.client_id == models.Client.id)
         .group_by("cname", "pname", "tname", "dtwhen")
         .order_by("dtwhen")
+        .where(models.Event.start_date == exact)
     )
     # if True:
     #     stmt = stmt.where(models.Entry.created_on >= target)
 
     result = session.execute(stmt)
     for row in result.all():
+        print(type(row))
         print(
             row.dtwhen,
             row.cname,
