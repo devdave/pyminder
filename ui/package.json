@@ -19,14 +19,20 @@
     "storybook:build": "storybook build"
   },
   "dependencies": {
-    "@mantine/core": "7.5.1",
-    "@mantine/hooks": "7.5.1",
+    "@mantine/charts": "^7.6.1",
+    "@mantine/core": "7.6.1",
+    "@mantine/dates": "^7.6.1",
+    "@mantine/form": "^7.6.1",
+    "@mantine/hooks": "7.6.1",
+    "@mantine/notifications": "^7.6.1",
     "@tabler/icons-react": "^2.47.0",
     "@tanstack/react-query": "^5.22.2",
+    "dayjs": "^1.11.10",
     "lodash": "^4.17.21",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "react-router-dom": "^6.21.0"
+    "react-router-dom": "^6.21.0",
+    "recharts": "2"
   },
   "devDependencies": {
     "@storybook/addon-essentials": "^7.6.6",
@@ -55,7 +61,7 @@
     "eslint-config-airbnb-typescript": "^17.1.0",
     "eslint-config-mantine": "3.0.0",
     "eslint-plugin-import": "^2.29.0",
-    "eslint-plugin-jsx-a11y": "^6.7.0",
+    "eslint-plugin-jsx-a11y": "^6.7.1",
     "eslint-plugin-react": "^7.33.2",
     "eslint-plugin-react-hooks": "^4.6.0",
     "identity-obj-proxy": "^3.0.0",
