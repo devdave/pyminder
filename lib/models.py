@@ -353,8 +353,8 @@ class Entry(Base):
 
 class Queries:
     @classmethod
-    def BreakdownAll(cls, session):
-        stmt = (
+    def _BaseSelect(cls):
+        return (
             select(
                 (func.strftime("%Y-%m-%d", Entry.started_on)).label("dtwhen"),
                 Client.name.label("cname"),
@@ -377,5 +377,35 @@ class Queries:
             .join(Client, Project.client_id == Client.id)
             .group_by("cname", "pname", "tname", "dtwhen")
             .order_by("dtwhen")
+        )
+
+    @classmethod
+    def BreakdownAll(cls, session):
+        stmt = cls._BaseSelect()
+        return session.execute(stmt).all()
+
+    def BreakdownClient(cls, session, client_name):
+        stmt = cls._BaseSelect().where(Client.name == client_name)
+        result = session.execute(stmt).all()
+        return result
+
+    def BreakdownClientProjectDate(cls, session, client_name, project_name, target):
+        stmt = (
+            cls._BaseSelect()
+            .where(Client.name == client_name)
+            .where(Project.name == project_name)
+            .where(Event.start_date == target)
+        )
+        return session.execute(stmt).all()
+
+    def BreakdownClientProjectBetweenDates(
+        cls, session, client_name, project_name, start_date, end_date
+    ):
+        stmt = (
+            cls._BaseSelect()
+            .where(Client.name == client_name)
+            .where(Project.name == project_name)
+            .where(Event.start_date >= start_date)
+            .where(Event.start_date <= end_date)
         )
         return session.execute(stmt).all()
