@@ -134,7 +134,9 @@ class API:
 
     def task_destroy(self, task_id: Identifier) -> bool:
         with self.app.get_db() as session:
-            return models.Task.Delete_By_Id(session, task_id)
+            models.Task.Delete_By_Id(session, task_id)
+            session.commit()
+            return True
 
     def event_create(
         self,

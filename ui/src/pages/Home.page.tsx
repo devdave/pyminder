@@ -6,6 +6,8 @@ import { useEffect, useState } from 'react'
 import { Client, Identifier, Project, Task, TimeObj, TimeOwner } from '@src/types'
 import { SelectCreatable } from '@src/components/SmartSelect/SmartSelectV2'
 import { IconTrashX } from '@tabler/icons-react'
+import { resolvers } from '@mantine/core/lib/core/Box/style-props/resolvers'
+import { result } from 'lodash'
 
 export function HomePage() {
     const { api, switchboard, clientBroker, projectBroker, taskBroker } = useAppContext()
@@ -188,17 +190,18 @@ export function HomePage() {
         setSelectedTaskID(null)
     }
 
-    // const deleteSelectedTask = (id: Identifier, value: string) => {
-    //     // eslint-disable-next-line no-alert
-    //     const choice = window.confirm(`Are you sure you want to delete ${value} task?`)
-    //     if (choice) {
-    //         taskBroker.destroy(id).then(() => {
-    //             if (selectedProjectID) {
-    //                 taskBroker.invalidateTasks(selectedProjectID).then()
-    //             }
-    //         })
-    //     }
-    // }
+    const deleteSelectedTask = async (id: Identifier, value: string) => {
+        // eslint-disable-next-line no-alert
+
+        const choice = window.confirm(`Are you sure you want to delete ${value} task?`)
+        console.log('delete task', id, value, choice)
+        if (choice) {
+            await taskBroker.destroy(id)
+            await taskBroker.invalidateTasks(selectedProjectID as Identifier)
+            return true
+        }
+        return false
+    }
 
     const open_window = (win_name: string) => {
         api.open_window(win_name).then()
@@ -225,7 +228,6 @@ export function HomePage() {
                     gap='xs'
                 >
                     <div>
-                        <Text>Client</Text>
                         <SelectCreatable
                             data={clientData || []}
                             selected={
@@ -235,40 +237,35 @@ export function HomePage() {
                             }
                             createData={addClient}
                             setData={setClient}
-                            // clearData={clearClient}
-                            // deleteData={deleteClient}
                             placeholder='Select Client'
                             onClear={clearClient}
                         />
                     </div>
                     {projectsData && (
-                        <>
-                            <div>
-                                <Text>Project</Text>
-                                <SelectCreatable
-                                    selected={
-                                        selectedProject
-                                            ? { value: selectedProject?.name, id: selectedProject?.id }
-                                            : undefined
-                                    }
-                                    data={projectsData}
-                                    createData={addProject}
-                                    setData={setProject}
-                                    onClear={clearProject}
-                                    placeholder='Select Project'
-                                />
-                                {selectedProject && (
-                                    <span>
-                                        {selectedProject.hours}:{selectedProject.minutes}:
-                                        {selectedProject.seconds.toString().padStart(2, '0')}
-                                    </span>
-                                )}
-                            </div>
-                        </>
+                        <div>
+                            <SelectCreatable
+                                selected={
+                                    selectedProject
+                                        ? { value: selectedProject?.name, id: selectedProject?.id }
+                                        : undefined
+                                }
+                                data={projectsData}
+                                createData={addProject}
+                                setData={setProject}
+                                onClear={clearProject}
+                                placeholder='Select Project'
+                            />
+                            {selectedProject && (
+                                <span>
+                                    {selectedProject.hours.toString().padStart(2, '0')}:
+                                    {selectedProject.minutes.toString().padStart(2, '0')}:
+                                    {selectedProject.seconds.toString().padStart(2, '0')}
+                                </span>
+                            )}
+                        </div>
                     )}
                     {projectsData && taskData && (
                         <div>
-                            <Text>Task</Text>
                             <SelectCreatable
                                 selected={
                                     selectedTask
@@ -279,6 +276,7 @@ export function HomePage() {
                                 createData={addTask}
                                 setData={setTask}
                                 onClear={clearTask}
+                                onDelete={deleteSelectedTask}
                                 placeholder='Select Task'
                             />
                             {selectedTask && (

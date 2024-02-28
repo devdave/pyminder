@@ -1,8 +1,7 @@
 import React, { useState } from 'react'
-import { ActionIcon, CloseButton, Combobox, InputBase, useCombobox } from '@mantine/core'
+import { CloseButton, Combobox, InputBase, useCombobox } from '@mantine/core'
 import { Identifier } from '@src/types'
 import { find } from 'lodash'
-import { IconTrash, IconTrashX } from '@tabler/icons-react'
 
 interface SelectCreatableProps {
     data: { value: string; id: Identifier }[]
@@ -10,6 +9,7 @@ interface SelectCreatableProps {
     createData: (value: string) => void
     setData: (id: Identifier | string) => void
     onClear: () => void
+    onDelete?: (id: Identifier, value: string) => Promise<boolean>
     placeholder: string
 }
 
@@ -19,6 +19,7 @@ export const SelectCreatable: React.FC<SelectCreatableProps> = ({
     selected,
     setData,
     onClear,
+    onDelete,
     placeholder
 }) => {
     const combobox = useCombobox({
@@ -41,6 +42,19 @@ export const SelectCreatable: React.FC<SelectCreatableProps> = ({
             {item.value}
         </Combobox.Option>
     ))
+
+    const handleDelete = async (evt: React.KeyboardEvent) => {
+        if (onDelete && evt.code === 'Delete' && search.length > 0 && value) {
+            console.log('handleDelete', typeof evt, evt)
+            if (selected && selected.id && selected.value) {
+                const wasDeleted = await onDelete(selected.id, selected.value)
+                if (wasDeleted) {
+                    setSearch('')
+                    setValue('')
+                }
+            }
+        }
+    }
 
     return (
         <Combobox
@@ -92,6 +106,7 @@ export const SelectCreatable: React.FC<SelectCreatableProps> = ({
                         combobox.updateSelectedOptionIndex()
                         setSearch(event.currentTarget.value)
                     }}
+                    onKeyUp={handleDelete}
                     onClick={() => combobox.openDropdown()}
                     onFocus={() => combobox.openDropdown()}
                     onBlur={() => {
