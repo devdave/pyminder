@@ -1,5 +1,6 @@
 import { createBrowserRouter, Route, RouterProvider, Routes } from 'react-router-dom'
 import { Page404 } from '@src/404.page'
+import { ReportsPage } from '@src/pages/Reports.page'
 import { HomePage } from './pages/Home.page'
 
 const AppRoutes = () => (
@@ -7,6 +8,10 @@ const AppRoutes = () => (
         <Route
             path='/'
             element={<HomePage />}
+        />
+        <Route
+            path='/reports'
+            element={<ReportsPage />}
         />
         <Route
             path='*'
