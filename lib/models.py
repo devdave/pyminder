@@ -16,6 +16,7 @@ from sqlalchemy import (
     delete,
     cast,
     Integer,
+    CheckConstraint,
 )
 from sqlalchemy.ext.hybrid import hybrid_property, hybrid_method
 from sqlalchemy.orm import (
@@ -150,14 +151,16 @@ class Client(Base):
             .join(Project, Project.client_id == client_id)
             .join(Task, Task.project_id == Project.id)
             .join(Event, Event.task_id == Task.id)
-            .join(Entry, Entry.event_id == Event.id)
             .where(Event.by_task_and_dates(Task.id, start, end))
+            .where(Entry.event_id == Event.id)
         )
         row = session.execute(stmt).scalar()
         total = row.total_seconds if row and row.total_seconds > 0 else 0
         hours, remainder = divmod(total, 3600)
         minutes, seconds = divmod(remainder, 60)
-        return app_types.TimeObject(hours=hours, minutes=minutes, seconds=seconds)
+        return app_types.TimeObject(
+            hours=hours, minutes=minutes, seconds=round(seconds)
+        )
 
     @classmethod
     def GetAllTime(cls, session: Session, client_id):
@@ -166,13 +169,15 @@ class Client(Base):
             .join(Project, Project.client_id == client_id)
             .join(Task, Task.project_id == Project.id)
             .join(Event, Event.task_id == Task.id)
-            .join(Entry, Entry.event_id == Event.id)
+            .where(Entry.event_id == Event.id)
         )
-        row = session.execute(stmt).scalar()
-        total = row.total_seconds if row and row.total_seconds > 0 else 0
+        total_seconds = session.execute(stmt).scalar()
+        total = total_seconds if total_seconds and total_seconds > 0 else 0
         hours, remainder = divmod(total, 3600)
         minutes, seconds = divmod(remainder, 60)
-        return app_types.TimeObject(hours=hours, minutes=minutes, seconds=seconds)
+        return app_types.TimeObject(
+            hours=hours, minutes=minutes, seconds=round(seconds)
+        )
 
 
 class Project(Base):
@@ -185,7 +190,13 @@ class Project(Base):
         "Task", back_populates="project", cascade="all, delete-orphan"
     )
 
-    __table_args__ = (UniqueConstraint("client_id", "name", name="unique_client"),)
+    __table_args__ = (
+        UniqueConstraint("client_id", "name", name="unique_client"),
+        CheckConstraint(
+            func.length(func.trim(sqlalchemy.column("name"))) > 0,
+            name="name_is_not_empty",
+        ),
+    )
 
     def to_dict(self):
         return app_types.Project(
@@ -205,16 +216,15 @@ class Project(Base):
             select(func.sum(Entry.seconds).label("total_seconds"))
             .join(Task, Task.project_id == project_id)
             .join(Event, Event.task_id == Task.id)
-            .join(Entry, Entry.event_id == Event.id)
+            .where(Entry.event_id == Event.id)
         )
-        record = session.execute(stmt).one_or_none()
-        if record:
-            total_seconds = record.total_seconds
-            hours, remainder = divmod(total_seconds, 3600)
-            minutes, seconds = divmod(remainder, 60)
-            return app_types.TimeObject(hours=hours, minutes=minutes, seconds=seconds)
+        total_seconds = session.execute(stmt).scalar() or 0
 
-        return app_types.TimeObject(hours=0, minutes=0, seconds=0)
+        hours, remainder = divmod(total_seconds, 3600)
+        minutes, seconds = divmod(remainder, 60)
+        return app_types.TimeObject(
+            hours=hours, minutes=minutes, seconds=round(seconds)
+        )
 
     @classmethod
     def GetTimeBetweenDates(cls, session, project_id, start, end):
@@ -225,14 +235,12 @@ class Project(Base):
             .join(Entry, Entry.event_id == Event.id)
             .where(and_(Event.start_date > start, Event.start_date < end))
         )
-        record = session.execute(stmt).one_or_none()
-        if record:
-            total_seconds = record.total_seconds
-            hours, remainder = divmod(total_seconds, 3600)
-            minutes, seconds = divmod(remainder, 60)
-            return app_types.TimeObject(hours=hours, minutes=minutes, seconds=seconds)
-
-        return app_types.TimeObject(hours=0, minutes=0, seconds=0)
+        total_seconds = session.execute(stmt).scalar() or 0
+        hours, remainder = divmod(total_seconds, 3600)
+        minutes, seconds = divmod(remainder, 60)
+        return app_types.TimeObject(
+            hours=hours, minutes=minutes, seconds=round(seconds)
+        )
 
 
 class Task(Base):
@@ -245,7 +253,10 @@ class Task(Base):
         "Event", back_populates="task", cascade="all, delete-orphan"
     )
 
-    __table_args__ = (UniqueConstraint("project_id", "name", name="unique_task"),)
+    __table_args__ = (
+        UniqueConstraint("project_id", "name", name="unique_task"),
+        CheckConstraint("length(trim(name)) != 0", name="name_not_empty"),
+    )
 
     def to_dict(self) -> dict[str, str | int]:
         return app_types.Task(
@@ -271,8 +282,7 @@ class Task(Base):
             .join(Entry, Entry.event_id == Event.id)
             .where(and_(Event.start_date > start, Event.start_date < end))
         )
-        record = session.execute(stmt).scalar()
-        total_seconds = record.total_seconds if record and record.total_seconds else 0
+        total_seconds = session.execute(stmt).scalar() or 0
         hours, remainder = divmod(total_seconds, 3600)
         minutes, seconds = divmod(remainder, 60)
 
@@ -283,10 +293,10 @@ class Task(Base):
         stmt = (
             select(func.sum(Entry.seconds).label("total_seconds"))
             .join(Event, Event.task_id == task_id)
-            .join(Entry, Entry.event_id == Event.id)
+            .where(Entry.event_id == Event.id)
         )
-        record = session.execute(stmt).scalar()
-        total_seconds = record.total_seconds if record and record.total_seconds else 0
+
+        total_seconds = session.execute(stmt).scalar() or 0
         hours, remainder = divmod(total_seconds, 3600)
         minutes, seconds = divmod(remainder, 60)
 
