@@ -1,10 +1,11 @@
 import { MainTimer } from '@src/components/MainTimer/MainTimer'
 import { ColorSchemeToggle } from '@src/components/ColorSchemeToggle/ColorSchemeToggle'
-import { Button, Center, Stack, Text } from '@mantine/core'
+import { ActionIcon, Button, Center, Stack, Text } from '@mantine/core'
 import { useAppContext } from '@src/App.context'
 import { useEffect, useState } from 'react'
 import { Client, Identifier, Project, Task, TimeObj, TimeOwner } from '@src/types'
 import { SelectCreatable } from '@src/components/SmartSelect/SmartSelectV2'
+import { IconTrashX } from '@tabler/icons-react'
 
 export function HomePage() {
     const { api, switchboard, clientBroker, projectBroker, taskBroker } = useAppContext()
@@ -233,8 +234,6 @@ export function HomePage() {
                                     : undefined
                             }
                             createData={addClient}
-                            // allData={clientData}
-                            // addData={addClient}
                             setData={setClient}
                             // clearData={clearClient}
                             // deleteData={deleteClient}

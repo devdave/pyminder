@@ -1,7 +1,8 @@
 import React, { useState } from 'react'
-import { CloseButton, Combobox, InputBase, useCombobox } from '@mantine/core'
+import { ActionIcon, CloseButton, Combobox, InputBase, useCombobox } from '@mantine/core'
 import { Identifier } from '@src/types'
 import { find } from 'lodash'
+import { IconTrash, IconTrashX } from '@tabler/icons-react'
 
 interface SelectCreatableProps {
     data: { value: string; id: Identifier }[]
