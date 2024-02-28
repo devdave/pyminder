@@ -73,3 +73,9 @@ class TimeOwner(T.TypedDict):
     event: Event
     isRunning: bool
     isPaused: bool
+
+
+class TimeObject(T.TypedDict):
+    seconds: int
+    minutes: int
+    hours: int

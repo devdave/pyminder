@@ -17,7 +17,7 @@ from sqlalchemy import (
     cast,
     Integer,
 )
-from sqlalchemy.ext.hybrid import hybrid_property
+from sqlalchemy.ext.hybrid import hybrid_property, hybrid_method
 from sqlalchemy.orm import (
     Session,
     DeclarativeBase,
@@ -30,7 +30,7 @@ from sqlalchemy.orm import (
 )
 
 from lib import app_types
-from lib.app_types import TaskStatus, StopReasons, Identifier
+from lib.app_types import TaskStatus, StopReasons, Identifier, TimeObject
 from lib.log_helper import getLogger
 
 log = getLogger(__name__)
@@ -99,6 +99,23 @@ class Base(DeclarativeBase):
         stmt = select(cls)
         return session.execute(stmt).scalars().all()
 
+    @classmethod
+    def GetOrCreate(cls, session: Session, defaults=None, **kwargs):
+        instance = session.execute(select(cls).filter_by(**kwargs)).one_or_none()
+        if instance:
+            return instance
+        else:
+            kwargs |= defaults or {}
+            instance = cls(**kwargs)
+            try:
+                session.add(instance)
+                session.commit()
+            except Exception as e:
+                session.rollback()
+                return session.execute(select(cls).filter_by(**kwargs)).one()
+            else:
+                return instance
+
     @declared_attr.directive
     def __tablename__(self) -> str:
         return self.__name__
@@ -124,6 +141,39 @@ class Client(Base):
     def to_dict(self):
         return dict(name=self.name, id=self.id)
 
+    @classmethod
+    def GetTimeBetweenDates(
+        cls, session: Session, client_id, start: DT.date, end: DT.date
+    ):
+        stmt = (
+            select(func.sum(Entry.seconds).label("total_seconds"))
+            .join(Project, Project.client_id == client_id)
+            .join(Task, Task.project_id == Project.id)
+            .join(Event, Event.task_id == Task.id)
+            .join(Entry, Entry.event_id == Event.id)
+            .where(Event.by_task_and_dates(Task.id, start, end))
+        )
+        row = session.execute(stmt).scalar()
+        total = row.total_seconds if row and row.total_seconds > 0 else 0
+        hours, remainder = divmod(total, 3600)
+        minutes, seconds = divmod(remainder, 60)
+        return app_types.TimeObject(hours=hours, minutes=minutes, seconds=seconds)
+
+    @classmethod
+    def GetAllTime(cls, session: Session, client_id):
+        stmt = (
+            select(func.sum(Entry.seconds).label("total_seconds"))
+            .join(Project, Project.client_id == client_id)
+            .join(Task, Task.project_id == Project.id)
+            .join(Event, Event.task_id == Task.id)
+            .join(Entry, Entry.event_id == Event.id)
+        )
+        row = session.execute(stmt).scalar()
+        total = row.total_seconds if row and row.total_seconds > 0 else 0
+        hours, remainder = divmod(total, 3600)
+        minutes, seconds = divmod(remainder, 60)
+        return app_types.TimeObject(hours=hours, minutes=minutes, seconds=seconds)
+
 
 class Project(Base):
     name: Mapped[str] = mapped_column()
@@ -142,9 +192,6 @@ class Project(Base):
             id=self.id,
             name=self.name,
             client_id=self.client_id,
-            seconds=self.seconds,
-            minutes=self.minutes,
-            hours=self.hours,
         )
 
     @classmethod
@@ -153,34 +200,39 @@ class Project(Base):
         return session.execute(stmt).scalars().all()
 
     @classmethod
+    def GetAllTime(cls, session: Session, project_id: Identifier):
+        stmt = (
+            select(func.sum(Entry.seconds).label("total_seconds"))
+            .join(Task, Task.project_id == project_id)
+            .join(Event, Event.task_id == Task.id)
+            .join(Entry, Entry.event_id == Event.id)
+        )
+        record = session.execute(stmt).one_or_none()
+        if record:
+            total_seconds = record.total_seconds
+            hours, remainder = divmod(total_seconds, 3600)
+            minutes, seconds = divmod(remainder, 60)
+            return app_types.TimeObject(hours=hours, minutes=minutes, seconds=seconds)
+
+        return app_types.TimeObject(hours=0, minutes=0, seconds=0)
+
+    @classmethod
     def GetTimeBetweenDates(cls, session, project_id, start, end):
         stmt = (
-            select(cls)
-            .join(Task.project_id == Event.task_id)
-            .join(Event.task_id == Task.id)
-            .where(Task.project_id == project_id)
+            select(func.sum(Entry.seconds).label("total_seconds"))
+            .join(Task, Task.project_id == project_id)
+            .join(Event, Event.task_id == Task.id)
+            .join(Entry, Entry.event_id == Event.id)
             .where(and_(Event.start_date > start, Event.start_date < end))
         )
-        records = session.execute(stmt).scalars().all()
-        hours, minutes, seconds = 0, 0, 0
-        for record in records:
-            hours += record.hours
-            minutes += record.minutes
-            seconds += record.seconds
+        record = session.execute(stmt).one_or_none()
+        if record:
+            total_seconds = record.total_seconds
+            hours, remainder = divmod(total_seconds, 3600)
+            minutes, seconds = divmod(remainder, 60)
+            return app_types.TimeObject(hours=hours, minutes=minutes, seconds=seconds)
 
-        return hours, minutes, seconds
-
-    @hybrid_property
-    def seconds(self):
-        return sum(task.seconds for task in self.tasks)
-
-    @hybrid_property
-    def minutes(self):
-        return sum(task.minutes for task in self.tasks)
-
-    @hybrid_property
-    def hours(self):
-        return sum(task.hours for task in self.tasks)
+        return app_types.TimeObject(hours=0, minutes=0, seconds=0)
 
 
 class Task(Base):
@@ -214,32 +266,31 @@ class Task(Base):
     @classmethod
     def GetTimeBetweenDates(cls, session, task_id, start, end):
         stmt = (
-            select(cls)
-            .join(Task.project_id == Event.task_id)
-            .join(Entry.event_id == Event.id)
-            .where(Task.id == task_id)
+            select(func.sum(Entry.seconds).label("total_seconds"))
+            .join(Event, Event.task_id == task_id)
+            .join(Entry, Entry.event_id == Event.id)
             .where(and_(Event.start_date > start, Event.start_date < end))
         )
-        records = session.execute(stmt).scalars().all()
-        hours, minutes, seconds = 0, 0, 0
-        for record in records:
-            hours += record.hours
-            minutes += record.minutes
-            seconds += record.seconds
+        record = session.execute(stmt).scalar()
+        total_seconds = record.total_seconds if record and record.total_seconds else 0
+        hours, remainder = divmod(total_seconds, 3600)
+        minutes, seconds = divmod(remainder, 60)
 
-        return hours, minutes, seconds
+        return TimeObject(hours=hours, minutes=minutes, seconds=seconds)
 
-    @hybrid_property
-    def seconds(self):
-        return sum(event.seconds for event in self.events)
+    @classmethod
+    def GetAllTime(cls, session, task_id):
+        stmt = (
+            select(func.sum(Entry.seconds).label("total_seconds"))
+            .join(Event, Event.task_id == task_id)
+            .join(Entry, Entry.event_id == Event.id)
+        )
+        record = session.execute(stmt).scalar()
+        total_seconds = record.total_seconds if record and record.total_seconds else 0
+        hours, remainder = divmod(total_seconds, 3600)
+        minutes, seconds = divmod(remainder, 60)
 
-    @hybrid_property
-    def minutes(self):
-        return sum(event.minutes for event in self.events)
-
-    @hybrid_property
-    def hours(self):
-        return sum(event.hours for event in self.events)
+        return TimeObject(hours=hours, minutes=minutes, seconds=seconds)
 
 
 class Event(Base):
@@ -282,38 +333,59 @@ class Event(Base):
 
     @classmethod
     def GetByTask(cls, session, task_id):
-        stmt = select(cls).where(cls.task_id == task_id)
+        stmt = select(cls).filter(cls.by_task(task_id))
         return session.execute(stmt).scalars().all()
+
+    @hybrid_method
+    def by_task(self, task_id: Identifier):
+        return self.task_id == task_id
+
+    @hybrid_method
+    def by_task_and_dates(
+        self, task_id: Identifier, start_date: DT.date, end_date: DT.date
+    ):
+        return and_(
+            self.by_task(task_id),
+            and_(Event.start_date <= start_date, Event.start_date <= end_date),
+        )
+
+    @hybrid_method
+    def by_dates(self, start_date: DT.date, end_date: DT.date):
+        return and_(Event.start_date <= start_date, Event.start_date <= end_date)
 
     @classmethod
     def GetOrCreateByDate(cls, session, task_id, my_date):
+        return cls.GetOrCreate(session, task_id=task_id, start_date=my_date)
+
+    @hybrid_property
+    def total_seconds(self):
+        return sum(entry.seconds for entry in self.entries)
+
+    @classmethod
+    def GetTimeBetweenDates(
+        cls, session, event_id: Identifier, start: DT.date, end: DT.date
+    ):
         stmt = (
-            select(cls).where(cls.task_id == task_id).where(cls.start_date == my_date)
+            select(func.sum(Entry.seconds).label("total_seconds"))
+            .join(Entry, Entry.event_id == event_id)
+            .filter(cls.by_dates(start, end))
         )
-        record = session.execute(stmt).scalar()
-        if record:
-            return record
-        else:
-            record = cls(task_id=task_id, start_date=my_date, duration=0)
-            session.add(record)
-            return record
+        total_seconds = session.execute(stmt).scalar().total_seconds or 0
 
-        pass
-
-    @hybrid_property
-    def seconds(self):
-        time = sum(entry.seconds for entry in self.entries)
-        hours, remainder = divmod(time, 3600)
+        hours, remainder = divmod(total_seconds, 3600)
         minutes, seconds = divmod(remainder, 60)
-        return int(seconds)
+        return TimeObject(hours=hours, minutes=minutes, seconds=seconds)
 
-    @hybrid_property
-    def minutes(self):
-        return sum(entry.minutes for entry in self.entries)
+    @classmethod
+    def GetAllTime(cls, session, event_id: Identifier):
+        stmt = select(func.sum(Entry.seconds).label("total_seconds")).join(
+            Entry, Entry.event_id == event_id
+        )
+        total_seconds = session.execute(stmt).scalar().total_seconds or 0
 
-    @hybrid_property
-    def hours(self):
-        return sum(entry.hours for entry in self.entries)
+        hours, remainder = divmod(total_seconds, 3600)
+        minutes, seconds = divmod(remainder, 60)
+        return TimeObject(hours=hours, minutes=minutes, seconds=seconds)
 
 
 class Entry(Base):
