@@ -28,7 +28,7 @@ export const useClientBroker = (api: APIBridge): clientBrokerReturns => {
     const { mutateAsync: updateMutation } = useMutation<Client, Error, Client>({
         mutationFn: ({ id, name }) => api.client_update(id, name),
         onSuccess: (client) => {
-            queryClient.invalidateQueries({ queryKey: ['client', client.id] })
+            queryClient.invalidateQueries({ queryKey: ['client', client.id] }).then()
         }
     })
 
