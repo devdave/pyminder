@@ -239,7 +239,7 @@ class API:
             entry = event.create_entry(
                 start=start_dt, end=end_dt, seconds=seconds, stop_reason=key
             )
-            session.add(event)
+            session.add(entry)
             session.commit()
             return entry.to_dict()
 
@@ -317,6 +317,7 @@ class API:
     ) -> Event:
         with self.app.get_db() as session:
             event = models.Event.GetOrCreateByDate(session, task_id, DT.date.today())
+            session.commit()
             event_id = event.id
 
         LOG.debug("timer_start {}", self.timer)
