@@ -126,7 +126,7 @@ class API:
     def tasks_lists_by_project_id(self, project_id: Identifier) -> list[Task]:
         with self.app.get_db() as session:
             return [
-                 record.to_dict()
+                record.to_dict()
                 for record in models.Task.GetByProject(session, project_id)
             ]
 
