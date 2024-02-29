@@ -72,7 +72,7 @@ export const MainTimer: React.FC<MainTimerProps> = ({
                     Stop
                 </Button>
                 <Button
-                    disabled={!isRunning || isPaused}
+                    disabled={!isRunning || !isPaused}
                     type='button'
                     onClick={doPause}
                 >
