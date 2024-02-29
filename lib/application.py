@@ -5,7 +5,7 @@ from contextlib import contextmanager
 import sqlalchemy
 import webview
 
-import models
+from lib import models
 from lib.app_types import Identifier
 from lib.log_helper import getLogger
 
@@ -21,9 +21,9 @@ class Application:
     engine: sqlalchemy.engine.Engine
     Session: models.scoped_session
 
-    current_client_id: int
-    current_project_id: int
-    current_task_id: int
+    current_client_id: int | None = None
+    current_project_id: int | None = None
+    current_task_id: int | None = None
     windows: dict[str, webview.Window]
 
     def __init__(self, here: pathlib.Path, db_path: pathlib.Path) -> None:
@@ -48,7 +48,7 @@ class Application:
             self._main_window = window
 
     @property
-    def port(self) -> int:
+    def port(self) -> int | None:
         return self._port
 
     @port.setter

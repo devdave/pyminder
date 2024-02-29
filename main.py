@@ -19,7 +19,7 @@ LOG = getLogger(__name__)
 class Arguments(tap.Tap):
     debug: bool = False
     port: str = "8080"
-    transform_api_target: Path = None
+    transform_api_target: Path | None = None
 
 
 def setup_logging(level=logging.DEBUG):
@@ -46,7 +46,7 @@ def setup_logging(level=logging.DEBUG):
 
 
 def transform_api(dest: pathlib.Path):
-    import transformer
+    from lib import transformer
 
     dest.touch(exist_ok=True)
     transformer.process_source(

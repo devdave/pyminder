@@ -37,8 +37,6 @@ from lib.log_helper import getLogger
 
 log = getLogger(__name__)
 
-Self = T.TypeVar("Self", bound="Base")
-
 
 @contextlib.contextmanager
 def db_with(db_url="sqlite:///test.sqlite3", echo=True):
@@ -86,7 +84,7 @@ class Base(DeclarativeBase):
         self.updated_on = DT.datetime.now()
 
     @classmethod
-    def Fetch_by_id(cls: type[Self], session: Session, fetch_id: Identifier) -> Self:
+    def Fetch_by_id(cls, session: Session, fetch_id: Identifier) -> T.Self:
         stmt = select(cls).where(cls.id == fetch_id)
         return session.execute(stmt).scalars().one()
 
@@ -97,28 +95,28 @@ class Base(DeclarativeBase):
         return result.rowcount == 1
 
     @classmethod
-    def GetAll(cls, session: Session) -> T.Sequence[Self] | T.Sequence["Base"]:
+    def GetAll(cls, session: Session) -> T.Sequence[T.Self]:
         stmt = select(cls)
         return session.execute(stmt).scalars().all()
 
     @classmethod
     def GetOrCreate(
         cls, session: Session, defaults=None, **kwargs
-    ) -> Self | sqlalchemy.Row[T.Tuple[Self]] | sqlalchemy.Row[T.Tuple["Base"]]:
+    ) -> T.Self | sqlalchemy.Rowtuple[T.Self] | None:
         instance = session.execute(select(cls).filter_by(**kwargs)).one_or_none()
         if instance:
             return instance
         else:
             kwargs |= defaults or {}
-            instance = cls(**kwargs)
+            new_instance = cls(**kwargs)
             try:
-                session.add(instance)
+                session.add(new_instance)
                 session.commit()
             except sqlalchemy.exc.SqlAlchemyError:  # type: ignore
                 session.rollback()
                 return session.execute(select(cls).filter_by(**kwargs)).one()
             else:
-                return instance
+                return new_instance
 
     @declared_attr.directive
     def __tablename__(self) -> str:
@@ -212,7 +210,7 @@ class Project(Base):
         )
 
     @classmethod
-    def GetByClient(cls, session, client_id) -> T.Sequence["Project"]:
+    def GetByClient(cls, session, client_id) -> T.Sequence[T.Self]:
         stmt = select(cls).where(cls.client_id == client_id)
         return session.execute(stmt).scalars().all()
 
@@ -251,9 +249,6 @@ class Project(Base):
         return app_types.TimeObject(
             hours=hours, minutes=minutes, seconds=round(seconds)
         )
-
-
-SelfTask = T.TypeVar("SelfTask", bound="Task")
 
 
 class Task(Base):
@@ -331,8 +326,8 @@ class Event(Base):
 
     __table_args__ = (UniqueConstraint("task_id", "start_date", name="unique_event"),)
 
-    def to_dict(self):
-        app_types.Event(
+    def to_dict(self) -> app_types.Event:
+        return app_types.Event(
             id=self.id,
             task_id=self.task_id,
             start_date=self.start_date,

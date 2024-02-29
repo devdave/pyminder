@@ -4,8 +4,8 @@ import threading
 import time
 
 from . import models
-from app_types import Identifier
-from application import Application
+from .app_types import Identifier
+from .application import Application
 from .log_helper import getLogger
 
 LOG = getLogger(__name__)
@@ -15,7 +15,7 @@ class Timer(threading.Thread):
     app: Application
     identifier: Identifier
     event: models.Event
-    interval: int
+    interval: int | float
     status: bool = True
     paused: bool = False
     running: bool = False

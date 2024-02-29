@@ -3,6 +3,7 @@ import datetime
 import datetime as DT
 import time
 
+from . import app_types
 from .application import Application
 from . import models
 from .app_types import (
@@ -195,22 +196,23 @@ class API:
                 record.to_dict() for record in models.Event.GetByTask(session, task_id)
             ]
 
-    def event_get(self, event_id: Identifier) -> Event:
+    def event_get(self, event_id: Identifier) -> Event | None:
         with self.app.get_db() as session:
             record = models.Event.Fetch_by_id(session, event_id)
             if record:
-                record = record.to_dict()
-                record["time"] = models.Event.GetAllTime(session, event_id)
-                return record
+                response = record.to_dict()
+                response["time"] = models.Event.GetAllTime(session, event_id)
+                return response
+            return None
 
     def event_update(
-        self, event_id: Identifier, detail: str | None = None, notes: str | None = None
+        self, event_id: Identifier, details: str | None = None, notes: str | None = None
     ) -> Event | None:
         with self.app.get_db() as session:
             record = models.Event.Fetch_by_id(session, event_id)
             if record:
-                if detail is not None:
-                    record.detail = detail
+                if details is not None:
+                    record.details = details
                 if notes is not None:
                     record.notes = notes
                 session.add(record)
@@ -247,11 +249,12 @@ class API:
                 entry.to_dict() for entry in models.Entry.GetByEvent(session, event_id)
             ]
 
-    def entry_get(self, entry_id: Identifier) -> Entry:
+    def entry_get(self, entry_id: Identifier) -> Entry | None:
         with self.app.get_db() as session:
             record = models.Entry.Fetch_by_id(session, entry_id)
             if record:
                 return record.to_dict()
+            return None
 
     def entry_update(
         self,
@@ -259,18 +262,18 @@ class API:
         start_dt: datetime.datetime | None = None,
         end_dt: datetime.datetime | None = None,
         seconds: int | None = None,
-        reason: str | None = None,
+        reason: app_types.StopReasons | None = None,
     ) -> Entry:
         with self.app.get_db() as session:
             record = models.Entry.Fetch_by_id(session, entry_id)
             if start_dt is not None:
-                record.start_date = start_dt
+                record.started_on = start_dt
             if end_dt is not None:
-                record.end_date = end_dt
+                record.started_on = end_dt
             if seconds is not None:
                 record.seconds = seconds
             if reason is not None:
-                record.reason = reason
+                record.stop_reason = reason
 
             session.add(record)
             session.commit()

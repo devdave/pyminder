@@ -37,7 +37,7 @@ class Task(T.TypedDict):
     id: int
     name: str
     project_id: int
-    status: TaskStatus
+    status: TaskStatus | str
     time: T.Optional["TimeObject"]
 
 
@@ -57,7 +57,7 @@ class Entry(T.TypedDict):
     started_on: datetime.date
     stopped_on: datetime.date
     seconds: int
-    stop_reason: str
+    stop_reason: str | StopReasons
 
 
 class TimeOwner(T.TypedDict):
