@@ -102,7 +102,7 @@ class Base(DeclarativeBase):
     @classmethod
     def GetOrCreate(
         cls, session: Session, defaults=None, **kwargs
-    ) -> T.Self | sqlalchemy.Rowtuple[T.Self] | None:
+    ) -> T.Self | sqlalchemy.Row[T.Tuple[T.Self]] | None:
         instance = session.execute(select(cls).filter_by(**kwargs)).one_or_none()
         if instance:
             return instance
@@ -330,7 +330,7 @@ class Event(Base):
         return app_types.Event(
             id=self.id,
             task_id=self.task_id,
-            start_date=self.start_date,
+            start_date=self.start_date.strftime("%Y-%m-%d"),
             details=self.details,
             notes=self.notes,
             entries=[entry.to_dict() for entry in self.entries],
@@ -427,8 +427,8 @@ class Entry(Base):
         return app_types.Entry(
             id=self.event_id,
             event_id=self.event_id,
-            started_on=self.started_on,
-            stopped_on=self.stopped_on,
+            started_on=self.started_on.strftime("%Y-%m-%d %H:%M:%S"),
+            stopped_on=self.stopped_on.strftime("%Y-%m-%d %H:%M:%S"),
             seconds=self.seconds,
             stop_reason=self.stop_reason.value,
         )

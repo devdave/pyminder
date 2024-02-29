@@ -125,7 +125,7 @@ class API:
                 name=record.name,
                 time=None,
                 project_id=int(project_id),
-                status=record.status,
+                status=record.status.value,
             )
 
     def tasks_lists_by_project_id(self, project_id: Identifier) -> list[Task]:

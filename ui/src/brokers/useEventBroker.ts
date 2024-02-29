@@ -26,10 +26,10 @@ export interface CreateEntry {
 }
 
 export interface UseEventBrokerReturn {
-    fetch: (event_id: Identifier) => UseQueryResult<Event>
+    fetch: (event_id: Identifier) => UseQueryResult<Event | void>
     useGetAllByTask: (client_id: Identifier) => UseQueryResult<Event[]>
     create: (event_id: Identifier, start_date: string, details: string, notes: string) => Promise<Event>
-    update: (event_id: Identifier, details: string, notes: string) => Promise<Event>
+    update: (event_id: Identifier, details: string, notes: string) => Promise<Event | void>
     destroy: (event_id: Identifier) => Promise<boolean>
     addEntry: (
         task_id: Identifier,
@@ -52,10 +52,12 @@ export const useEventBroker = (api: APIBridge): UseEventBrokerReturn => {
         }
     })
 
-    const { mutateAsync: updateMutation } = useMutation<Event, Error, UpdateEvent>({
+    const { mutateAsync: updateMutation } = useMutation<Event | void, Error, UpdateEvent>({
         mutationFn: (payload) => api.event_update(payload.id, payload.details, payload.notes),
         onSuccess: (event) => {
-            client.invalidateQueries({ queryKey: ['task', event.task_id, 'event', event.id] })
+            if (event) {
+                client.invalidateQueries({ queryKey: ['task', event.task_id, 'event', event.id] })
+            }
         }
     })
 

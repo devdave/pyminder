@@ -37,14 +37,14 @@ class Task(T.TypedDict):
     id: int
     name: str
     project_id: int
-    status: TaskStatus | str
+    status: str
     time: T.Optional["TimeObject"]
 
 
 class Event(T.TypedDict):
     id: int
     task_id: int
-    start_date: datetime.date
+    start_date: str
     details: str
     notes: str
     time: T.Optional["TimeObject"]
@@ -54,8 +54,8 @@ class Event(T.TypedDict):
 class Entry(T.TypedDict):
     id: int
     event_id: int
-    started_on: datetime.date
-    stopped_on: datetime.date
+    started_on: str
+    stopped_on: str
     seconds: int
     stop_reason: str | StopReasons
 

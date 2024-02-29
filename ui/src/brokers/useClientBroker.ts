@@ -4,10 +4,10 @@ import { useMutation, useQuery, useQueryClient, UseQueryResult } from '@tanstack
 
 export interface clientBrokerReturns {
     invalidateClients: () => Promise<void>
-    fetch: (client_id: Identifier, enabled: boolean) => UseQueryResult<Client>
+    fetch: (client_id: Identifier, enabled: boolean) => UseQueryResult<Client | undefined>
     getAll: () => UseQueryResult<Client[], Error>
     create: (client_name: string) => Promise<Client>
-    update: (client_id: Identifier, name: string) => Promise<Client>
+    update: (client_id: Identifier, name: string) => Promise<Client | undefined>
     destroy: (client_id: Identifier) => Promise<boolean>
 }
 
@@ -25,10 +25,10 @@ export const useClientBroker = (api: APIBridge): clientBrokerReturns => {
         }
     })
 
-    const { mutateAsync: updateMutation } = useMutation<Client, Error, Client>({
+    const { mutateAsync: updateMutation } = useMutation<Client | undefined, Error, Client>({
         mutationFn: ({ id, name }) => api.client_update(id, name),
         onSuccess: (client) => {
-            queryClient.invalidateQueries({ queryKey: ['client', client.id] }).then()
+            client && queryClient.invalidateQueries({ queryKey: ['client', client.id] }).then()
         }
     })
 

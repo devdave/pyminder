@@ -19,7 +19,7 @@ export interface UseTaskBrokerReturns {
     fetch: (project_id: Identifier, task_id: Identifier, enabled: boolean) => UseQueryResult<Task>
     getAllByProject: (project_id: Identifier, enabled: boolean) => UseQueryResult<Task[], Error>
     create: (project_id: Identifier, name: string) => Promise<Task>
-    update: (task_id: Identifier, name: string, status: string) => Promise<Task>
+    update: (task_id: Identifier, name: string, status: string) => Promise<Task | undefined>
     destroy: (taskId: Identifier) => Promise<boolean>
 }
 
@@ -42,10 +42,11 @@ export const useTaskBroker = (api: APIBridge): UseTaskBrokerReturns => {
         }
     })
 
-    const { mutateAsync: updateMutation } = useMutation<Task, Error, UpdateTask>({
+    const { mutateAsync: updateMutation } = useMutation<Task | undefined, Error, UpdateTask>({
         mutationFn: (changeset) => api.task_update(changeset.id, changeset.name, changeset.status),
-        onSuccess: (task: Task) => {
-            client.invalidateQueries({ queryKey: ['project', task.project_id, 'task', task.id] }).then()
+        onSuccess: (task: Task | undefined) => {
+            task &&
+                client.invalidateQueries({ queryKey: ['project', task.project_id, 'task', task.id] }).then()
         }
     })
 

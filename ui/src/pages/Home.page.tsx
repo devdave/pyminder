@@ -74,16 +74,18 @@ export function HomePage() {
     useEffect(() => {
         api.timer_check().then((status) => {
             if (status) {
-                api.timer_owner().then((owner: TimeOwner) => {
-                    setSelectedClientID(owner.client.id)
-                    setSelectedProjectID(owner.project.id)
-                    setSelectedTaskID(owner.task.id)
-                    setIsPaused(owner.isPaused)
-                    setIsRunning(owner.isRunning)
-                    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-                    // @ts-ignore
-                    const new_id = switchboard.generate(timeChanged)
-                    api.timer_override(new_id).then()
+                api.timer_owner().then((owner: TimeOwner | undefined) => {
+                    if (owner) {
+                        setSelectedClientID(owner.client.id)
+                        setSelectedProjectID(owner.project.id)
+                        setSelectedTaskID(owner.task.id)
+                        setIsPaused(owner.isPaused)
+                        setIsRunning(owner.isRunning)
+                        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                        // @ts-ignore
+                        const new_id = switchboard.generate(timeChanged)
+                        api.timer_override(new_id).then()
+                    }
                 })
             }
         })
