@@ -11,4 +11,4 @@ engine, Session = models.connect(
 
 with Session() as session:
     task = models.Task.GetOrCreate(session, project_id=2, name="Add Reports")
-    print(type(task), task)
+    event = models.Event.GetOrCreateByDate(session, task.id, DT.date.today())
