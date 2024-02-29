@@ -87,7 +87,7 @@ export function HomePage() {
                 })
             }
         })
-    }, [])
+    }, [api, switchboard])
 
     const clientData = clients?.map((element: Client) => ({ id: element.id, value: element.name }))
 
@@ -189,7 +189,6 @@ export function HomePage() {
 
     const deleteSelectedTask = async (id: Identifier, value: string) => {
         // eslint-disable-next-line no-alert
-
         const choice = window.confirm(`Are you sure you want to delete ${value} task?`)
         console.log('delete task', id, value, choice)
         if (choice) {
@@ -254,9 +253,9 @@ export function HomePage() {
                             />
                             {selectedProject && (
                                 <span>
-                                    {selectedProject.hours.toString().padStart(2, '0')}:
-                                    {selectedProject.minutes.toString().padStart(2, '0')}:
-                                    {selectedProject.seconds.toString().padStart(2, '0')}
+                                    {selectedProject.time?.hours.toString().padStart(2, '0')}:
+                                    {selectedProject.time?.minutes.toString().padStart(2, '0')}:
+                                    {selectedProject.time?.seconds.toString().padStart(2, '0')}
                                 </span>
                             )}
                         </div>
@@ -276,11 +275,11 @@ export function HomePage() {
                                 onDelete={deleteSelectedTask}
                                 placeholder='Select Task'
                             />
-                            {selectedTask && (
+                            {selectedTask && selectedTask.time && (
                                 <span>
-                                    {selectedTask.hours.toString().padStart(2, '0')}:
-                                    {selectedTask.minutes.toString().padStart(2, '0')}:
-                                    {Math.floor(selectedTask.seconds).toString().padStart(2, '0')}
+                                    {selectedTask.time.hours.toString().padStart(2, '0')}:
+                                    {selectedTask.time.minutes.toString().padStart(2, '0')}:
+                                    {Math.floor(selectedTask.time.seconds).toString().padStart(2, '0')}
                                 </span>
                             )}
                         </div>

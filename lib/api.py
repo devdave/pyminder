@@ -126,13 +126,7 @@ class API:
     def tasks_lists_by_project_id(self, project_id: Identifier) -> list[Task]:
         with self.app.get_db() as session:
             return [
-                Task(
-                    id=record.id,
-                    name=record.name,
-                    project_id=record.project_id,
-                    time=None,
-                    status=record.status,
-                )
+                 record.to_dict()
                 for record in models.Task.GetByProject(session, project_id)
             ]
 

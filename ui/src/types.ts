@@ -9,13 +9,24 @@ export enum TaskStatus {
 
 export enum StopReasons {
     PAUSED = 'Paused',
-    FINISHED = 'Finished'
+    FINISHED = 'Finished',
+    PLACEHOLDER = 'PLACEHOLDER'
 }
 
-export interface HasTime {
+export interface TimeFacts {
     hours: number
     minutes: number
     seconds: number
+}
+
+export interface TimeObj {
+    hour: number
+    minute: number
+    second: number
+}
+
+export interface HasTime {
+    time?: TimeFacts
 }
 
 export interface Client {
@@ -48,12 +59,6 @@ export interface Entry {
     start_date: string
     end_date: string
     seconds: number
-}
-
-export interface TimeObj {
-    hour: number
-    minute: number
-    second: number
 }
 
 export interface TimeOwner {
