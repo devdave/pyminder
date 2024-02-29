@@ -47,7 +47,6 @@ class Event(T.TypedDict):
     start_date: datetime.date
     details: str
     notes: str
-    duration: int
     time: T.Optional["TimeObject"]
     entries: list["Entry"]
 
@@ -56,7 +55,7 @@ class Entry(T.TypedDict):
     id: int
     event_id: int
     started_on: datetime.date
-    ended_on: datetime.date
+    stopped_on: datetime.date
     seconds: int
     stop_reason: str
 

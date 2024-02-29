@@ -90,18 +90,20 @@ class Base(DeclarativeBase):
         return session.execute(stmt).scalars().one()
 
     @classmethod
-    def Delete_By_Id(cls, session, client_id):
+    def Delete_By_Id(cls, session, client_id) -> bool:
         stmt = delete(cls).where(cls.id == client_id)
         result = session.execute(stmt)
         return result.rowcount == 1
 
     @classmethod
-    def GetAll(cls, session: Session):
+    def GetAll(cls, session: Session) -> T.Sequence[Self]:
         stmt = select(cls)
         return session.execute(stmt).scalars().all()
 
     @classmethod
-    def GetOrCreate(cls, session: Session, defaults=None, **kwargs):
+    def GetOrCreate(
+        cls, session: Session, defaults=None, **kwargs
+    ) -> Self | sqlalchemy.Row[T.Tuple[Self]]:
         instance = session.execute(select(cls).filter_by(**kwargs)).one_or_none()
         if instance:
             return instance
@@ -111,7 +113,7 @@ class Base(DeclarativeBase):
             try:
                 session.add(instance)
                 session.commit()
-            except Exception as e:
+            except sqlalchemy.exc.SqlAlchemyError:
                 session.rollback()
                 return session.execute(select(cls).filter_by(**kwargs)).one()
             else:
@@ -139,13 +141,13 @@ class Client(Base):
         "Project", back_populates="client", cascade="all, delete-orphan"
     )
 
-    def to_dict(self):
-        return dict(name=self.name, id=self.id)
+    def to_dict(self) -> app_types.Client:
+        return app_types.Client(name=self.name, id=self.id, time=None)
 
     @classmethod
     def GetTimeBetweenDates(
         cls, session: Session, client_id, start: DT.date, end: DT.date
-    ):
+    ) -> app_types.TimeObject:
         stmt = (
             select(func.sum(Entry.seconds).label("total_seconds"))
             .join(Project, Project.client_id == client_id)
@@ -163,7 +165,7 @@ class Client(Base):
         )
 
     @classmethod
-    def GetAllTime(cls, session: Session, client_id):
+    def GetAllTime(cls, session: Session, client_id) -> app_types.TimeObject:
         stmt = (
             select(func.sum(Entry.seconds).label("total_seconds"))
             .join(Project, Project.client_id == client_id)
@@ -178,6 +180,9 @@ class Client(Base):
         return app_types.TimeObject(
             hours=hours, minutes=minutes, seconds=round(seconds)
         )
+
+
+SelfProject = T.TypeVar("SelfProject", bound="Project")
 
 
 class Project(Base):
@@ -198,7 +203,7 @@ class Project(Base):
         ),
     )
 
-    def to_dict(self):
+    def to_dict(self) -> app_types.Project:
         return app_types.Project(
             id=self.id,
             name=self.name,
@@ -207,12 +212,14 @@ class Project(Base):
         )
 
     @classmethod
-    def GetByClient(cls, session, client_id):
+    def GetByClient(cls, session, client_id) -> SelfProject:
         stmt = select(cls).where(cls.client_id == client_id)
         return session.execute(stmt).scalars().all()
 
     @classmethod
-    def GetAllTime(cls, session: Session, project_id: Identifier):
+    def GetAllTime(
+        cls, session: Session, project_id: Identifier
+    ) -> app_types.TimeObject:
         stmt = (
             select(func.sum(Entry.seconds).label("total_seconds"))
             .join(Task, Task.project_id == project_id)
@@ -228,7 +235,9 @@ class Project(Base):
         )
 
     @classmethod
-    def GetTimeBetweenDates(cls, session, project_id, start, end):
+    def GetTimeBetweenDates(
+        cls, session, project_id, start, end
+    ) -> app_types.TimeObject:
         stmt = (
             select(func.sum(Entry.seconds).label("total_seconds"))
             .join(Task, Task.project_id == project_id)
@@ -242,6 +251,9 @@ class Project(Base):
         return app_types.TimeObject(
             hours=hours, minutes=minutes, seconds=round(seconds)
         )
+
+
+SelfTask = T.TypeVar("SelfTask", bound="Task")
 
 
 class Task(Base):
@@ -259,21 +271,22 @@ class Task(Base):
         CheckConstraint("length(trim(name)) != 0", name="name_not_empty"),
     )
 
-    def to_dict(self) -> dict[str, str | int]:
+    def to_dict(self) -> app_types.Task:
         return app_types.Task(
             id=self.id,
             name=self.name,
             project_id=self.project_id,
             status=self.status.value,
+            time=None,
         )
 
     @classmethod
-    def GetByProject(cls, session, project_id):
+    def GetByProject(cls, session, project_id) -> SelfTask:
         stmt = select(cls).where(cls.project_id == project_id)
         return session.execute(stmt).scalars().all()
 
     @classmethod
-    def GetTimeBetweenDates(cls, session, task_id, start, end):
+    def GetTimeBetweenDates(cls, session, task_id, start, end) -> app_types.TimeObject:
         stmt = (
             select(func.sum(Entry.seconds).label("total_seconds"))
             .join(Event, Event.task_id == task_id)
@@ -287,7 +300,7 @@ class Task(Base):
         return TimeObject(hours=hours, minutes=minutes, seconds=seconds)
 
     @classmethod
-    def GetAllTime(cls, session, task_id):
+    def GetAllTime(cls, session, task_id) -> app_types.TimeObject:
         stmt = (
             select(func.sum(Entry.seconds).label("total_seconds"))
             .join(Event, Event.task_id == task_id)
@@ -320,11 +333,13 @@ class Event(Base):
 
     def to_dict(self):
         app_types.Event(
+            id=self.id,
             task_id=self.task_id,
             start_date=self.start_date,
             details=self.details,
             notes=self.notes,
             entries=[entry.to_dict() for entry in self.entries],
+            time=None,
         )
 
     def create_entry(
@@ -345,7 +360,7 @@ class Event(Base):
         return entry
 
     @classmethod
-    def GetByTask(cls, session, task_id):
+    def GetByTask(cls, session, task_id) -> "Event":
         stmt = select(cls).filter(cls.by_task(task_id))
         return session.execute(stmt).scalars().all()
 
@@ -377,7 +392,7 @@ class Event(Base):
     @classmethod
     def GetTimeBetweenDates(
         cls, session, event_id: Identifier, start: DT.date, end: DT.date
-    ):
+    ) -> app_types.TimeObject:
         stmt = (
             select(func.sum(Entry.seconds).label("total_seconds"))
             .join(Entry, Entry.event_id == event_id)
@@ -390,7 +405,7 @@ class Event(Base):
         return TimeObject(hours=hours, minutes=minutes, seconds=seconds)
 
     @classmethod
-    def GetAllTime(cls, session, event_id: Identifier):
+    def GetAllTime(cls, session, event_id: Identifier) -> app_types.TimeObject:
         stmt = select(func.sum(Entry.seconds).label("total_seconds")).join(
             Entry, Entry.event_id == event_id
         )
@@ -410,8 +425,9 @@ class Entry(Base):
     seconds: Mapped[int] = mapped_column()
     stop_reason: Mapped[StopReasons]
 
-    def to_dict(self):
-        dict(
+    def to_dict(self) -> app_types.Entry:
+        return app_types.Entry(
+            id=self.event_id,
             event_id=self.event_id,
             started_on=self.started_on,
             stopped_on=self.stopped_on,
@@ -431,7 +447,7 @@ class Entry(Base):
         return int(hours)
 
     @classmethod
-    def GetByEvent(cls, session, event_id):
+    def GetByEvent(cls, session, event_id) -> "Entry":
         stmt = select(cls).where(cls.event_id == event_id)
         return session.execute(stmt).scalars().all()
 
@@ -441,10 +457,10 @@ class Queries:
     def _BaseSelect(cls):
         return (
             select(
-                (func.strftime("%Y-%m-%d", Entry.started_on)).label("dtwhen"),
-                Client.name.label("cname"),
-                Project.name.label("pname"),
-                Task.name.label("tname"),
+                (func.strftime("%Y-%m-%d", Entry.started_on)).label("date_when"),
+                Client.name.label("client_name"),
+                Project.name.label("project_name"),
+                Task.name.label("task_name"),
                 cast(
                     func.round(func.sum(Entry.seconds) / 3600).label("hours"),
                     Integer,
@@ -460,8 +476,8 @@ class Queries:
             .join(Task, Event.task_id == Task.id)
             .join(Project, Task.project_id == Project.id)
             .join(Client, Project.client_id == Client.id)
-            .group_by("cname", "pname", "tname", "dtwhen")
-            .order_by("dtwhen")
+            .group_by("client_name", "project_name", "task_name", "date_when")
+            .order_by("date_when")
         )
 
     @classmethod
@@ -469,11 +485,13 @@ class Queries:
         stmt = cls._BaseSelect()
         return session.execute(stmt).all()
 
+    @classmethod
     def BreakdownClient(cls, session, client_name):
         stmt = cls._BaseSelect().where(Client.name == client_name)
         result = session.execute(stmt).all()
         return result
 
+    @classmethod
     def BreakdownClientProjectDate(cls, session, client_name, project_name, target):
         stmt = (
             cls._BaseSelect()
@@ -483,6 +501,7 @@ class Queries:
         )
         return session.execute(stmt).all()
 
+    @classmethod
     def BreakdownClientProjectBetweenDates(
         cls, session, client_name, project_name, start_date, end_date
     ):
