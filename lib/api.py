@@ -317,8 +317,6 @@ class API:
     ) -> Event:
         with self.app.get_db() as session:
             event = models.Event.GetOrCreateByDate(session, task_id, DT.date.today())
-            session.add(event)
-            session.commit()
             event_id = event.id
 
         LOG.debug("timer_start {}", self.timer)
