@@ -1,5 +1,4 @@
 import { MainTimer } from '@src/components/MainTimer/MainTimer'
-import { ColorSchemeToggle } from '@src/components/ColorSchemeToggle/ColorSchemeToggle'
 import { Button, Center, Stack } from '@mantine/core'
 import { useAppContext } from '@src/App.context'
 import { useEffect, useState } from 'react'
@@ -47,7 +46,7 @@ export function HomePage() {
     )
 
     /**
-     * Client side callback from the backend to update the clock
+     * Client side callback for the backend to update the clock
      *
      * @param newTime tuple
      */
@@ -81,6 +80,7 @@ export function HomePage() {
             if (status) {
                 api.timer_owner().then((owner: TimeOwner | undefined) => {
                     if (owner) {
+                        console.log('Reconnecting to timer', owner)
                         setSelectedClientID(owner.client.id)
                         setSelectedProjectID(owner.project.id)
                         setSelectedTaskID(owner.task.id)
@@ -96,8 +96,6 @@ export function HomePage() {
         })
     }, [api, switchboard])
 
-    const clientData = clients?.map((element: Client) => ({ id: element.id, value: element.name }))
-
     if (
         clientsAreLoading ||
         clientIsLoading ||
@@ -108,6 +106,8 @@ export function HomePage() {
     ) {
         return 'Loading data'
     }
+
+    const clientData = clients?.map((element: Client) => ({ id: element.id, value: element.name }))
 
     const projectsData = allProjects?.map((project: Project) => ({ id: project.id, value: project.name }))
 
@@ -128,6 +128,7 @@ export function HomePage() {
     }
 
     const clearClient = () => {
+        api.timer_stop().then()
         setSelectedClientID(null)
         setSelectedProjectID(null)
         setSelectedTaskID(null)
@@ -162,6 +163,7 @@ export function HomePage() {
     }
 
     const clearProject = () => {
+        api.timer_stop().then()
         setSelectedProjectID(null)
         setSelectedTaskID(null)
     }
@@ -191,6 +193,11 @@ export function HomePage() {
     }
 
     const clearTask = () => {
+        api.timer_stop().then()
+        if (isRunning || isPaused) {
+            setIsRunning(false)
+            setIsPaused(false)
+        }
         setSelectedTaskID(null)
     }
 
@@ -212,7 +219,6 @@ export function HomePage() {
 
     return (
         <>
-            <ColorSchemeToggle />
             <Center>
                 <MainTimer
                     enabled={!!selectedTaskID}
