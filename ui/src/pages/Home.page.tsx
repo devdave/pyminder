@@ -46,7 +46,12 @@ export function HomePage() {
         selectedTaskID !== undefined && selectedTaskID !== null
     )
 
-    const timeChanged = (newTime: [number, number, number]) => {
+    /**
+     * Client side callback from the backend to update the clock
+     *
+     * @param newTime tuple
+     */
+    function timeChanged(newTime: [number, number, number]) {
         console.log('tick', newTime)
         setCurrentTime(() => ({
             hour: newTime[0],
