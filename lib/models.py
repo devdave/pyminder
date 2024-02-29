@@ -28,6 +28,7 @@ from sqlalchemy.orm import (
     declared_attr,
     scoped_session,
     sessionmaker,
+    InstrumentedAttribute,
 )
 
 from lib import app_types
@@ -96,14 +97,14 @@ class Base(DeclarativeBase):
         return result.rowcount == 1
 
     @classmethod
-    def GetAll(cls, session: Session) -> T.Sequence[Self]:
+    def GetAll(cls, session: Session) -> T.Sequence[Self] | T.Sequence["Base"]:
         stmt = select(cls)
         return session.execute(stmt).scalars().all()
 
     @classmethod
     def GetOrCreate(
         cls, session: Session, defaults=None, **kwargs
-    ) -> Self | sqlalchemy.Row[T.Tuple[Self]]:
+    ) -> Self | sqlalchemy.Row[T.Tuple[Self]] | sqlalchemy.Row[T.Tuple["Base"]]:
         instance = session.execute(select(cls).filter_by(**kwargs)).one_or_none()
         if instance:
             return instance
@@ -113,7 +114,7 @@ class Base(DeclarativeBase):
             try:
                 session.add(instance)
                 session.commit()
-            except sqlalchemy.exc.SqlAlchemyError:
+            except sqlalchemy.exc.SqlAlchemyError:  # type: ignore
                 session.rollback()
                 return session.execute(select(cls).filter_by(**kwargs)).one()
             else:
@@ -156,9 +157,8 @@ class Client(Base):
             .where(Event.by_task_and_dates(Task.id, start, end))
             .where(Entry.event_id == Event.id)
         )
-        row = session.execute(stmt).scalar()
-        total = row.total_seconds if row and row.total_seconds > 0 else 0
-        hours, remainder = divmod(total, 3600)
+        total_seconds = session.execute(stmt).scalar() or 0
+        hours, remainder = divmod(total_seconds, 3600)
         minutes, seconds = divmod(remainder, 60)
         return app_types.TimeObject(
             hours=hours, minutes=minutes, seconds=round(seconds)
@@ -212,7 +212,7 @@ class Project(Base):
         )
 
     @classmethod
-    def GetByClient(cls, session, client_id) -> SelfProject:
+    def GetByClient(cls, session, client_id) -> T.Sequence["Project"]:
         stmt = select(cls).where(cls.client_id == client_id)
         return session.execute(stmt).scalars().all()
 
@@ -281,7 +281,7 @@ class Task(Base):
         )
 
     @classmethod
-    def GetByProject(cls, session, project_id) -> SelfTask:
+    def GetByProject(cls, session, project_id) -> list["Task"]:
         stmt = select(cls).where(cls.project_id == project_id)
         return session.execute(stmt).scalars().all()
 
@@ -360,17 +360,20 @@ class Event(Base):
         return entry
 
     @classmethod
-    def GetByTask(cls, session, task_id) -> "Event":
+    def GetByTask(cls, session, task_id) -> T.Sequence["Event"]:
         stmt = select(cls).filter(cls.by_task(task_id))
         return session.execute(stmt).scalars().all()
 
     @hybrid_method
-    def by_task(self, task_id: Identifier):
+    def by_task(self, task_id: Identifier | InstrumentedAttribute[int]):
         return self.task_id == task_id
 
     @hybrid_method
     def by_task_and_dates(
-        self, task_id: Identifier, start_date: DT.date, end_date: DT.date
+        self,
+        task_id: Identifier | InstrumentedAttribute[int],
+        start_date: DT.date,
+        end_date: DT.date,
     ):
         return and_(
             self.by_task(task_id),
@@ -447,7 +450,7 @@ class Entry(Base):
         return int(hours)
 
     @classmethod
-    def GetByEvent(cls, session, event_id) -> "Entry":
+    def GetByEvent(cls, session, event_id) -> T.Sequence["Entry"]:
         stmt = select(cls).where(cls.event_id == event_id)
         return session.execute(stmt).scalars().all()
 

@@ -3,7 +3,7 @@ import datetime
 import datetime as DT
 import time
 
-from application import Application
+from .application import Application
 from . import models
 from .app_types import (
     Identifier,
@@ -48,21 +48,25 @@ class API:
                 for record in models.Client.GetAll(session)
             ]
 
-    def client_get(self, client_id: Identifier) -> Client:
+    def client_get(self, client_id: Identifier) -> T.Optional[Client]:
         with self.app.get_db() as session:
             record = models.Client.Fetch_by_id(session, client_id)
             if record:
                 all_time = models.Client.GetAllTime(session, record.id)
                 return {"id": record.id, "name": record.name, "time": all_time}
+            return None
 
-    def client_update(self, client_id: Identifier, client_name: str) -> Client:
+    def client_update(
+        self, client_id: Identifier, client_name: str
+    ) -> T.Optional[Client]:
         with self.app.get_db() as session:
             record = models.Client.Fetch_by_id(session, client_id)
             if record:
                 record.name = client_name
                 session.add(record)
                 session.commit()
-                return {"id": record.id, "name": record.name, "time": None}
+                return record.to_dict()
+            return None
 
     def client_destroy(self, client_id: Identifier) -> bool:
         with self.app.get_db() as session:
@@ -119,7 +123,7 @@ class API:
                 id=record.id,
                 name=record.name,
                 time=None,
-                project_id=project_id,
+                project_id=int(project_id),
                 status=record.status,
             )
 
@@ -138,7 +142,7 @@ class API:
 
     def task_update(
         self, task_id: Identifier, name: str | None = None, status: str | None = None
-    ) -> Task:
+    ) -> T.Optional[Task]:
         with self.app.get_db() as session:
             record = models.Task.Fetch_by_id(session, task_id)
             if record:
@@ -150,6 +154,7 @@ class API:
                 session.add(record)
                 session.commit()
                 return record.to_dict()
+            return None
 
     def task_destroy(self, task_id: Identifier) -> bool:
         with self.app.get_db() as session:
@@ -278,26 +283,29 @@ class API:
     def timer_check(self) -> bool:
         return self.timer is not None and self.timer.running is True
 
-    def timer_owner(self) -> TimeOwner:
-        with self.app.get_db() as session:
-            entry = models.Entry.Fetch_by_id(session, self.timer.entry_id)
-            event = entry.event
-            task = event.task
-            project = task.project
-            client = project.client
-            return TimeOwner(
-                client=client.to_dict(),
-                project=project.to_dict(),
-                task=task.to_dict(),
-                event=event.to_dict(),
-                isRunning=self.timer.running,
-                isPaused=self.timer.paused,
-            )
+    def timer_owner(self) -> T.Optional[TimeOwner]:
+        if self.timer is not None:
+            with self.app.get_db() as session:
+                entry = models.Entry.Fetch_by_id(session, self.timer.entry_id)
+                event = entry.event
+                task = event.task
+                project = task.project
+                client = project.client
+                return TimeOwner(
+                    client=client.to_dict(),
+                    project=project.to_dict(),
+                    task=task.to_dict(),
+                    event=event.to_dict(),
+                    isRunning=self.timer.running,
+                    isPaused=self.timer.paused,
+                )
+        return None
 
     def timer_override(self, new_receiver: Identifier) -> None:
-        old_receiver = self.timer.identifier
-        self.timer.identifier = new_receiver
-        self.app.clearCallback(old_receiver)
+        if self.timer is not None:
+            old_receiver = self.timer.identifier
+            self.timer.identifier = new_receiver
+            self.app.clearCallback(old_receiver)
 
     def timer_start(
         self,

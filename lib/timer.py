@@ -3,7 +3,7 @@ import math
 import threading
 import time
 
-import models
+from . import models
 from app_types import Identifier
 from application import Application
 from .log_helper import getLogger
@@ -25,7 +25,7 @@ class Timer(threading.Thread):
     entry_id: Identifier
 
     def __init__(
-        self, app: Application, identifier: Identifier, event_id, interval: int
+        self, app: Application, identifier: Identifier, event_id, interval: int | float
     ):
         threading.Thread.__init__(self)
 

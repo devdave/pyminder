@@ -1,3 +1,4 @@
+import typing as T
 import pathlib
 from contextlib import contextmanager
 
@@ -15,7 +16,7 @@ class Application:
     here: pathlib.Path
     database_path: pathlib.Path
     _main_window: webview.Window | None = None
-    _port: int = None
+    _port: T.Optional[int] = None
 
     engine: sqlalchemy.engine.Engine
     Session: models.scoped_session

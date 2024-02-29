@@ -20,8 +20,8 @@ class APIBridge {
     clients_list():Promise<Client[]> {
         return this.boundary.remote('clients_list') as Promise<Client[]>
     }
-    client_get(client_id:Identifier):Promise<Client> {
-        return this.boundary.remote('client_get', client_id) as Promise<Client>
+    client_get(client_id:Identifier):Promise<Client | undefined > {
+        return this.boundary.remote('client_get', client_id) as Promise<Client | undefined >
     }
     client_update(client_id:Identifier, client_name:string):Promise<Client> {
         return this.boundary.remote('client_update', client_id, client_name) as Promise<Client>
@@ -71,8 +71,8 @@ class APIBridge {
     event_get(event_id:Identifier):Promise<Event> {
         return this.boundary.remote('event_get', event_id) as Promise<Event>
     }
-    event_update(event_id:Identifier, detail:string | undefined = undefined, notes:string | undefined = undefined):Promise<Event> {
-        return this.boundary.remote('event_update', event_id, detail, notes) as Promise<Event>
+    event_update(event_id:Identifier, detail:string | undefined = undefined, notes:string | undefined = undefined): Promise<void> {
+        return this.boundary.remote('event_update', event_id, detail, notes) as Promise<void>
     }
     event_destroy(event_id:Identifier):Promise<boolean> {
         return this.boundary.remote('event_destroy', event_id) as Promise<boolean>
