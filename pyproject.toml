@@ -6,7 +6,7 @@ authors = ["devdave <devdave@ominian.net>"]
 readme = "README.md"
 
 [tool.poetry.dependencies]
-python = "^3.10"
+python = "^3.11"
 sqlalchemy = "^2.0.26"
 alembic = "^1.13.1"
 pycparser = "^2.21"
