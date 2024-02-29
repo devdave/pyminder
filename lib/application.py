@@ -39,7 +39,7 @@ class Application:
         self.windows = dict()
 
     @property
-    def main_window(self) -> webview.Window:
+    def main_window(self) -> webview.Window | None:
         return self._main_window
 
     @main_window.setter
@@ -64,12 +64,16 @@ class Application:
         temp = json.dumps(args)
         script = f"window.criticalCall('{identifier}', {temp})"
         # LOG.debug(f"Telling {identifier} - `{script=}`")
-        response = self.main_window.evaluate_js(script, check_success)
+        if self.main_window is None:
+            raise RuntimeError("Main window not initialized")
+        response = self.main_window.evaluate_js(script)
         # LOG.debug(f"Telling {identifier} - `{response=}`")
         return response
 
     def clearCallback(self, identifier: Identifier):
         script = f"window.endCallback('{identifier}')"
+        if self.main_window is None:
+            raise RuntimeError("Main window not initialized")
         return self.main_window.evaluate_js(script)
 
     @contextmanager
