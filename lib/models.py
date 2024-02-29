@@ -100,12 +100,10 @@ class Base(DeclarativeBase):
         return session.execute(stmt).scalars().all()
 
     @classmethod
-    def GetOrCreate(
-        cls, session: Session, defaults=None, **kwargs
-    ) -> T.Self | sqlalchemy.Row[T.Tuple[T.Self]] | None:
+    def GetOrCreate(cls, session: Session, defaults=None, **kwargs) -> T.Self | None:
         instance = session.execute(select(cls).filter_by(**kwargs)).one_or_none()
         if instance:
-            return instance
+            return instance[0]
         else:
             kwargs |= defaults or {}
             new_instance = cls(**kwargs)
@@ -114,7 +112,7 @@ class Base(DeclarativeBase):
                 session.commit()
             except sqlalchemy.exc.SqlAlchemyError:  # type: ignore
                 session.rollback()
-                return session.execute(select(cls).filter_by(**kwargs)).one()
+                return session.execute(select(cls).filter_by(**kwargs)).one()[0]
             else:
                 return new_instance
 
