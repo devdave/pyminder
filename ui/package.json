@@ -44,6 +44,7 @@
     "@storybook/testing-library": "^0.2.2",
     "@swc/cli": "^0.3.9",
     "@swc/core": "^1.4.2",
+    "@tanstack/eslint-plugin-query": "^5.20.1",
     "@testing-library/dom": "^9.3.3",
     "@testing-library/jest-dom": "^6.1.5",
     "@testing-library/react": "^14.1.2",

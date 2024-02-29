@@ -2,7 +2,9 @@ module.exports = {
   extends: [
       'mantine',
       'plugin:react-hooks/recommended',
-      'plugin:@typescript-eslint/recommended'],
+      'plugin:@typescript-eslint/recommended',
+      'plugin:@tanstack/eslint-plugin-query/recommended',
+  ],
   parser: '@typescript-eslint/parser',
   plugins: ['@typescript-eslint'],
   parserOptions: {
