@@ -69,3 +69,28 @@ export interface TimeOwner {
     isRunning: boolean
     isPaused: boolean
 }
+
+export interface CommonTimeCardValues {
+    hours: number
+    minutes: number
+    seconds: number
+    total_seconds: number
+    decimal: number
+}
+
+export interface DateTimeCard extends CommonTimeCardValues {
+    name: string
+    entries: number
+}
+
+export interface ProjectTime extends CommonTimeCardValues {
+    dates: { [date: string]: DateTimeCard }
+}
+
+export interface ClientTime extends CommonTimeCardValues {
+    projects: { [project_name: string]: ProjectTime }
+}
+
+export interface TimeReport extends CommonTimeCardValues {
+    clients: { [client_name: string]: ClientTime }
+}

@@ -73,3 +73,28 @@ class TimeObject(T.TypedDict):
     seconds: int
     minutes: int
     hours: int
+
+
+class ReportTimeValues(T.TypedDict):
+    hours: float
+    minutes: float
+    seconds: float
+    total_seconds: float
+    decimal: float
+
+
+class DateTimeCard(ReportTimeValues):
+    name: str
+    entries: int
+
+
+class ProjectTime(ReportTimeValues):
+    dates: dict[str, T.List[DateTimeCard]]
+
+
+class ClientTime(ReportTimeValues):
+    projects: dict[str, ProjectTime]
+
+
+class TimeReport(ReportTimeValues):
+    clients: dict[str, ClientTime]
