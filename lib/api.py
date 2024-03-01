@@ -118,7 +118,9 @@ class API:
 
     def project_destroy(self, project_id: Identifier) -> bool:
         with self.app.get_db() as session:
-            return models.Project.Delete_By_Id(session, project_id)
+            retval = models.Project.Delete_By_Id(session, project_id)
+            session.commit()
+            return retval
 
     def task_create(self, project_id: Identifier, name: str) -> Task:
         with self.app.get_db() as session:
@@ -228,7 +230,8 @@ class API:
 
     def event_destroy(self, event_id: Identifier) -> bool:
         with self.app.get_db() as session:
-            return models.Event.Delete_By_Id(session, event_id)
+            retval = models.Event.Delete_By_Id(session, event_id)
+            return retval
 
     def event_add_entry(
         self,
@@ -286,7 +289,9 @@ class API:
 
     def entry_destroy(self, entry_id: Identifier) -> bool:
         with self.app.get_db() as session:
-            return models.Entry.Delete_By_Id(session, entry_id)
+            retval = models.Entry.Delete_By_Id(session, entry_id)
+            session.commit()
+            return retval
 
     def timer_check(self) -> bool:
         return self.timer is not None and self.timer.running is True
@@ -500,7 +505,7 @@ class API:
 
         return report
 
-    def report_build2text(self, payload: dict[str, dict]) -> str:
+    def report_build2text(self, payload: dict[str, str]) -> str:
         report = self.report_build(payload)
         body = "Report:\n"
         if payload.get("start_date", None) is not None:
