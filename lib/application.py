@@ -1,3 +1,4 @@
+import time
 import typing as T
 import pathlib
 from contextlib import contextmanager
@@ -98,4 +99,10 @@ class Application:
 
             self.windows[win_name].events.closed += handle_close
             return True
+
+        elif win_name in self.windows:
+            pass
+
+            return True
+
         return False
