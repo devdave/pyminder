@@ -29,7 +29,7 @@ class Application:
     def __init__(self, here: pathlib.Path, db_path: pathlib.Path) -> None:
         self.here = here
         self.database_path = db_path
-        self.engine, self.Session = models.connect(self.database_path)
+        self.engine, self.Session = models.connect(self.database_path, echo=True)
 
         self._main_window = None
         self.current_client_id = None

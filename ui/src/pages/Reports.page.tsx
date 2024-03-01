@@ -5,7 +5,7 @@ import { useEffect, useState } from 'react'
 import { Identifier } from '@src/types'
 
 export const ReportsPage = () => {
-    const { clientBroker, projectBroker, taskBroker } = useAppContext()
+    const { api, clientBroker, projectBroker, taskBroker } = useAppContext()
 
     const [filterDate, setFilterDate] = useState<[Date | null, Date | null]>([null, null])
 
@@ -37,6 +37,8 @@ export const ReportsPage = () => {
         selectedProjectOption?.value !== null && selectedProjectOption?.value !== undefined
     )
 
+    const [reportData, setReportData] = useState<string>('No report')
+
     useEffect(() => {
         console.log(
             'Build report on',
@@ -45,7 +47,24 @@ export const ReportsPage = () => {
             selectedProjectOption?.value,
             selectedTaskOption?.value
         )
-    }, [filterDate, selectedClientOption, selectedProjectOption, selectedTaskOption])
+        const start_date =
+            filterDate[0] !== null
+                ? `${filterDate[0].getFullYear()}-${filterDate[0].getMonth() + 1}-${filterDate[0].getDate()}`
+                : undefined
+        const end_date =
+            filterDate[1] !== null
+                ? `${filterDate[1].getFullYear()}-${filterDate[1].getMonth() + 1}-${filterDate[1].getDate()}`
+                : undefined
+        api.report_build2text({
+            start_date,
+            end_date,
+            client_id: selectedClientOption?.value,
+            project_id: selectedProjectOption?.value,
+            task_id: selectedTaskOption?.value
+        }).then((report) => {
+            setReportData(report)
+        })
+    }, [api, filterDate, selectedClientOption, selectedProjectOption, selectedTaskOption])
 
     useEffect(() => {
         if (selectedClientOption === null) {
@@ -139,6 +158,7 @@ export const ReportsPage = () => {
                     onChange={handleTaskSelect}
                 />
             </Group>
+            <pre style={{ whiteSpace: 'pre-wrap' }}>{reportData.toString()}</pre>
         </>
     )
 }

@@ -31,6 +31,7 @@ from sqlalchemy.orm import (
     InstrumentedAttribute,
 )
 
+import models
 from lib import app_types
 from lib.app_types import TaskStatus, StopReasons, Identifier, TimeObject
 from lib.log_helper import getLogger
@@ -352,6 +353,12 @@ class Event(Base):
         self.entries.append(entry)
         return entry
 
+    def get_time(self):
+        total_seconds = sum(entry.second for entry in self.entries)
+        hours, remainder = divmod(total_seconds, 3600)
+        minutes, seconds = divmod(remainder, 60)
+        return TimeObject(hours=hours, minutes=minutes, seconds=seconds)
+
     @classmethod
     def GetByTask(cls, session, task_id) -> T.Sequence["Event"]:
         stmt = select(cls).filter(cls.by_task(task_id))
@@ -453,6 +460,7 @@ class Queries:
     def _BaseSelect(cls):
         return (
             select(
+                Entry.seconds,
                 (func.strftime("%Y-%m-%d", Entry.started_on)).label("date_when"),
                 Client.name.label("client_name"),
                 Project.name.label("project_name"),
@@ -462,16 +470,17 @@ class Queries:
                     Integer,
                 ),
                 cast(
-                    func.round(func.sum(Entry.seconds) % 3600 / 60).label("minutes"),
+                    func.round((func.sum(Entry.seconds) % 3600) / 60).label("minutes"),
                     Integer,
                 ),
                 func.count(Entry.id).label("entries"),
             )
-            .select_from(Event)
-            .join(Entry, Entry.event_id == Event.id)
+            .select_from(Entry)
+            .join(Event, Entry.event_id == Event.id)
             .join(Task, Event.task_id == Task.id)
             .join(Project, Task.project_id == Project.id)
             .join(Client, Project.client_id == Client.id)
+            .where(Entry.seconds > 0)
             .group_by("client_name", "project_name", "task_name", "date_when")
             .order_by("date_when")
         )
@@ -482,10 +491,26 @@ class Queries:
         return session.execute(stmt).all()
 
     @classmethod
-    def BreakdownClient(cls, session, client_name):
+    def BreakdownClientByName(cls, session, client_name):
         stmt = cls._BaseSelect().where(Client.name == client_name)
-        result = session.execute(stmt).all()
-        return result
+        return session.execute(stmt).all()
+
+    @classmethod
+    def BreakdownClientByID(cls, session, client_id):
+        stmt = cls._BaseSelect().where(Client.id == client_id)
+        return session.execute(stmt).all()
+
+    @classmethod
+    def BreakdownClientByIDAndOptionalDates(
+        cls, session, client_id, start: DT.date | None, end: DT.date | None
+    ):
+        stmt = cls._BaseSelect().where(Client.id == client_id)
+        if start is not None:
+            stmt = stmt.where(models.Event.start_date >= start)
+        if end is not None:
+            stmt = stmt.where(models.Event.start_date <= end)
+
+        return session.execute(stmt).all()
 
     @classmethod
     def BreakdownClientProjectDate(cls, session, client_name, project_name, target):
@@ -508,4 +533,50 @@ class Queries:
             .where(Event.start_date >= start_date)
             .where(Event.start_date <= end_date)
         )
+        return session.execute(stmt).all()
+
+    @classmethod
+    def BreakdownProjectByIDAndOptionallyBetweenDates(
+        cls, session, project_id, start_date: DT.date | None, end_date: DT.date | None
+    ):
+        stmt = cls._BaseSelect().where(Project.id == project_id)
+        if start_date is not None:
+            stmt = stmt.where(models.Event.start_date >= start_date)
+        if end_date is not None:
+            stmt = stmt.where(models.Event.start_date <= end_date)
+
+        return session.execute(stmt).all()
+
+    @classmethod
+    def BreakdownTaskByIDAndOptionallyBetweenDates(
+        cls, session, task_id, start_date, end_date
+    ):
+        stmt = cls._BaseSelect().where(Task.id == task_id)
+        if start_date is not None:
+            stmt = stmt.where(models.Event.start_date >= start_date)
+        if end_date is not None:
+            stmt = stmt.where(models.Event.start_date <= end_date)
+
+        return session.execute(stmt).all()
+
+    @classmethod
+    def BreakdownByConditions(
+        cls, session, client_id, project_id, task_id, start_date, end_date
+    ):
+        stmt = cls._BaseSelect()
+        if client_id is not None:
+            stmt = stmt.where(Client.id == client_id)
+
+            if project_id is not None:
+                stmt = stmt.where(Project.id == project_id)
+
+                if task_id is not None:
+                    stmt = stmt.where(Task.id == task_id)
+
+        if start_date is not None:
+            stmt = stmt.where(Event.start_date >= start_date)
+
+        if end_date is not None:
+            stmt = stmt.where(Event.start_date <= end_date)
+
         return session.execute(stmt).all()

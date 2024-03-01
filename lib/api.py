@@ -1,3 +1,4 @@
+import json
 import typing as T
 import datetime
 import datetime as DT
@@ -16,6 +17,10 @@ from .app_types import (
     Entry,
     TaskStatus,
     TimeOwner,
+    TimeReport,
+    DateTimeCard,
+    ClientTime,
+    ProjectTime,
 )
 from .log_helper import getLogger
 from .timer import Timer
@@ -357,3 +362,172 @@ class API:
 
     def open_window(self, win_name: str) -> bool:
         return self.app.open_window(self, win_name)
+
+    def report_build(
+        self,
+        payload: dict[str, str],
+    ) -> TimeReport:
+        start_date = payload.get("start_date", None)
+        end_date = payload.get("end_date", None)
+        client_id = payload.get("client_id", None)
+        project_id = payload.get("project_id", None)
+        task_id = payload.get("task_id", None)
+        report_text = "Report:\n"
+        with self.app.get_db() as session:
+            start_date = (
+                DT.datetime.strptime(start_date, "%Y-%m-%d").date()
+                if start_date is not None
+                else None
+            )
+            end_date = (
+                DT.datetime.strptime(end_date, "%Y-%m-%d").date()
+                if end_date is not None
+                else None
+            )
+
+            timecards = models.Queries.BreakdownByConditions(
+                session, client_id, project_id, task_id, start_date, end_date
+            )
+
+            if len(timecards) == 0:
+                return None
+
+            def make_time(total_time):
+                my_hours, remainder = divmod(total_time, 3600)
+                my_minutes, my_seconds = divmod(remainder, 60)
+                return my_hours, my_minutes, my_seconds
+
+            make_decimal = (
+                lambda x: x["hours"] + (x["minutes"] / 60) + (x["seconds"] / 3600)
+            )
+
+            report = TimeReport(
+                clients={},
+                hours=0.0,
+                minutes=0.0,
+                seconds=0.0,
+                total_seconds=0.0,
+                decimal=0.0,
+            )
+            for timecard in timecards:
+                if timecard.client_name not in report["clients"]:
+                    report["clients"][timecard.client_name] = ClientTime(
+                        projects={}, hours=0, minutes=0, seconds=0, total_seconds=0
+                    )
+
+                if (
+                    timecard.project_name
+                    not in report["clients"][timecard.client_name]["projects"]
+                ):
+                    report["clients"][timecard.client_name]["projects"][
+                        timecard.project_name
+                    ] = ProjectTime(
+                        dates={},
+                        hours=0,
+                        minutes=0,
+                        seconds=0,
+                        total_seconds=0,
+                        decimal=0,
+                    )
+
+                if (
+                    timecard.date_when
+                    not in report["clients"][timecard.client_name]["projects"][
+                        timecard.project_name
+                    ]["dates"]
+                ):
+                    report["clients"][timecard.client_name]["projects"][
+                        timecard.project_name
+                    ]["dates"][timecard.date_when] = []
+
+                hours, minutes, seconds = make_time(timecard.seconds)
+                computed = hours + (minutes / 60) + (seconds / 3600)
+                report["clients"][timecard.client_name]["projects"][
+                    timecard.project_name
+                ]["dates"][timecard.date_when].append(
+                    DateTimeCard(
+                        name=timecard.task_name,
+                        hours=hours,
+                        minutes=minutes,
+                        seconds=seconds,
+                        total_seconds=timecard.seconds,
+                        entries=timecard.entries,
+                        decimal=computed,
+                    )
+                )
+
+                report["clients"][timecard.client_name]["projects"][
+                    timecard.project_name
+                ]["seconds"] += timecard.seconds
+
+            total_seconds = 0
+            for client, client_data in report["clients"].items():
+                project_seconds = 0
+                for project, project_data in client_data["projects"].items():
+                    date_seconds = 0
+                    for date, entries in project_data["dates"].items():
+                        entry_seconds = 0
+                        for entry in entries:
+                            entry_seconds += entry["total_seconds"]
+
+                        date_seconds += entry_seconds
+
+                    project_seconds += date_seconds
+                    project_data["total_seconds"] = date_seconds
+                    (
+                        project_data["hours"],
+                        project_data["minutes"],
+                        project_data["seconds"],
+                    ) = make_time(date_seconds)
+                    project_data["decimal"] = make_decimal(project_data)
+
+                total_seconds += project_seconds
+                client_data["total_seconds"] = project_seconds
+                (
+                    client_data["hours"],
+                    client_data["minutes"],
+                    client_data["seconds"],
+                ) = make_time(project_seconds)
+                client_data["decimal"] = make_decimal(client_data)
+
+            report["total_seconds"] = total_seconds
+            (
+                report["hours"],
+                report["minutes"],
+                report["seconds"],
+            ) = make_time(total_seconds)
+            report["decimal"] = make_decimal(report)
+
+        return report
+
+    def report_build2text(self, payload: dict[str, dict]) -> str:
+        report = self.report_build(payload)
+        body = "Report:\n"
+        if payload.get("start_date", None) is not None:
+            body += f"Start:\t{payload['start_date']}\n"
+        if payload.get("end_date", None) is not None:
+            body += f"End:\t{payload['end_date']}\n"
+        body += "\n"
+
+        float2int = lambda x: f"{int(x):02}"
+
+        print_time = (
+            lambda x: f"{float2int(x['hours'])}:{float2int(x['minutes'])}:{float2int(x['seconds'])}"
+        )
+
+        for client, client_data in report["clients"].items():
+            body += f"Client: {client}\t\t{print_time(client_data)}\n"
+            for project, project_data in client_data["projects"].items():
+                body += (
+                    f"\tProject: {project}".ljust(35) + f"{print_time(project_data)}\n"
+                )
+                for date, tasks in project_data["dates"].items():
+                    body += f"\t\t{date}\n"
+                    for task in tasks:
+                        body += (
+                            f"\t\t\t{task['name']}".ljust(40) + f"{print_time(task)}\n"
+                        )
+
+        body += "\n"
+        body += f"Total time: {round(report['decimal'],4)}\n"
+        return body
