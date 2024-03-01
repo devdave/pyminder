@@ -181,7 +181,9 @@ class Client(Base):
 class Project(Base):
     name: Mapped[str] = mapped_column()
 
-    client_id: Mapped[int] = mapped_column(ForeignKey("Client.id"), index=True)
+    client_id: Mapped[int] = mapped_column(
+        ForeignKey("Client.id", ondelete="CASCADE"), index=True
+    )
     client: Mapped[Client] = relationship("Client", back_populates="projects")
 
     tasks: Mapped[list["Task"]] = relationship(
@@ -248,7 +250,9 @@ class Project(Base):
 
 class Task(Base):
     name: Mapped[str] = mapped_column(index=True)
-    project_id: Mapped[int] = mapped_column(ForeignKey("Project.id"), index=True)
+    project_id: Mapped[int] = mapped_column(
+        ForeignKey("Project.id", ondelete="CASCADE"), index=True
+    )
     project: Mapped[Project] = relationship("Project", back_populates="tasks")
 
     status: Mapped[TaskStatus] = mapped_column(default=TaskStatus.ACTIVE)
@@ -305,7 +309,9 @@ class Task(Base):
 
 
 class Event(Base):
-    task_id: Mapped[int] = mapped_column(ForeignKey("Task.id"), index=True)
+    task_id: Mapped[int] = mapped_column(
+        ForeignKey("Task.id", ondelete="CASCADE"), index=True
+    )
     task: Mapped[Task] = relationship("Task", back_populates="events")
 
     start_date: Mapped[DT.date] = mapped_column()
@@ -416,7 +422,9 @@ class Event(Base):
 
 
 class Entry(Base):
-    event_id: Mapped[int] = mapped_column(ForeignKey("Event.id"), index=True)
+    event_id: Mapped[int] = mapped_column(
+        ForeignKey("Event.id", ondelete="CASCADE"), index=True
+    )
     event: Mapped[Event] = relationship("Event", back_populates="entries")
 
     started_on: Mapped[DT.datetime] = mapped_column()
