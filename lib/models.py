@@ -31,7 +31,6 @@ from sqlalchemy.orm import (
     InstrumentedAttribute,
 )
 
-import models
 from lib import app_types
 from lib.app_types import TaskStatus, StopReasons, Identifier, TimeObject
 from lib.log_helper import getLogger
@@ -177,9 +176,6 @@ class Client(Base):
         return app_types.TimeObject(
             hours=hours, minutes=minutes, seconds=round(seconds)
         )
-
-
-SelfProject = T.TypeVar("SelfProject", bound="Project")
 
 
 class Project(Base):
@@ -506,9 +502,9 @@ class Queries:
     ):
         stmt = cls._BaseSelect().where(Client.id == client_id)
         if start is not None:
-            stmt = stmt.where(models.Event.start_date >= start)
+            stmt = stmt.where(Event.start_date >= start)
         if end is not None:
-            stmt = stmt.where(models.Event.start_date <= end)
+            stmt = stmt.where(Event.start_date <= end)
 
         return session.execute(stmt).all()
 
