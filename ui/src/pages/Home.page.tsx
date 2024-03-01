@@ -134,18 +134,6 @@ export function HomePage() {
         setSelectedTaskID(null)
     }
 
-    // const deleteClient = (id: Identifier, value: string) => {
-    //     setSelectedClientID(null)
-    //     setSelectedProjectId(null)
-    //     setSelectedTaskID(null)
-    //     // eslint-disable-next-line no-alert
-    //     if (window.confirm(`Are you sure you want to delete this client ${value}?`)) {
-    //         clientBroker.destroy(id).then(() => {
-    //             clientBroker.invalidateClients().then()
-    //         })
-    //     }
-    // }
-
     const addProject = (projectName: string) => {
         if (selectedClientID !== null && selectedClientID !== undefined) {
             projectBroker.create(selectedClientID, projectName).then((record) => {
@@ -167,15 +155,6 @@ export function HomePage() {
         setSelectedProjectID(null)
         setSelectedTaskID(null)
     }
-
-    // const deleteProject = (id: Identifier, value: string) => {
-    //     // eslint-disable-next-line no-alert
-    //     if (window.confirm(`Are you sure you want to delete this, ${value} project?`)) {
-    //         projectBroker.destroy(id).then(() => {
-    //             projectBroker.invalidateProjects(selectedClientID as Identifier).then()
-    //         })
-    //     }
-    // }
 
     const addTask = (taskName: string) => {
         if (selectedProjectID) {
@@ -220,16 +199,25 @@ export function HomePage() {
     return (
         <>
             <Center>
-                <MainTimer
-                    enabled={!!selectedTaskID}
-                    time={currentTime}
-                    startCB={startTime}
-                    stopCB={() => timeStop()}
-                    pauseCB={() => api.timer_pause().then()}
-                    resumeCB={() => api.timer_resume().then()}
-                    currentlyRunning={isRunning}
-                    currentlyPaused={isPaused}
-                />
+                <Stack
+                    align='center'
+                    gap='xs'
+                >
+                    <div>
+                        <Button onClick={() => open_window('reports')}>Reports</Button>
+                        <Button onClick={() => open_window('manage')}>Manage</Button>
+                    </div>
+                    <MainTimer
+                        enabled={!!selectedTaskID}
+                        time={currentTime}
+                        startCB={startTime}
+                        stopCB={() => timeStop()}
+                        pauseCB={() => api.timer_pause().then()}
+                        resumeCB={() => api.timer_resume().then()}
+                        currentlyRunning={isRunning}
+                        currentlyPaused={isPaused}
+                    />
+                </Stack>
             </Center>
             <Center>
                 <Stack
@@ -297,9 +285,6 @@ export function HomePage() {
                             )}
                         </div>
                     )}
-                    <div>
-                        <Button onClick={() => open_window('reports')}>Reports</Button>
-                    </div>
                 </Stack>
             </Center>
         </>
