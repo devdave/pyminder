@@ -9,28 +9,15 @@ export const ReportsPage = () => {
 
     const [filterDate, setFilterDate] = useState<[Date | null, Date | null]>([null, null])
 
-    // const [selectedClientID, setSelectedClientID] = useState<Identifier | null>(null)
     const [selectedClientOption, setSelectedClientOption] = useState<ComboboxItem | null>(null)
-
     const { data: allClients, isLoading: allClientsAreLoading } = clientBroker.getAll()
-    // const { data: selectedClient, isLoading: clientIsLoading } = clientBroker.fetch(
-    //     selectedClientID as Identifier,
-    //     selectedClientID !== null
-    // )
 
-    // const [selectedProjectID, setSelectedProjectID] = useState<Identifier | null>(null)
     const [selectedProjectOption, setSelectedProjectOption] = useState<ComboboxItem | null>(null)
     const { data: allProjects, isLoading: allProjectsAreLoading } = projectBroker.useGetAllByClient(
         selectedClientOption?.value as Identifier,
         selectedClientOption?.value !== null && selectedClientOption?.value !== undefined
     )
-    // const { data: selectedProject, isLoading: projectIsLoading } = projectBroker.fetch(
-    //     selectedClientOption?.value || -1,
-    //     selectedProjectOption?.value || -1,
-    //     selectedClientOption !== null && selectedProjectOption !== null
-    // )
 
-    // const [selectedTaskID, setSelectedTaskID] = useState<Identifier | null>(null)
     const [selectedTaskOption, setSelectedTaskOption] = useState<ComboboxItem | null>(null)
     const { data: allTasks, isLoading: allTasksAreLoading } = taskBroker.getAllByProject(
         selectedProjectOption?.value || -1,
