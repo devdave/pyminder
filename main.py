@@ -5,6 +5,7 @@ import sys
 import time
 from pathlib import Path
 
+ import bottle
 import tap
 import webview
 
@@ -97,7 +98,8 @@ def main(argv):
     api = API(app)
 
     window_args = {
-        "url": "./ui/dist/index.html",
+        # "url": "./ui/dist/index.html",
+        "url": "/",
         "title": "PyMinder",
         "js_api": api,
         "width": 350,
@@ -111,13 +113,15 @@ def main(argv):
         worker = spinup_pnpm(str(HERE / "ui"), results.port)
         window_args["url"] = f"http://127.0.0.1:{results.port}/"
         app.port = results.port
+    else:
+        window_args["url"] = window_args["server"] = app.make_app()
 
     app.main_window = webview.create_window(**window_args)
 
     if results.debug:
         webview.start(debug=True)
     else:
-        webview.start(http_server=True)
+        webview.start(debug=True)
 
     if worker:
         import signal
