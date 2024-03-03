@@ -83,13 +83,17 @@ class ReportTimeValues(T.TypedDict):
     decimal: float
 
 
-class DateTimeCard(ReportTimeValues):
+ class TaskTimeCard(ReportTimeValues):
     name: str
     entries: int
 
 
+class DateTimeCard(ReportTimeValues):
+    tasks: {}
+
+
 class ProjectTime(ReportTimeValues):
-    dates: dict[str, T.List[DateTimeCard]]
+    dates: dict[str, DateTimeCard]
 
 
 class ClientTime(ReportTimeValues):

@@ -4,6 +4,8 @@ import datetime
 import datetime as DT
 import time
 
+import pandas as pd
+
 from . import app_types
 from .application import Application
 from . import models
@@ -21,6 +23,8 @@ from .app_types import (
     DateTimeCard,
     ClientTime,
     ProjectTime,
+    TaskTimeCard,
+    ReportTimeValues,
 )
 from .log_helper import getLogger
 from .timer import Timer
@@ -367,6 +371,86 @@ class API:
 
     def open_window(self, win_name: str) -> bool:
         return self.app.open_window(self, win_name)
+
+    def report_generate(self, payload: dict[str, str]) -> TimeReport:
+        start_date = payload.get("start_date", None)
+        end_date = payload.get("end_date", None)
+        client_id = payload.get("client_id", None)
+        project_id = payload.get("project_id", None)
+        task_id = payload.get("task_id", None)
+        wage = payload.get("wage", None)
+        sort_order = payload.get("sort_order", ["cname", "dtwhen", "pname", "tname"])
+
+        with self.app.get_db() as session:
+            with self.app.get_db() as session:
+                start_date = (
+                    DT.datetime.strptime(start_date, "%Y-%m-%d").date()
+                    if start_date is not None
+                    else None
+                )
+                end_date = (
+                    DT.datetime.strptime(end_date, "%Y-%m-%d").date()
+                    if end_date is not None
+                    else None
+                )
+                stmt = models.Queries.BreakdownByConditionsStmt(
+                    client_id, project_id, task_id, start_date, end_date
+                )
+
+                def mk_time(my_seconds):
+                    hours, rem = divmod(my_seconds, 3600)
+                    minutes, seconds = divmod(rem, 60)
+                    return int(hours), int(minutes), int(seconds)
+
+                def to_dec(hours, minutes, seconds):
+                    return hours + (minutes / 60) + (seconds / 3600)
+
+                def to_frame(subframe) -> ReportTimeValues:
+                    total_seconds = subframe["seconds"].sum()
+                    total_time = mk_time(total_seconds)
+                    total_dec = to_dec(*total_time)
+
+                    return dict(
+                        hours=total_time[0],
+                        minutes=total_time[1],
+                        seconds=total_time[2],
+                        total_seconds=total_seconds,
+                        decimal=total_dec,
+                    )
+
+                df = pd.read_sql(sql=stmt, con=self.app.engine)
+
+                report = TimeReport(clients={}, **to_frame(df))
+
+                for client, client_data in df.groupby("client_name"):
+                    cname = str(client)
+                    report["clients"][cname] = ClientTime(
+                        projects={}, **to_frame(client_data)
+                    )
+                    for project, project_data in client_data.groupby("project_name"):
+                        pname = str(project)
+                        report["clients"][cname]["projects"][pname] = ProjectTime(
+                            dates={}, **to_frame(project_data)
+                        )
+
+                        for dtwhen, date_data in client_data.groupby("date_when"):
+                            my_date = str(dtwhen)
+                            report["clients"][cname]["projects"][pname]["dates"][
+                                my_date
+                            ] = DateTimeCard(tasks=[], **to_frame(date_data))
+                            for task, task_data in date_data.groupby("task_name"):
+                                my_task = str(task)
+                                report["clients"][cname]["projects"][pname]["dates"][
+                                    my_date
+                                ]["tasks"].append(
+                                    TaskTimeCard(
+                                        name=my_task,
+                                        entries=task_data["entries"].sum(),
+                                        **to_frame(task_data),
+                                    )
+                                )
+
+        return report
 
     def report_build(
         self,
