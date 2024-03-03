@@ -470,7 +470,7 @@ class Queries:
                 Project.name.label("project_name"),
                 Task.name.label("task_name"),
                 cast(
-                    func.round(func.sum(Entry.seconds) / 3600).label("hours"),
+                    func.floor(func.sum(Entry.seconds) / 3600).label("hours"),
                     Integer,
                 ),
                 cast(
@@ -545,9 +545,9 @@ class Queries:
     ):
         stmt = cls._BaseSelect().where(Project.id == project_id)
         if start_date is not None:
-            stmt = stmt.where(models.Event.start_date >= start_date)
+            stmt = stmt.where(Event.start_date >= start_date)
         if end_date is not None:
-            stmt = stmt.where(models.Event.start_date <= end_date)
+            stmt = stmt.where(Event.start_date <= end_date)
 
         return session.execute(stmt).all()
 
@@ -564,8 +564,13 @@ class Queries:
         return session.execute(stmt).all()
 
     @classmethod
-    def BreakdownByConditions(
-        cls, session, client_id, project_id, task_id, start_date, end_date
+    def BreakdownByConditionsStmt(
+        cls,
+        client_id=None,
+        project_id=None,
+        task_id=None,
+        start_date=None,
+        end_date=None,
     ):
         stmt = cls._BaseSelect()
         if client_id is not None:
@@ -583,4 +588,19 @@ class Queries:
         if end_date is not None:
             stmt = stmt.where(Event.start_date <= end_date)
 
+        return stmt
+
+    @classmethod
+    def BreakdownByConditions(
+        cls,
+        session,
+        client_id=None,
+        project_id=None,
+        task_id=None,
+        start_date=None,
+        end_date=None,
+    ):
+        stmt = cls.BreakdownByConditionsStmt(
+            client_id, project_id, task_id, start_date, end_date
+        )
         return session.execute(stmt).all()
