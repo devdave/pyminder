@@ -3,6 +3,7 @@ import typing as T
 import pathlib
 from contextlib import contextmanager
 
+import bottle
 import sqlalchemy
 import webview
 
@@ -16,6 +17,8 @@ LOG = getLogger(__name__)
 class Application:
     here: pathlib.Path
     database_path: pathlib.Path
+    debug: bool
+
     _main_window: webview.Window | None = None
     _port: T.Optional[int] = None
 
@@ -27,10 +30,14 @@ class Application:
     current_task_id: int | None = None
     windows: dict[str, webview.Window]
 
-    def __init__(self, here: pathlib.Path, db_path: pathlib.Path) -> None:
+    def __init__(
+        self, here: pathlib.Path, db_path: pathlib.Path, debug: bool = False
+    ) -> None:
         self.here = here
         self.database_path = db_path
-        self.engine, self.Session = models.connect(self.database_path, echo=True)
+        self.debug = debug
+
+        self.engine, self.Session = models.connect(self.database_path, echo=self.debug)
 
         self._main_window = None
         self.current_client_id = None
@@ -38,6 +45,31 @@ class Application:
         self.current_task_id = None
 
         self.windows = dict()
+
+        self.web_app = None
+
+    def make_app(self):
+        if self.web_app is not None:
+            return self.web_app
+
+        self.web_app = bottle.Bottle()
+        bottle.TEMPLATE_PATH = str(self.here / "ui/dist")
+
+        @self.web_app.route("/<catchall:re:.*>")
+        def index(catchall: str):
+            LOG.debug(f"Index requested")
+
+            if (self.here / "ui/dist/" / catchall).exists() is False:
+                catchall = "index.html"
+
+            if len(catchall.strip()) == 0:
+                catchall = "index.html"
+
+            # return bottle.template(catchall)
+            response = bottle.static_file(catchall, root=str(self.here / "ui/dist/"))
+            return response
+
+        return self.web_app
 
     @property
     def main_window(self) -> webview.Window | None:
