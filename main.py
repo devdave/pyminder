@@ -4,6 +4,7 @@ import subprocess
 import sys
 import time
 from pathlib import Path
+import flask
 
 import tap
 import webview
@@ -73,6 +74,32 @@ def spinup_pnpm(url_path: pathlib.Path, port: str):
     return process
 
 
+def spinup_flask(port: str):
+    def run_flask():
+        app = flask.Flask(__name__)
+
+        @app.route("/", defaults={"path": ""})
+        @app.route("/<path:path>")
+        def catch_all(path):
+            file_path = HERE / "ui/dist" / path
+            if (
+                file_path.exists()
+                and file_path.is_relative_to(HERE / "ui/dist")
+                and file_path.is_file()
+            ):
+                return flask.send_file(file_path)
+            else:
+                return (HERE / "ui/dist/index.html").read_text()
+
+        app.run(host="127.0.0.1", port=port)
+
+    import threading
+
+    handle = threading.Thread(target=run_flask)
+    handle.start()
+    return handle
+
+
 def main(argv):
     results = Arguments().parse_args()
 
@@ -83,6 +110,7 @@ def main(argv):
     setup_logging()
 
     app = Application(HERE, "events.sqlite3")
+    app.port = results.port
 
     if results.debug:
         print("Debug mode")
@@ -111,9 +139,10 @@ def main(argv):
     if results.debug:
         worker = spinup_pnpm(str(HERE / "ui"), results.port)
         window_args["url"] = f"http://127.0.0.1:{results.port}/"
-        app.port = results.port
+
     else:
-        window_args["url"] = window_args["server"] = app.make_app()
+        worker = spinup_flask(results.port)
+        window_args["url"] = f"http://127.0.0.1:{results.port}/"
 
     app.main_window = webview.create_window(**window_args)
 
