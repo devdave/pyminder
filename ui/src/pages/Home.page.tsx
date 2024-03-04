@@ -207,114 +207,104 @@ export function HomePage() {
 
     return (
         <>
-            <Center>
-                <Stack
-                    align='center'
-                    gap='xs'
-                >
-                    <div>
-                        <Button
-                            variant='default'
-                            size='xs'
-                            onClick={toggle_window}
-                        >
-                            Toggle Size
-                        </Button>
-                        <Button
-                            variant='default'
-                            size='xs'
-                            onClick={() => open_window('reports')}
-                        >
-                            Reports
-                        </Button>
-                        <Button
-                            variant='default'
-                            size='xs'
-                            onClick={() => open_window('manage')}
-                        >
-                            Manage
-                        </Button>
-                    </div>
-                    <MainTimer
-                        enabled={!!selectedTaskID}
-                        time={currentTime}
-                        startCB={startTime}
-                        stopCB={() => timeStop()}
-                        pauseCB={() => api.timer_pause().then()}
-                        resumeCB={() => api.timer_resume().then()}
-                        currentlyRunning={isRunning}
-                        currentlyPaused={isPaused}
+            <Stack
+                align='center'
+                gap='4'
+            >
+                <span>
+                    <Button
+                        variant='default'
+                        size='xs'
+                        onClick={toggle_window}
+                    >
+                        Toggle Size
+                    </Button>
+                    <Button
+                        variant='default'
+                        size='xs'
+                        onClick={() => open_window('reports')}
+                    >
+                        Reports
+                    </Button>
+                    <Button
+                        variant='default'
+                        size='xs'
+                        onClick={() => open_window('manage')}
+                    >
+                        Manage
+                    </Button>
+                </span>
+                <MainTimer
+                    enabled={!!selectedTaskID}
+                    time={currentTime}
+                    startCB={startTime}
+                    stopCB={() => timeStop()}
+                    pauseCB={() => api.timer_pause().then()}
+                    resumeCB={() => api.timer_resume().then()}
+                    currentlyRunning={isRunning}
+                    currentlyPaused={isPaused}
+                />
+
+                <div>
+                    <SelectCreatable
+                        data={clientData || []}
+                        selected={
+                            selectedClient
+                                ? { value: selectedClient?.name, id: selectedClient?.id }
+                                : undefined
+                        }
+                        createData={addClient}
+                        setData={setClient}
+                        placeholder='Select Client'
+                        onClear={clearClient}
                     />
-                </Stack>
-            </Center>
-            <Center>
-                <Stack
-                    align='center'
-                    gap='xs'
-                >
+                </div>
+                {projectsData && (
                     <div>
                         <SelectCreatable
-                            data={clientData || []}
                             selected={
-                                selectedClient
-                                    ? { value: selectedClient?.name, id: selectedClient?.id }
+                                selectedProject
+                                    ? { value: selectedProject?.name, id: selectedProject?.id }
                                     : undefined
                             }
-                            createData={addClient}
-                            setData={setClient}
-                            placeholder='Select Client'
-                            onClear={clearClient}
+                            data={projectsData}
+                            createData={addProject}
+                            setData={setProject}
+                            onClear={clearProject}
+                            placeholder='Select Project'
                         />
+                        {selectedProject && (
+                            <span>
+                                {selectedProject.time?.hours.toString().padStart(2, '0')}:
+                                {selectedProject.time?.minutes.toString().padStart(2, '0')}:
+                                {selectedProject.time?.seconds.toString().padStart(2, '0')}
+                            </span>
+                        )}
                     </div>
-                    {projectsData && (
-                        <div>
-                            <SelectCreatable
-                                selected={
-                                    selectedProject
-                                        ? { value: selectedProject?.name, id: selectedProject?.id }
-                                        : undefined
-                                }
-                                data={projectsData}
-                                createData={addProject}
-                                setData={setProject}
-                                onClear={clearProject}
-                                placeholder='Select Project'
-                            />
-                            {selectedProject && (
-                                <span>
-                                    {selectedProject.time?.hours.toString().padStart(2, '0')}:
-                                    {selectedProject.time?.minutes.toString().padStart(2, '0')}:
-                                    {selectedProject.time?.seconds.toString().padStart(2, '0')}
-                                </span>
-                            )}
-                        </div>
-                    )}
-                    {projectsData && taskData && (
-                        <div>
-                            <SelectCreatable
-                                selected={
-                                    selectedTask
-                                        ? { value: selectedTask?.name, id: selectedTask?.id }
-                                        : undefined
-                                }
-                                data={taskData}
-                                createData={addTask}
-                                setData={setTask}
-                                onClear={clearTask}
-                                onDelete={deleteSelectedTask}
-                                placeholder='Select Task'
-                            />
-                            {selectedTask && selectedTask.time && (
-                                <span>
-                                    {selectedTask.time.hours.toString().padStart(2, '0')}:
-                                    {selectedTask.time.minutes.toString().padStart(2, '0')}:
-                                    {Math.floor(selectedTask.time.seconds).toString().padStart(2, '0')}
-                                </span>
-                            )}
-                        </div>
-                    )}
-                </Stack>
-            </Center>
+                )}
+                {projectsData && taskData && (
+                    <div>
+                        <SelectCreatable
+                            selected={
+                                selectedTask ? { value: selectedTask?.name, id: selectedTask?.id } : undefined
+                            }
+                            data={taskData}
+                            createData={addTask}
+                            setData={setTask}
+                            onClear={clearTask}
+                            onDelete={deleteSelectedTask}
+                            placeholder='Select Task'
+                        />
+                        {selectedTask && selectedTask.time && (
+                            <span>
+                                {selectedTask.time.hours.toString().padStart(2, '0')}:
+                                {selectedTask.time.minutes.toString().padStart(2, '0')}:
+                                {Math.floor(selectedTask.time.seconds).toString().padStart(2, '0')}
+                            </span>
+                        )}
+                    </div>
+                )}
+            </Stack>
         </>
     )
 }
