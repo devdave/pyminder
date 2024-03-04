@@ -7,14 +7,16 @@ from pathlib import Path
 import flask
 
 import tap
-import webview
+import webview  # type: ignore
 
 from lib.api import API
 from lib.application import Application
 from lib.log_helper import getLogger
 
-HERE = Path(__file__).parent
 LOG = getLogger(__name__)
+HERE = Path(__file__).parent
+UI_DIR = (HERE / "ui") if (HERE / "ui").exists() else (HERE / ".." / "ui")
+DB_DIR = HERE / ".."
 
 
 class Arguments(tap.Tap):
@@ -51,7 +53,7 @@ def transform_api(dest: pathlib.Path):
 
     dest.touch(exist_ok=True)
     transformer.process_source(
-        (HERE / "lib/api.py"), dest, (HERE / "ui/lib/api_header.ts.html")
+        (HERE / "lib/api.py"), dest, (UI_DIR / "lib/api_header.ts.html")
     )
 
 
@@ -74,22 +76,26 @@ def spinup_pnpm(url_path: pathlib.Path, port: str):
     return process
 
 
-def spinup_flask(port: str):
+def spinup_flask(ui_dir: pathlib.Path, port: str):
+    DIST_DIR = ui_dir / "dist"
+    if DIST_DIR.exists() is False:
+        raise RuntimeError("Dist dir does not exist @ {}".format(ui_dir))
+
     def run_flask():
         app = flask.Flask(__name__)
 
         @app.route("/", defaults={"path": ""})
         @app.route("/<path:path>")
         def catch_all(path):
-            file_path = HERE / "ui/dist" / path
+            file_path = DIST_DIR / path
             if (
                 file_path.exists()
-                and file_path.is_relative_to(HERE / "ui/dist")
+                and file_path.is_relative_to(DIST_DIR)
                 and file_path.is_file()
             ):
                 return flask.send_file(file_path)
             else:
-                return (HERE / "ui/dist/index.html").read_text()
+                return (DIST_DIR / "index.html").read_text()
 
         app.run(host="127.0.0.1", port=port)
 
@@ -103,13 +109,16 @@ def spinup_flask(port: str):
 def main(argv):
     results = Arguments().parse_args()
 
+    print(f"{HERE=}")
+    print(f"{UI_DIR=}")
+
     print(f"{results=}", results)
     print(f"{results.debug=}")
     print(f"{results.transform_api_target=}")
 
     setup_logging()
 
-    app = Application(HERE, "events.sqlite3")
+    app = Application(HERE, DB_DIR / "events.sqlite3")
     app.port = results.port
 
     if results.debug:
@@ -138,9 +147,9 @@ def main(argv):
 
     worker = None
     if results.debug:
-        worker = spinup_pnpm(HERE / "ui", results.port)
+        worker = spinup_pnpm(UI_DIR, results.port)
     else:
-        worker = spinup_flask(results.port)
+        worker = spinup_flask(UI_DIR, results.port)
 
     app.main_window = webview.create_window(**window_args)
 
