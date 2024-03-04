@@ -1,8 +1,12 @@
+import decimal
+import io
 import json
 import typing as T
 import datetime
 import datetime as DT
 import time
+import contextlib
+from decimal import Decimal
 
 import pandas as pd
 
@@ -25,6 +29,7 @@ from .app_types import (
     ProjectTime,
     TaskTimeCard,
     ReportTimeValues,
+    ReportPayload,
 )
 from .log_helper import getLogger
 from .timer import Timer
@@ -372,9 +377,9 @@ class API:
     def open_window(self, win_name: str) -> bool:
         return self.app.open_window(self, win_name)
 
-    def report_generate(self, payload: dict[str, str]) -> TimeReport:
-        start_date = payload.get("start_date", None)
-        end_date = payload.get("end_date", None)
+    def report_generate(self, payload: ReportPayload) -> TimeReport:
+        start_date = payload.get("start_date", None)  # type: str
+        end_date = payload.get("end_date", None)  # type: str
         client_id = payload.get("client_id", None)
         project_id = payload.get("project_id", None)
         task_id = payload.get("task_id", None)
@@ -387,12 +392,12 @@ class API:
                     DT.datetime.strptime(start_date, "%Y-%m-%d").date()
                     if start_date is not None
                     else None
-                )
+                )  # type: DT.date
                 end_date = (
                     DT.datetime.strptime(end_date, "%Y-%m-%d").date()
                     if end_date is not None
                     else None
-                )
+                )  # type: DT.date
                 stmt = models.Queries.BreakdownByConditionsStmt(
                     client_id, project_id, task_id, start_date, end_date
                 )
@@ -433,7 +438,7 @@ class API:
                             dates={}, **to_frame(project_data)
                         )
 
-                        for dtwhen, date_data in client_data.groupby("date_when"):
+                        for dtwhen, date_data in project_data.groupby("date_when"):
                             my_date = str(dtwhen)
                             report["clients"][cname]["projects"][pname]["dates"][
                                 my_date
@@ -589,34 +594,70 @@ class API:
 
         return report
 
-    def report_build2text(self, payload: dict[str, str]) -> str:
-        report = self.report_build(payload)
-        body = "Report:\n"
-        if payload.get("start_date", None) is not None:
-            body += f"Start:\t{payload['start_date']}\n"
-        if payload.get("end_date", None) is not None:
-            body += f"End:\t{payload['end_date']}\n"
-        body += "\n"
+    def report_build2text(self, payload: ReportPayload) -> str:
+        report = self.report_generate(payload)
 
-        float2int = lambda x: f"{int(x):02}"
+        def frame2time(frame):
+            return f"{frame['hours']:02}:{frame['minutes']:02}:{frame['seconds']:02}"
 
-        print_time = (
-            lambda x: f"{float2int(x['hours'])}:{float2int(x['minutes'])}:{float2int(x['seconds'])}"
-        )
+        def get_wage(message: ReportPayload) -> Decimal | None:
+            wage = message.get("wage", None)
+            if wage and str(wage).isnumeric():
+                return Decimal(wage)
 
-        for client, client_data in report["clients"].items():
-            body += f"Client: {client}\t\t{print_time(client_data)}\n"
-            for project, project_data in client_data["projects"].items():
-                body += (
-                    f"\tProject: {project}".ljust(35) + f"{print_time(project_data)}\n"
+            return None
+
+        f = io.StringIO()
+        with contextlib.redirect_stdout(f):
+            print("Report: ")
+            if payload.get("start_date", None) is not None:
+                print(f"Start:\t{payload['start_date']}")
+            if payload.get("end_date", None) is not None:
+                print(f"End:\t{payload['end_date']}")
+
+            wage = get_wage(payload)
+            if wage:
+                print("Hourly wage:", payload["wage"])
+                total_time = Decimal(report["decimal"])
+                print("Hours:", round(total_time, 2))
+                print(f"Gross:\t{round(total_time * wage, 2)}")
+
+            print()
+
+            print("Client breakdown:")
+            for cname, client in report["clients"].items():
+                perc = client["total_seconds"] / report["total_seconds"]
+                print(
+                    "\tClient: ",
+                    cname,
+                    " - ",
+                    frame2time(client),
+                    f"{round(perc, 2) * 100}%",
                 )
-                for date, tasks in project_data["dates"].items():
-                    body += f"\t\t{date}\n"
-                    for task in tasks:
-                        body += (
-                            f"\t\t\t{task['name']}".ljust(40) + f"{print_time(task)}\n"
-                        )
+                for pname, project in client["projects"].items():
+                    perc = project["total_seconds"] / client["total_seconds"]
+                    print(
+                        "\t\t\tProject: ",
+                        pname,
+                        " - ",
+                        f"{round(perc, 2) * 100}%",
+                        " - ",
+                        frame2time(project),
+                    )
 
-        body += "\n"
-        body += f"Total time: {round(report['decimal'],4)}\n"
-        return body
+            print()
+            print("Details:")
+
+            for cname, client in report["clients"].items():
+                print("Client: ", cname)
+                print("Total Time: ", frame2time(client))
+                for pname, project in client["projects"].items():
+                    print("\tProject: ", pname, frame2time(project))
+                    for dtwhen, dateframe in project["dates"].items():
+                        print("\t\tDate: ", dtwhen, "\t", frame2time(dateframe))
+                        print("\t\ttasks: -")
+                        for task in dateframe["tasks"]:
+                            print("\t\t\t", task["name"].ljust(30), frame2time(task))
+                        print()
+
+        return f.getvalue()

@@ -78,9 +78,13 @@ export interface CommonTimeCardValues {
     decimal: number
 }
 
-export interface DateTimeCard extends CommonTimeCardValues {
+export interface TaskTimeCard {
     name: string
     entries: number
+}
+
+export interface DateTimeCard extends CommonTimeCardValues {
+    tasks: TaskTimeCard[]
 }
 
 export interface ProjectTime extends CommonTimeCardValues {
@@ -93,4 +97,14 @@ export interface ClientTime extends CommonTimeCardValues {
 
 export interface TimeReport extends CommonTimeCardValues {
     clients: { [client_name: string]: ClientTime }
+}
+
+export interface ReportPayload {
+    start_date: string
+    end_date: string
+    client_id: number
+    project_id: number
+    task_id: number
+    wage: number
+    sort_order: string[]
 }

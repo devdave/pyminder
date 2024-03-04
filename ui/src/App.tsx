@@ -15,6 +15,12 @@ import { useEventBroker } from '@src/brokers/useEventBroker'
 const boundary = new Boundary()
 const switchboard = new Switchboard()
 
+declare global {
+    interface navigator {
+        msSaveBlob: ((data: Blob[], fileName: string) => void) | undefined
+    }
+}
+
 export default function App() {
     const [isReady, setIsReady] = useState(false)
 

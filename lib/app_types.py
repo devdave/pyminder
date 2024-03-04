@@ -1,7 +1,7 @@
-import datetime
 import enum
 import typing as T
 from enum import Enum as pyEnum
+import datetime as DT
 
 
 Identifier = str | int
@@ -83,13 +83,13 @@ class ReportTimeValues(T.TypedDict):
     decimal: float
 
 
- class TaskTimeCard(ReportTimeValues):
+class TaskTimeCard(ReportTimeValues):
     name: str
     entries: int
 
 
 class DateTimeCard(ReportTimeValues):
-    tasks: {}
+    tasks: list[TaskTimeCard]
 
 
 class ProjectTime(ReportTimeValues):
@@ -102,3 +102,13 @@ class ClientTime(ReportTimeValues):
 
 class TimeReport(ReportTimeValues):
     clients: dict[str, ClientTime]
+
+
+class ReportPayload(T.TypedDict):
+    start_date: str | DT.date | None
+    end_date: str | DT.date | None
+    client_id: int
+    project_id: int
+    task_id: int
+    wage: int
+    sort_order: list[str]

@@ -1,11 +1,14 @@
-import { ComboboxItem, Group, Select } from '@mantine/core'
+import { Button, ComboboxItem, Group, Input, NumberInput, Select } from '@mantine/core'
 import { DatePickerInput } from '@mantine/dates'
 import { useAppContext } from '@src/App.context'
 import { useEffect, useState } from 'react'
 import { Identifier } from '@src/types'
+import { Downloader } from '@src/library/downloader'
 
 export const ReportsPage = () => {
     const { api, clientBroker, projectBroker, taskBroker } = useAppContext()
+
+    const [wage, setWage] = useState<number | null>(null)
 
     const [filterDate, setFilterDate] = useState<[Date | null, Date | null]>([null, null])
 
@@ -32,7 +35,8 @@ export const ReportsPage = () => {
             filterDate,
             selectedClientOption?.value,
             selectedProjectOption?.value,
-            selectedTaskOption?.value
+            selectedTaskOption?.value,
+            wage
         )
         const start_date =
             filterDate[0] !== null
@@ -47,11 +51,13 @@ export const ReportsPage = () => {
             end_date,
             client_id: selectedClientOption?.value,
             project_id: selectedProjectOption?.value,
-            task_id: selectedTaskOption?.value
+            task_id: selectedTaskOption?.value,
+            wage,
+            sort_order: []
         }).then((report) => {
             setReportData(report)
         })
-    }, [api, filterDate, selectedClientOption, selectedProjectOption, selectedTaskOption])
+    }, [api, filterDate, selectedClientOption, selectedProjectOption, selectedTaskOption, wage])
 
     useEffect(() => {
         if (selectedClientOption === null) {
@@ -112,6 +118,13 @@ export const ReportsPage = () => {
     return (
         <>
             <Group>
+                <Group>
+                    <NumberInput
+                        label='Wage'
+                        value={wage as number}
+                        onChange={(v) => setWage(v as number)}
+                    />
+                </Group>
                 <DatePickerInput
                     clearable
                     valueFormat='YYYY-MM-DD'
@@ -146,6 +159,7 @@ export const ReportsPage = () => {
                 />
             </Group>
             <pre style={{ whiteSpace: 'pre-wrap' }}>{reportData.toString()}</pre>
+            <Button onClick={() => Downloader(reportData.toString(), 'report.txt')}>Download</Button>
         </>
     )
 }
