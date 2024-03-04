@@ -138,3 +138,14 @@ class Application:
             return True
 
         return False
+
+    def window_toggle_resize(self, self1, win_name, size):
+        if win_name == "main":
+            if size == "compact":
+                self.main_window.resize(350, 300)
+            else:
+                self.main_window.resize(
+                    350,
+                )
+
+        pass
