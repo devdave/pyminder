@@ -133,6 +133,7 @@ def main(argv):
         # "min_size": (350, 250),
         "url": f"http://127.0.0.1:{results.port}/",
         "on_top": True,
+        "resizable": False,
     }
 
     worker = None
