@@ -143,10 +143,10 @@ class Application:
         LOG.debug(f"Resizing window {win_name} to {size}")
         if win_name == "main":
             if size == "compact":
-                LOG.debug(f"Resizing window {win_name} to 370, 310")
-                self.main_window.resize(370, 310)
+                  LOG.debug(f"Resizing window {win_name} to 370, 290")
+                self.main_window.resize(500, 290)
             else:
                 LOG.debug(f"Resizing window {win_name} to 370, 650")
-                self.main_window.resize(370, 650)
+                self.main_window.resize(450, 650)
 
         pass
