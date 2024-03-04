@@ -143,7 +143,7 @@ class Application:
         LOG.debug(f"Resizing window {win_name} to {size}")
         if win_name == "main":
             if size == "compact":
-                  LOG.debug(f"Resizing window {win_name} to 370, 290")
+                LOG.debug(f"Resizing window {win_name} to 370, 290")
                 self.main_window.resize(500, 290)
             else:
                 LOG.debug(f"Resizing window {win_name} to 370, 650")
