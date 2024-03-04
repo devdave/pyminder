@@ -100,11 +100,11 @@ export interface TimeReport extends CommonTimeCardValues {
 }
 
 export interface ReportPayload {
-    start_date: string
-    end_date: string
-    client_id: number
-    project_id: number
-    task_id: number
-    wage: number
+    start_date: string | undefined
+    end_date: string | undefined
+    client_id: number | undefined
+    project_id: number | undefined
+    task_id: number | undefined
+    wage: number | undefined
     sort_order: string[]
 }

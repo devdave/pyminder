@@ -5,9 +5,12 @@ import { useEffect, useState } from 'react'
 import { Client, Identifier, Project, Task, TimeObj, TimeOwner } from '@src/types'
 import { SelectCreatable } from '@src/components/SmartSelect/SmartSelectV2'
 import { Link } from 'react-router-dom'
+import { useToggle } from '@mantine/hooks'
 
 export function HomePage() {
     const { api, switchboard, clientBroker, projectBroker, taskBroker } = useAppContext()
+
+    const [windowSize, toggleWindowSize] = useToggle(['compact', 'regular'])
 
     const [currentTime, setCurrentTime] = useState<TimeObj>({ hour: 0, minute: 0, second: 0 })
     const [isPaused, setIsPaused] = useState(false)
@@ -197,6 +200,11 @@ export function HomePage() {
         api.open_window(win_name).then()
     }
 
+    const toggle_window = () => {
+        toggleWindowSize()
+        api.window_toggle_resize('main', windowSize).then()
+    }
+
     return (
         <>
             <Center>
@@ -205,8 +213,27 @@ export function HomePage() {
                     gap='xs'
                 >
                     <div>
-                        <Button onClick={() => open_window('reports')}>Reports</Button>
-                        <Button onClick={() => open_window('manage')}>Manage</Button>
+                        <Button
+                            variant='default'
+                            size='xs'
+                            onClick={toggle_window}
+                        >
+                            Toggle Size
+                        </Button>
+                        <Button
+                            variant='default'
+                            size='xs'
+                            onClick={() => open_window('reports')}
+                        >
+                            Reports
+                        </Button>
+                        <Button
+                            variant='default'
+                            size='xs'
+                            onClick={() => open_window('manage')}
+                        >
+                            Manage
+                        </Button>
                     </div>
                     <MainTimer
                         enabled={!!selectedTaskID}

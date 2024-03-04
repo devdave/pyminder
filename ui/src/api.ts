@@ -123,10 +123,16 @@ class APIBridge {
     open_window(win_name:string):Promise<boolean> {
         return this.boundary.remote('open_window', win_name) as Promise<boolean>
     }
-    report_build(payload:any):Promise<{[key:string]: string}> {
-        return this.boundary.remote('report_build', payload) as Promise<{[key:string]: string}>
+    window_toggle_resize(win_name:string, size:string):Promise<boolean> {
+        return this.boundary.remote('window_toggle_resize', win_name, size) as Promise<boolean>
     }
-    report_build2text(payload:any):Promise<string> {
+    report_generate(payload:ReportPayload):Promise<TimeReport> {
+        return this.boundary.remote('report_generate', payload) as Promise<TimeReport>
+    }
+    report_build(payload:any):Promise<TimeReport> {
+        return this.boundary.remote('report_build', payload) as Promise<TimeReport>
+    }
+    report_build2text(payload:ReportPayload):Promise<string> {
         return this.boundary.remote('report_build2text', payload) as Promise<string>
     }
 }

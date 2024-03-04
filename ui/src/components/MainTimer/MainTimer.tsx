@@ -1,6 +1,13 @@
 import React from 'react'
 import { type TimeObj } from '@src/types'
-import { Button, Center, Stack } from '@mantine/core'
+import { Button, Center, Group, Stack } from '@mantine/core'
+import {
+    IconPlayerPause,
+    IconPlayerPauseFilled,
+    IconPlayerPlay,
+    IconPlayerPlayFilled,
+    IconPlayerStop
+} from '@tabler/icons-react'
 import classes from './MainTimer.module.css'
 
 interface MainTimerProps {
@@ -56,36 +63,41 @@ export const MainTimer: React.FC<MainTimerProps> = ({
                 <span>:</span>
                 <span className={classes.seconds}>{String(time.second).padStart(2, '0')}</span>
             </Center>
-            <div>
+            <Group
+                justify='center'
+                gap='xs'
+            >
                 <Button
+                    variant='default'
+                    size='xs'
                     disabled={!enabled || isRunning}
                     type='button'
                     onClick={doStart}
+                    leftSection={isRunning ? <IconPlayerPlayFilled /> : <IconPlayerPlay />}
                 >
                     Start
                 </Button>
                 <Button
+                    variant='default'
+                    size='xs'
                     disabled={!enabled || !isRunning}
                     type='button'
                     onClick={doStop}
+                    leftSection={<IconPlayerStop />}
                 >
                     Stop
                 </Button>
                 <Button
-                    disabled={!isRunning || isPaused}
+                    variant='default'
+                    size='xs'
+                    disabled={!isRunning}
                     type='button'
-                    onClick={doPause}
+                    onClick={() => (isPaused ? doResume() : doPause())}
+                    leftSection={isPaused ? <IconPlayerPauseFilled /> : <IconPlayerPause />}
                 >
                     Pause
                 </Button>
-                <Button
-                    disabled={!isRunning || !isPaused}
-                    type='button'
-                    onClick={doResume}
-                >
-                    Resume
-                </Button>
-            </div>
+            </Group>
         </Stack>
     )
 }

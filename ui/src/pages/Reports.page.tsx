@@ -1,4 +1,4 @@
-import { Button, ComboboxItem, Group, Input, NumberInput, Select } from '@mantine/core'
+import { Button, ComboboxItem, Group, NumberInput, Select } from '@mantine/core'
 import { DatePickerInput } from '@mantine/dates'
 import { useAppContext } from '@src/App.context'
 import { useEffect, useState } from 'react'
@@ -49,10 +49,10 @@ export const ReportsPage = () => {
         api.report_build2text({
             start_date,
             end_date,
-            client_id: selectedClientOption?.value,
-            project_id: selectedProjectOption?.value,
-            task_id: selectedTaskOption?.value,
-            wage,
+            client_id: selectedClientOption ? parseInt(selectedClientOption.value, 10) : undefined,
+            project_id: selectedProjectOption ? parseInt(selectedProjectOption.value, 10) : undefined,
+            task_id: selectedTaskOption ? parseInt(selectedTaskOption.value, 10) : undefined,
+            wage: wage as number,
             sort_order: []
         }).then((report) => {
             setReportData(report)

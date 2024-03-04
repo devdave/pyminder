@@ -378,7 +378,7 @@ class API:
         return self.app.open_window(self, win_name)
 
     def window_toggle_resize(self, win_name: str, size: str) -> bool:
-        return self.app.window_toggle_resize(self, win_name, size)
+        return self.app.window_toggle_resize(win_name, size)
 
     def report_generate(self, payload: ReportPayload) -> TimeReport:
         start_date = payload.get("start_date", None)  # type: str

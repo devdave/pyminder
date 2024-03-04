@@ -125,24 +125,21 @@ def main(argv):
     api = API(app)
 
     window_args = {
-        # "url": "./ui/dist/index.html",
-        "url": "/",
         "title": "PyMinder",
         "js_api": api,
         "width": 350,
         "height": 570,
         "background_color": "#000000",
-        "min_size": (310, 550),
+        "min_size": (350, 250),
+        "url": f"http://127.0.0.1:{results.port}/",
+        "on_top": True,
     }
 
     worker = None
     if results.debug:
         worker = spinup_pnpm(HERE / "ui", results.port)
-        window_args["url"] = f"http://127.0.0.1:{results.port}/"
-
     else:
         worker = spinup_flask(results.port)
-        window_args["url"] = f"http://127.0.0.1:{results.port}/"
 
     app.main_window = webview.create_window(**window_args)
 
