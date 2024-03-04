@@ -1,4 +1,11 @@
-import { type Identifier, type Client, type Project, type Task, type Event, type Entry, type TimeOwner, type StopReasons } from '@src/types'
+import { type Identifier, type Client, type Project, type Task, type Event, type Entry, type TimeOwner, type StopReasons,
+    type DateTimeCard,
+    type ProjectTime,
+    type ClientTime,
+    type TimeReport,
+    type ReportPayload,
+
+} from '@src/types'
 
 interface Boundary {
     remote: (method_name:string, ...args:unknown[])=> Promise<unknown>
