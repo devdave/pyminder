@@ -137,7 +137,7 @@ def main(argv):
 
     worker = None
     if results.debug:
-        worker = spinup_pnpm(str(HERE / "ui"), results.port)
+        worker = spinup_pnpm(HERE / "ui", results.port)
         window_args["url"] = f"http://127.0.0.1:{results.port}/"
 
     else:
