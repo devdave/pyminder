@@ -97,7 +97,7 @@ def spinup_flask(ui_dir: pathlib.Path, port: str):
             else:
                 return (DIST_DIR / "index.html").read_text()
 
-        app.run(host="127.0.0.1", port=port)
+        app.run(host="127.0.0.1", port=int(port))
 
     import threading
 
