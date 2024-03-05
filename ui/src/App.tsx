@@ -1,5 +1,6 @@
 import '@mantine/core/styles.css'
-import { MantineProvider } from '@mantine/core'
+
+import { MantineProvider, Text } from '@mantine/core'
 import { Router } from '@src/Router'
 import { theme } from '@src/theme'
 import Boundary, { PYWEBVIEWREADY } from '@src/library/boundary'
@@ -52,14 +53,15 @@ export default function App() {
     }, [isReady, setIsReady])
 
     if (!isReady) {
-        return <MantineProvider>Connecting to backend</MantineProvider>
+        return (
+            <MantineProvider defaultColorScheme='dark'>
+                <Text>Waiting for backend</Text>
+            </MantineProvider>
+        )
     }
 
     return (
-        <MantineProvider
-            theme={theme}
-            defaultColorScheme='dark'
-        >
+        <MantineProvider defaultColorScheme='dark'>
             <AppContext.Provider value={appContextValue}>
                 <Router />
             </AppContext.Provider>
