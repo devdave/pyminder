@@ -3,7 +3,8 @@ import { Page404 } from '@src/404.page'
 import { ReportsPage } from '@src/pages/Reports.page'
 import { useHotkeys } from '@mantine/hooks'
 import { useMantineColorScheme } from '@mantine/core'
-import { ManagePage } from '@src/pages/Manage.pages'
+import { ManagePage } from '@src/pages/manage/Manage.page'
+import { ProjectsPage } from '@src/pages/manage/Projects.page'
 import { HomePage } from './pages/Home.page'
 
 const AppRoutes = () => {
@@ -23,7 +24,12 @@ const AppRoutes = () => {
             <Route
                 path='/manage'
                 element={<ManagePage />}
-            />
+            >
+                <Route
+                    path='client/:client_id/projects'
+                    element={<ProjectsPage />}
+                />
+            </Route>
             <Route
                 path='*'
                 element={<Page404 />}
