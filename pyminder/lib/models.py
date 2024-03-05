@@ -421,6 +421,22 @@ class Event(Base):
         minutes, seconds = divmod(remainder, 60)
         return TimeObject(hours=hours, minutes=minutes, seconds=seconds)
 
+    @classmethod
+    def GetByDate(cls, session, task_id, event_date):
+        smt = (
+            select(cls)
+            .where(cls.task_id == task_id)
+            .where(cls.start_date == event_date)
+        )
+        return session.execute(smt).one_or_none()
+
+    @classmethod
+    def GetEventDatesByTask(
+        cls, session, task_id: Identifier | InstrumentedAttribute[int]
+    ):
+        stmt = select(cls.id, cls.start_date).where(cls.task_id == task_id)
+        return session.execute(stmt).scalars().all()
+
 
 class Entry(Base):
     event_id: Mapped[int] = mapped_column(
