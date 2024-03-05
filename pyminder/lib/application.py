@@ -2,6 +2,7 @@ import time
 import typing as T
 import pathlib
 from contextlib import contextmanager
+import json
 
 import bottle
 import sqlalchemy
@@ -57,6 +58,8 @@ class Application:
         if self._main_window is None:
             self._main_window = window
 
+            self._main_window.events.closed += self.shutdown
+
     @property
     def port(self) -> int | None:
         return self._port
@@ -65,9 +68,14 @@ class Application:
     def port(self, port: int) -> None:
         self._port = port
 
-    def tell(self, identifier: Identifier, *args):
-        import json
+    def shutdown(self) -> None:
+        LOG.debug("Shutting down application, main window closed")
+        targets = list(self.windows.values())
+        for window in targets:
+            LOG.debug("Shutting down window")
+            window.destroy()
 
+    def tell(self, identifier: Identifier, *args):
         def check_success(result):
             LOG.debug(f"Checking {identifier} success {result}")
 
