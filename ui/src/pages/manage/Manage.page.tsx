@@ -22,7 +22,7 @@ export const ManagePage = () => {
 
     return (
         <>
-            <Text>Manager</Text>
+            <Text>Clients</Text>
             <Table>
                 <Table.Thead>
                     <Table.Tr>
@@ -39,7 +39,9 @@ export const ManagePage = () => {
                             <Table.Td>{client.name}</Table.Td>
                             <Table.Td>{client.is_active ? 'True' : 'False'}</Table.Td>
                             <Table.Td>
-                                <Link to={`client/${client.id}/projects`}>View</Link>
+                                <Link to={`client/${client.id}/projects`}>
+                                    View {client.projects_count || 0}
+                                </Link>
                             </Table.Td>
                             <Table.Td>
                                 <Button>Edit</Button>

@@ -5,6 +5,9 @@ import { useHotkeys } from '@mantine/hooks'
 import { useMantineColorScheme } from '@mantine/core'
 import { ManagePage } from '@src/pages/manage/Manage.page'
 import { ProjectsPage } from '@src/pages/manage/Projects.page'
+import { TasksPage } from '@src/pages/manage/Tasks.page'
+import { EventsPage } from '@src/pages/manage/Events.page'
+import { EntriesPage } from '@src/pages/manage/Entries.page'
 import { HomePage } from './pages/Home.page'
 
 const AppRoutes = () => {
@@ -24,12 +27,23 @@ const AppRoutes = () => {
             <Route
                 path='/manage'
                 element={<ManagePage />}
-            >
-                <Route
-                    path='client/:client_id/projects'
-                    element={<ProjectsPage />}
-                />
-            </Route>
+            />
+            <Route
+                path='/manage/client/:client_id/projects'
+                element={<ProjectsPage />}
+            />
+            <Route
+                path='/manage/client/:client_id/projects/:project_id/tasks'
+                element={<TasksPage />}
+            />
+            <Route
+                path='/manage/client/:client_id/projects/:project_id/tasks/:task_id/events'
+                element={<EventsPage />}
+            />
+            <Route
+                path='/manage/client/:client_id/projects/:project_id/tasks/:task_id/events/:event_id/entries'
+                element={<EntriesPage />}
+            />
             <Route
                 path='*'
                 element={<Page404 />}
