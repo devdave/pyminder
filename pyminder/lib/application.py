@@ -4,13 +4,13 @@ import pathlib
 from contextlib import contextmanager
 import json
 
-import bottle
+
 import sqlalchemy
 import webview
 
-from lib import models
-from lib.app_types import Identifier
-from lib.log_helper import getLogger
+from . import models
+from .app_types import Identifier
+from .log_helper import getLogger
 
 LOG = getLogger(__name__)
 
