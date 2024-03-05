@@ -31,9 +31,9 @@ from sqlalchemy.orm import (
     InstrumentedAttribute,
 )
 
-from lib import app_types
-from lib.app_types import TaskStatus, StopReasons, Identifier, TimeObject
-from lib.log_helper import getLogger
+from . import app_types
+from .app_types import TaskStatus, StopReasons, Identifier, TimeObject
+from .log_helper import getLogger
 
 log = getLogger(__name__)
 
@@ -182,7 +182,8 @@ class Project(Base):
     name: Mapped[str] = mapped_column()
 
     client_id: Mapped[int] = mapped_column(
-        ForeignKey("Client.id", ondelete="CASCADE"), index=True
+        ForeignKey("Client.id", ondelete="CASCADE", name="fk_project_client"),
+        index=True,
     )
     client: Mapped[Client] = relationship("Client", back_populates="projects")
 
@@ -251,7 +252,7 @@ class Project(Base):
 class Task(Base):
     name: Mapped[str] = mapped_column(index=True)
     project_id: Mapped[int] = mapped_column(
-        ForeignKey("Project.id", ondelete="CASCADE"), index=True
+        ForeignKey("Project.id", ondelete="CASCADE", name="fk_task_project"), index=True
     )
     project: Mapped[Project] = relationship("Project", back_populates="tasks")
 
