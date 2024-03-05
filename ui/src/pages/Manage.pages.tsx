@@ -74,7 +74,7 @@ export const ManagePage = () => {
     return (
         <>
             <h1>Manager</h1>
-            <Stack>
+            <Group>
                 <Group>
                     <Select
                         clearable
@@ -117,10 +117,10 @@ export const ManagePage = () => {
                         onClick={onDeleteTask}
                         disabled={selectedTaskOption === null}
                     >
-                        Delete Tasks?
+                        Delete Task?
                     </Button>
                 </Group>
-            </Stack>
+            </Group>
         </>
     )
 }
