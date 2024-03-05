@@ -54,6 +54,7 @@ export interface Task extends HasTime {
 
 export interface Event extends HasTime {
     id: Identifier
+    start_date: string
     is_active: boolean
     task_id: number
 
@@ -68,8 +69,9 @@ export interface EventDate {
 export interface Entry {
     id: Identifier
     event_id: Identifier
-    start_date: string
-    end_date: string
+    started_on: string
+    stopped_on: string
+    stop_reason: string
     seconds: number
 }
 
