@@ -32,22 +32,26 @@ export interface HasTime {
 export interface Client {
     id: Identifier
     name: string
+    is_active: boolean
 }
 
 export interface Project extends HasTime {
     id: Identifier
     name: string
+    is_active: boolean
     client_id: number
 }
 
 export interface Task extends HasTime {
     id: Identifier
     name: string
+    is_active: boolean
     project_id: number
 }
 
 export interface Event extends HasTime {
     id: Identifier
+    is_active: boolean
     task_id: number
 
     entries: Entry[]

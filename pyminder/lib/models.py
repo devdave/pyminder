@@ -17,6 +17,7 @@ from sqlalchemy import (
     cast,
     Integer,
     CheckConstraint,
+    true,
 )
 from sqlalchemy.ext.hybrid import hybrid_property, hybrid_method
 from sqlalchemy.orm import (
@@ -133,13 +134,16 @@ class Base(DeclarativeBase):
 
 class Client(Base):
     name: Mapped[str] = mapped_column()
+    is_active: Mapped[bool] = mapped_column(default=True, server_default=true())
 
     projects: Mapped[list["Project"]] = relationship(
         "Project", back_populates="client", cascade="all, delete-orphan"
     )
 
     def to_dict(self) -> app_types.Client:
-        return app_types.Client(name=self.name, id=self.id, time=None)
+        return app_types.Client(
+            name=self.name, id=self.id, is_active=self.is_active, time=None
+        )
 
     @classmethod
     def GetTimeBetweenDates(
@@ -180,6 +184,7 @@ class Client(Base):
 
 class Project(Base):
     name: Mapped[str] = mapped_column()
+    is_active: Mapped[bool] = mapped_column(default=True, server_default=true())
 
     client_id: Mapped[int] = mapped_column(
         ForeignKey("Client.id", ondelete="CASCADE", name="fk_project_client"),
@@ -204,6 +209,7 @@ class Project(Base):
             id=self.id,
             name=self.name,
             client_id=self.client_id,
+            is_active=self.is_active,
             time=None,
         )
 
@@ -251,6 +257,8 @@ class Project(Base):
 
 class Task(Base):
     name: Mapped[str] = mapped_column(index=True)
+    is_active: Mapped[bool] = mapped_column(default=True, server_default=true())
+
     project_id: Mapped[int] = mapped_column(
         ForeignKey("Project.id", ondelete="CASCADE", name="fk_task_project"), index=True
     )
@@ -272,6 +280,7 @@ class Task(Base):
             name=self.name,
             project_id=self.project_id,
             status=self.status.value,
+            is_active=self.is_active,
             time=None,
         )
 
@@ -316,6 +325,7 @@ class Event(Base):
     task: Mapped[Task] = relationship("Task", back_populates="events")
 
     start_date: Mapped[DT.date] = mapped_column()
+    is_active: Mapped[bool] = mapped_column(default=True, server_default=true())
 
     details: Mapped[str] = mapped_column(default="")
     notes: Mapped[str] = mapped_column(default="")
@@ -335,6 +345,7 @@ class Event(Base):
             start_date=self.start_date.strftime("%Y-%m-%d"),
             details=self.details,
             notes=self.notes,
+            is_active=self.is_active,
             entries=[entry.to_dict() for entry in self.entries],
             time=None,
         )
@@ -502,6 +513,9 @@ class Queries:
             .join(Project, Task.project_id == Project.id)
             .join(Client, Project.client_id == Client.id)
             .where(Entry.seconds > 0)
+            .where(Client.is_active == true())
+            .where(Project.is_active == true())
+            .where(Task.is_active == true())
             .group_by("client_name", "project_name", "task_name", "date_when")
             .order_by("date_when")
         )
@@ -574,9 +588,9 @@ class Queries:
     ):
         stmt = cls._BaseSelect().where(Task.id == task_id)
         if start_date is not None:
-            stmt = stmt.where(models.Event.start_date >= start_date)
+            stmt = stmt.where(Event.start_date >= start_date)
         if end_date is not None:
-            stmt = stmt.where(models.Event.start_date <= end_date)
+            stmt = stmt.where(Event.start_date <= end_date)
 
         return session.execute(stmt).all()
 

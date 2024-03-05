@@ -23,6 +23,7 @@ class StopReasons(enum.Enum):
 class Client(T.TypedDict):
     id: int
     name: str
+    is_active: bool
     time: T.Optional["TimeObject"]
 
 
@@ -30,6 +31,7 @@ class Project(T.TypedDict):
     id: int
     name: str
     client_id: int
+    is_active: bool
     time: T.Optional["TimeObject"]
 
 
@@ -38,6 +40,7 @@ class Task(T.TypedDict):
     name: str
     project_id: int
     status: str
+    is_active: bool
     time: T.Optional["TimeObject"]
 
 
@@ -47,6 +50,7 @@ class Event(T.TypedDict):
     start_date: str
     details: str
     notes: str
+    is_active: bool
     time: T.Optional["TimeObject"]
     entries: list["Entry"]
 
