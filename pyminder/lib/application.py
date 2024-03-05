@@ -48,29 +48,6 @@ class Application:
 
         self.web_app = None
 
-    def make_app(self):
-        if self.web_app is not None:
-            return self.web_app
-
-        self.web_app = bottle.Bottle()
-        bottle.TEMPLATE_PATH = str(self.here / "ui/dist")
-
-        @self.web_app.route("/<catchall:re:.*>")
-        def index(catchall: str):
-            LOG.debug(f"Index requested")
-
-            if (self.here / "ui/dist/" / catchall).exists() is False:
-                catchall = "index.html"
-
-            if len(catchall.strip()) == 0:
-                catchall = "index.html"
-
-            # return bottle.template(catchall)
-            response = bottle.static_file(catchall, root=str(self.here / "ui/dist/"))
-            return response
-
-        return self.web_app
-
     @property
     def main_window(self) -> webview.Window | None:
         return self._main_window
@@ -133,8 +110,6 @@ class Application:
             return True
 
         elif win_name in self.windows:
-            pass
-
             return True
 
         return False
