@@ -53,6 +53,11 @@ export interface Event extends HasTime {
     entries: Entry[]
 }
 
+export interface EventDate {
+    event_id: Identifier
+    start_date: string
+}
+
 export interface Entry {
     id: Identifier
     event_id: Identifier

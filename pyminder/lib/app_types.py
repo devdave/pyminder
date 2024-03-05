@@ -51,6 +51,11 @@ class Event(T.TypedDict):
     entries: list["Entry"]
 
 
+class EventDate(T.TypedDict):
+    event_id: Identifier
+    start_date: str | DT.datetime
+
+
 class Entry(T.TypedDict):
     id: int
     event_id: int
