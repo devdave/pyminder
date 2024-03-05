@@ -19,6 +19,7 @@ from .app_types import (
     Project,
     Task,
     Event,
+    EventDate,
     StopReasons,
     Entry,
     TaskStatus,
@@ -220,6 +221,23 @@ class API:
                 return response
             return None
 
+    def event_get_by_date(
+        self, task_id: Identifier, event_date: str | None
+    ) -> Event | None:
+        with self.__app.get_db() as session:
+            record = models.Event.GetByDate(session, task_id, event_date)
+            if record is not None:
+                return record.to_dict()
+            else:
+                return None
+
+    def event_list_dates_by_project_id(self, task_id: Identifier) -> list[EventDate]:
+        with self.__app.get_db() as session:
+            return [
+                dict(event_id=record.id, start_date=record.start_date)
+                for record in models.Event.GetAllEventDatesByTask(session, task_id)
+            ]
+
     def event_update(
         self, event_id: Identifier, details: str | None = None, notes: str | None = None
     ) -> Event | None:
@@ -380,8 +398,8 @@ class API:
         return self.__app.window_toggle_resize(win_name, size)
 
     def report_generate(self, payload: ReportPayload) -> TimeReport:
-        start_date = payload.get("start_date", None)  # type: str
-        end_date = payload.get("end_date", None)  # type: str
+        start_date = payload.get("start_date", None)
+        end_date = payload.get("end_date", None)
         client_id = payload.get("client_id", None)
         project_id = payload.get("project_id", None)
         task_id = payload.get("task_id", None)
@@ -394,7 +412,7 @@ class API:
                     DT.datetime.strptime(start_date, "%Y-%m-%d").date()
                     if start_date is not None
                     else None
-                )  # type: DT.date
+                )
                 end_date = (
                     DT.datetime.strptime(end_date, "%Y-%m-%d").date()
                     if end_date is not None
@@ -626,7 +644,7 @@ class API:
 
             print()
 
-            print("Client breakdown:")
+            print("Detailed breakdown:")
             for cname, client in report["clients"].items():
                 perc = client["total_seconds"] / report["total_seconds"]
                 print(
