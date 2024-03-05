@@ -32,6 +32,7 @@ export interface HasTime {
 export interface Client {
     id: Identifier
     name: string
+    projects_count: number
     is_active: boolean
 }
 
@@ -40,6 +41,7 @@ export interface Project extends HasTime {
     name: string
     is_active: boolean
     client_id: number
+    tasks_count: number
 }
 
 export interface Task extends HasTime {
@@ -47,6 +49,7 @@ export interface Task extends HasTime {
     name: string
     is_active: boolean
     project_id: number
+    events_count: number
 }
 
 export interface Event extends HasTime {

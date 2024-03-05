@@ -54,21 +54,18 @@ class API:
             record = models.Client(name=name)
             session.add(record)
             session.commit()
-            return Client(id=record.id, name=record.name, time=None)
+            return record.to_dict()
 
     def clients_list(self) -> list[Client]:
         with self.__app.get_db() as session:
-            return [
-                Client(id=record.id, name=record.name, time=None)
-                for record in models.Client.GetAll(session)
-            ]
+            return [record.to_dict() for record in models.Client.GetAll(session)]
 
     def client_get(self, client_id: Identifier) -> T.Optional[Client]:
         with self.__app.get_db() as session:
             record = models.Client.Fetch_by_id(session, client_id)
             if record:
                 all_time = models.Client.GetAllTime(session, record.id)
-                return {"id": record.id, "name": record.name, "time": all_time}
+                return record.to_dict() if all_time else None
             return None
 
     def client_update(
@@ -94,19 +91,12 @@ class API:
             record = models.Project(name=name, client_id=client_id)
             session.add(record)
             session.commit()
-            return Project(
-                id=record.id, name=record.name, client_id=record.client_id, time=None
-            )
+            return record.to_dict()
 
     def projects_list_by_client_id(self, client_id: Identifier) -> list[Project]:
         with self.__app.get_db() as session:
             return [
-                Project(
-                    id=record.id,
-                    name=record.name,
-                    client_id=record.client_id,
-                    time=None,
-                )
+                record.to_dict()
                 for record in models.Project.GetByClient(session, client_id)
             ]
 
@@ -136,13 +126,7 @@ class API:
             record = models.Task(name=name, project_id=project_id)
             session.add(record)
             session.commit()
-            return Task(
-                id=record.id,
-                name=record.name,
-                time=None,
-                project_id=int(project_id),
-                status=record.status.value,
-            )
+            return record.to_dict()
 
     def tasks_lists_by_project_id(self, project_id: Identifier) -> list[Task]:
         with self.__app.get_db() as session:

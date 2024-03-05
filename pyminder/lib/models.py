@@ -142,7 +142,11 @@ class Client(Base):
 
     def to_dict(self) -> app_types.Client:
         return app_types.Client(
-            name=self.name, id=self.id, is_active=self.is_active, time=None
+            name=self.name,
+            id=self.id,
+            is_active=self.is_active,
+            projects_count=len(self.projects),
+            time=None,
         )
 
     @classmethod
@@ -210,6 +214,7 @@ class Project(Base):
             name=self.name,
             client_id=self.client_id,
             is_active=self.is_active,
+            tasks_count=len(self.tasks),
             time=None,
         )
 
@@ -281,6 +286,7 @@ class Task(Base):
             project_id=self.project_id,
             status=self.status.value,
             is_active=self.is_active,
+            events_count=len(self.events),
             time=None,
         )
 
