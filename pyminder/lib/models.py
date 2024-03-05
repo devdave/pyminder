@@ -431,7 +431,7 @@ class Event(Base):
         return session.execute(smt).one_or_none()
 
     @classmethod
-    def GetEventDatesByTask(
+    def GetAllEventDatesByTask(
         cls, session, task_id: Identifier | InstrumentedAttribute[int]
     ):
         stmt = select(cls.id, cls.start_date).where(cls.task_id == task_id)
