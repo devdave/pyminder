@@ -118,6 +118,7 @@ class Application:
             return True
 
         elif win_name in self.windows:
+            self.windows[win_name].show()
             return True
 
         return False
