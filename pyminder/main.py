@@ -5,7 +5,7 @@ import multiprocessing as mp
 
 import time
 from pathlib import Path
- from wsgiref.simple_server import make_server
+from wsgiref.simple_server import make_server
 
 import flask
 import wsgiref
