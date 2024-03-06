@@ -1,3 +1,5 @@
 /events.sqlite3
 .idea/dataSources.xml
 *.sqlite3
+build/*
+dist/*
