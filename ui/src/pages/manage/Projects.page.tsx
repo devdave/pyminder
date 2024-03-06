@@ -34,6 +34,14 @@ export const ProjectsPage = () => {
         </Link>
     ))
 
+    const handleProjectDelete = (id: Identifier, name: string) => {
+        if (window.confirm(`Are you sure you want to delete ${name} project?`)) {
+            projectBroker.destroy(id).then(() => {
+                projectBroker.invalidateProjects(client_id as Identifier)
+            })
+        }
+    }
+
     return (
         <>
             <Title>Projects for {clientRecord.name}</Title>
@@ -60,7 +68,9 @@ export const ProjectsPage = () => {
                                 <Button>Edit</Button>
                             </Table.Td>
                             <Table.Td>
-                                <Button>Delete</Button>
+                                <Button onClick={() => handleProjectDelete(project.id, project.name)}>
+                                    Delete
+                                </Button>
                             </Table.Td>
                         </Table.Tr>
                     ))}
