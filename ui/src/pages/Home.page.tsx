@@ -33,12 +33,12 @@ export function HomePage() {
         selectedProjectID !== null && selectedProjectID !== undefined
     )
 
-    const { data: allProjects, isLoading: projectsAreLoading } = projectBroker.useGetAllByClient(
+    const { data: allProjects, isLoading: projectsAreLoading } = projectBroker.getAllActiveByClient(
         selectedClient?.id as Identifier,
         selectedClient !== undefined && selectedClient !== null
     )
 
-    const { data: allTasks, isLoading: tasksAreLoading } = taskBroker.getAllByProject(
+    const { data: allTasks, isLoading: tasksAreLoading } = taskBroker.getAllActiveByProject(
         selectedProjectID as Identifier,
         selectedProjectID !== undefined && selectedProjectID !== null
     )

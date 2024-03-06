@@ -110,7 +110,7 @@ class API:
 
             return [
                 record.to_dict()
-                for record in models.Project.FetchActive_by_Client(client_id)
+                for record in models.Project.FetchActive_by_Client(session, client_id)
             ]
 
     def project_get(self, project_id: Identifier) -> Project:

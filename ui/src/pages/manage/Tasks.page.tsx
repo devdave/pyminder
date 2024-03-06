@@ -49,7 +49,8 @@ export const TasksPage = () => {
     const handleToggleStatus = (taskId: Identifier, status: boolean) => {
         console.log(taskId, status)
         api.task_set_status(taskId, status).then(() => {
-            taskBroker.invalidateTasks(project_id as Identifier)
+            taskBroker.invalidateTasks(project_id as Identifier).then()
+            taskBroker.invalidateTask(project_id as Identifier, taskId).then(() => {})
         })
     }
 
