@@ -323,6 +323,11 @@ class Task(Base):
 
         return TimeObject(hours=hours, minutes=minutes, seconds=seconds)
 
+    @classmethod
+    def Update_Status(cls, session: Session, task_id: Identifier, status: bool) -> bool:
+        stmt = update(cls).values(is_active=status).where(cls.id == task_id)
+        return session.execute(stmt).rowcount == 1
+
 
 class Event(Base):
     task_id: Mapped[int] = mapped_column(
