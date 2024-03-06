@@ -4,27 +4,31 @@ import { useParams, Link, Outlet } from 'react-router-dom'
 import { Identifier, Task } from '@src/types'
 
 export const TasksPage = () => {
-    const { taskBroker, projectBroker } = useAppContext()
+    const { clientBroker, taskBroker, projectBroker } = useAppContext()
 
     const { client_id, project_id } = useParams()
 
     const { data: myProject } = projectBroker.fetch(client_id as Identifier, project_id as Identifier, true)
+    const { data: clientRecord, isLoading: clientRecordLoading } = clientBroker.fetch(
+        client_id as Identifier,
+        true
+    )
 
     const { data: allTasks, isLoading: allTasksAreLoading } = taskBroker.getAllByProject(
         project_id as Identifier,
         true
     )
 
-    if (allTasksAreLoading) {
+    if (allTasksAreLoading || clientRecordLoading) {
         return <LoadingOverlay visible />
     }
-    if (!allTasks) {
-        return <Text>Failed loading projects</Text>
+    if (!allTasks || !clientRecord) {
+        return <Text>Failed loading data</Text>
     }
 
     const items = [
         { title: 'Clients', href: '/manage' },
-        { title: 'Projects', href: `/manage/client/${client_id}/projects` }
+        { title: `${clientRecord.name}'s projects`, href: `/manage/client/${client_id}/projects` }
     ].map((item, index) => (
         <Link
             key={index}
@@ -36,7 +40,7 @@ export const TasksPage = () => {
 
     return (
         <>
-            <Title>Tasks</Title>
+            <Title>Tasks for {myProject?.name}</Title>
             <Breadcrumbs>{items}</Breadcrumbs>
             <Table>
                 <Table.Thead>

@@ -5,16 +5,36 @@ import { Entry, Identifier } from '@src/types'
 import { Link, useParams } from 'react-router-dom'
 
 export const EntriesPage = () => {
-    const { api } = useAppContext()
+    const { api, clientBroker, projectBroker, taskBroker, eventBroker } = useAppContext()
     const { client_id, project_id, task_id, event_id } = useParams()
     const [entries, setEntries] = useState<Entry[]>([])
 
+    const { data: taskData, isLoading: taskIsLoading } = taskBroker.fetch(
+        project_id as Identifier,
+        task_id as Identifier,
+        true
+    )
+    const { data: myProject, isLoading: projectLoading } = projectBroker.fetch(
+        client_id as Identifier,
+        project_id as Identifier,
+        true
+    )
+    const { data: clientRecord, isLoading: clientRecordLoading } = clientBroker.fetch(
+        client_id as Identifier,
+        true
+    )
+
+    const { data: eventRecord, isLoading: eventRecordLoading } = eventBroker.fetch(event_id as Identifier)
+
     const items = [
         { title: 'Clients', href: '/manage' },
-        { title: 'Projects', href: `/manage/client/${client_id}/projects` },
-        { title: 'Tasks', href: `/manage/client/${client_id}/projects/${project_id}/tasks` },
+        { title: `${clientRecord?.name}'s projects`, href: `/manage/client/${client_id}/projects` },
         {
-            title: 'Events',
+            title: `${myProject?.name}'s tasks`,
+            href: `/manage/client/${client_id}/projects/${project_id}/tasks`
+        },
+        {
+            title: `${taskData?.name}'s events`,
             href: `/manage/client/${client_id}/projects/${project_id}/tasks/${task_id}/events`
         }
     ].map((item, index) => (
@@ -34,7 +54,7 @@ export const EntriesPage = () => {
 
     return (
         <>
-            <Title>Entries</Title>
+            <Title>{eventRecord?.start_date}'s entries</Title>
             <Breadcrumbs
                 separator='→'
                 separatorMargin='xs'

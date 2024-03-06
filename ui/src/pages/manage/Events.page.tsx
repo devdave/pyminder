@@ -4,7 +4,7 @@ import { Link, Outlet, useParams } from 'react-router-dom'
 import { Event, Client, Identifier } from '@src/types'
 
 export const EventsPage = () => {
-    const { eventBroker, taskBroker } = useAppContext()
+    const { projectBroker, clientBroker, eventBroker, taskBroker } = useAppContext()
     const { client_id, task_id, project_id } = useParams()
 
     const { data: taskData, isLoading: taskIsLoading } = taskBroker.fetch(
@@ -12,16 +12,25 @@ export const EventsPage = () => {
         task_id as Identifier,
         true
     )
+    const { data: myProject, isLoading: projectLoading } = projectBroker.fetch(
+        client_id as Identifier,
+        project_id as Identifier,
+        true
+    )
+    const { data: clientRecord, isLoading: clientRecordLoading } = clientBroker.fetch(
+        client_id as Identifier,
+        true
+    )
 
     const { data: allEvents, isLoading: allEventsAreLoading } = eventBroker.useGetAllByTask(
         task_id as Identifier
     )
 
-    if (allEventsAreLoading || taskIsLoading) {
+    if (allEventsAreLoading || taskIsLoading || projectLoading || clientRecordLoading) {
         return <LoadingOverlay visible />
     }
 
-    if (!allEvents) {
+    if (!allEvents || !myProject || !clientRecord) {
         return <Text>No events available or failed to load!</Text>
     }
     if (!taskData) {
@@ -30,8 +39,11 @@ export const EventsPage = () => {
 
     const items = [
         { title: 'Clients', href: '/manage' },
-        { title: 'Projects', href: `/manage/client/${client_id}/projects` },
-        { title: 'Tasks', href: `/manage/client/${client_id}/projects/${project_id}/tasks` },
+        { title: `${clientRecord.name}'s projects`, href: `/manage/client/${client_id}/projects` },
+        {
+            title: `${myProject.name}'s tasks`,
+            href: `/manage/client/${client_id}/projects/${project_id}/tasks`
+        },
         {
             title: 'Events',
             href: `/manage/client/${client_id}/projects/${project_id}/tasks/${task_id}/events`
