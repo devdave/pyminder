@@ -429,10 +429,12 @@ class Event(Base):
 
     @classmethod
     def GetAllTime(cls, session, event_id: Identifier) -> app_types.TimeObject:
-        stmt = select(func.sum(Entry.seconds).label("total_seconds")).join(
-            Entry, Entry.event_id == event_id
+        stmt = (
+            select(func.sum(Entry.seconds).label("total_seconds"))
+            .select_from(Event)
+            .join(Entry, Entry.event_id == event_id)
         )
-        total_seconds = session.execute(stmt).scalar().total_seconds or 0
+        total_seconds = session.execute(stmt).scalar() or 0
 
         hours, remainder = divmod(total_seconds, 3600)
         minutes, seconds = divmod(remainder, 60)
