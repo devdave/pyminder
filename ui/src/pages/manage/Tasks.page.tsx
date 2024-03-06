@@ -4,7 +4,7 @@ import { useParams, Link, Outlet } from 'react-router-dom'
 import { Identifier, Task } from '@src/types'
 
 export const TasksPage = () => {
-    const { clientBroker, taskBroker, projectBroker } = useAppContext()
+    const { api, clientBroker, taskBroker, projectBroker } = useAppContext()
 
     const { client_id, project_id } = useParams()
 
@@ -48,6 +48,9 @@ export const TasksPage = () => {
 
     const handleToggleStatus = (taskId: Identifier, status: boolean) => {
         console.log(taskId, status)
+        api.task_set_status(taskId, status).then(() => {
+            taskBroker.invalidateTasks(project_id as Identifier)
+        })
     }
 
     return (

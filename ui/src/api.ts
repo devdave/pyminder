@@ -1,10 +1,18 @@
-import { type Identifier, type Client, type Project, type Task, type Event, type Entry, type TimeOwner, type StopReasons,
+import {
+    type Identifier,
+    type Client,
+    type Project,
+    type Task,
+    type Event,
+    type Entry,
+    type TimeOwner,
+    type StopReasons,
     type DateTimeCard,
     type ProjectTime,
     type ClientTime,
     type TimeReport,
     type ReportPayload,
-
+    type EventDate
 } from '@src/types'
 
 interface Boundary {
@@ -66,6 +74,9 @@ class APIBridge {
     task_destroy(task_id:Identifier):Promise<boolean> {
         return this.boundary.remote('task_destroy', task_id) as Promise<boolean>
     }
+    task_set_status(task_id:Identifier, status:boolean):Promise<boolean> {
+        return this.boundary.remote('task_set_status', task_id, status) as Promise<boolean>
+    }
     event_create(task_id:Identifier, start_date:string | undefined = undefined, details:string | undefined = undefined, notes:string | undefined = undefined):Promise<Event> {
         return this.boundary.remote('event_create', task_id, start_date, details, notes) as Promise<Event>
     }
@@ -77,6 +88,12 @@ class APIBridge {
     }
     event_get(event_id:Identifier): Promise<void> {
         return this.boundary.remote('event_get', event_id) as Promise<void>
+    }
+    event_get_by_date(task_id:Identifier, event_date:string | undefined): Promise<void> {
+        return this.boundary.remote('event_get_by_date', task_id, event_date) as Promise<void>
+    }
+    event_list_dates_by_project_id(task_id:Identifier):Promise<EventDate[]> {
+        return this.boundary.remote('event_list_dates_by_project_id', task_id) as Promise<EventDate[]>
     }
     event_update(event_id:Identifier, details:string | undefined = undefined, notes:string | undefined = undefined): Promise<void> {
         return this.boundary.remote('event_update', event_id, details, notes) as Promise<void>
@@ -128,9 +145,6 @@ class APIBridge {
     }
     report_generate(payload:ReportPayload):Promise<TimeReport> {
         return this.boundary.remote('report_generate', payload) as Promise<TimeReport>
-    }
-    report_build(payload:any):Promise<TimeReport> {
-        return this.boundary.remote('report_build', payload) as Promise<TimeReport>
     }
     report_build2text(payload:ReportPayload):Promise<string> {
         return this.boundary.remote('report_build2text', payload) as Promise<string>
