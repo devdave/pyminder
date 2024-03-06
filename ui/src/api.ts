@@ -62,6 +62,9 @@ class APIBridge {
     project_update(project_id:Identifier, project_name:string):Promise<Project> {
         return this.boundary.remote('project_update', project_id, project_name) as Promise<Project>
     }
+    project_set_status(project_id:Identifier, status:boolean):Promise<Project> {
+        return this.boundary.remote('project_set_status', project_id, status) as Promise<Project>
+    }
     project_destroy(project_id:Identifier):Promise<boolean> {
         return this.boundary.remote('project_destroy', project_id) as Promise<boolean>
     }

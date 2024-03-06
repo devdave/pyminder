@@ -128,6 +128,13 @@ class API:
                 session.commit()
             return record.to_dict()
 
+    def project_set_status(self, project_id: Identifier, status: bool) -> Project:
+        with self.__app.get_db() as session:
+            record = models.Project.Fetch_by_id(session, project_id)
+            record.is_active = status
+            session.commit()
+            return record.to_dict()
+
     def project_destroy(self, project_id: Identifier) -> bool:
         with self.__app.get_db() as session:
             retval = models.Project.Delete_By_Id(session, project_id)

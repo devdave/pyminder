@@ -1,10 +1,10 @@
-import { LoadingOverlay, Text, Table, Title, Button, Breadcrumbs } from '@mantine/core'
+import { LoadingOverlay, Text, Table, Title, Button, Breadcrumbs, Checkbox } from '@mantine/core'
 import { Link, Outlet, useParams } from 'react-router-dom'
 import { Identifier, Project } from '@src/types'
 import { useAppContext } from '@src/App.context'
 
 export const ProjectsPage = () => {
-    const { projectBroker, clientBroker } = useAppContext()
+    const { api, projectBroker, clientBroker } = useAppContext()
 
     const { client_id } = useParams()
     const { data: allProjects, isLoading: allProjectsAreLoading } = projectBroker.useGetAllByClient(
@@ -42,6 +42,13 @@ export const ProjectsPage = () => {
         }
     }
 
+    const handleProjectStatusChange = (id: Identifier, status: boolean) => {
+        api.project_set_status(id, status).then(() => {
+            projectBroker.invalidateProjects(client_id as Identifier).then()
+            projectBroker.invalidateProject(client_id as Identifier, id).then(() => {})
+        })
+    }
+
     return (
         <>
             <Title>Projects for {clientRecord.name}</Title>
@@ -60,7 +67,14 @@ export const ProjectsPage = () => {
                     {allProjects.map((project: Project) => (
                         <Table.Tr key={project.id}>
                             <Table.Td>{project.name}</Table.Td>
-                            <Table.Td>{project.is_active ? 'True' : 'False'}</Table.Td>
+                            <Table.Td>
+                                <Checkbox
+                                    checked={project ? project.is_active : false}
+                                    onChange={(event) =>
+                                        handleProjectStatusChange(project.id, event.currentTarget.checked)
+                                    }
+                                />
+                            </Table.Td>
                             <Table.Td>
                                 <Link to={`${project.id}/tasks`}>Tasks {project.tasks_count}</Link>
                             </Table.Td>
