@@ -1,28 +1,32 @@
 import logging
 import pathlib
 import subprocess
-import sys
+
 import time
 from pathlib import Path
 import flask
 
 import tap
 import webview  # type: ignore
+import sys
 
 from lib.api import API
 from lib.application import Application
 from lib.log_helper import getLogger
 
+IS_FROZEN = getattr(sys, "frozen", False)
+
 LOG = getLogger(__name__)
-HERE = Path(__file__).parent
+HERE = Path(__file__).parent if IS_FROZEN else Path(sys.executable).parent
 UI_DIR = (HERE / "ui") if (HERE / "ui").exists() else (HERE / ".." / "ui")
-DB_DIR = HERE / ".."
+DB_DIR = pathlib.Path.cwd()
 
 
 class Arguments(tap.Tap):
     debug: bool = False
     port: str = "8080"
     transform_api_target: Path | None = None
+    alternate_db: Path | None = None
 
 
 def setup_logging(level=logging.DEBUG):
@@ -111,14 +115,18 @@ def main(argv):
 
     print(f"{HERE=}")
     print(f"{UI_DIR=}")
+    print(f"{DB_DIR=}")
 
     print(f"{results=}", results)
     print(f"{results.debug=}")
     print(f"{results.transform_api_target=}")
+    print(f"{results.alternate_db=}")
+
+    db_dir = results.alternate_db if results.alternate_db is not None else DB_DIR
 
     setup_logging()
 
-    app = Application(HERE, DB_DIR / "events.sqlite3")
+    app = Application(HERE, db_dir / "pyminder.sqlite3")
     app.port = results.port
 
     if results.debug:
@@ -161,10 +169,18 @@ def main(argv):
     if worker:
         import signal
 
+    if results.debug:
+        import signal
+
         worker.send_signal(signal.CTRL_BREAK_EVENT)
         worker.send_signal(signal.CTRL_C_EVENT)
-        worker.kill()
+
+    sys.exit(0)
 
 
 if __name__ == "__main__":
-    main(sys.argv)
+    try:
+        main(sys.argv)
+    except Exception as e:
+        LOG.error(e)
+        sys.exit(1)
