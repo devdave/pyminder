@@ -228,6 +228,13 @@ class Project(Base):
         return session.execute(stmt).scalars().all()
 
     @classmethod
+    def FetchActive_by_Client(cls, session, client_id):
+        stmt = (
+            select(cls).where(cls.client_id == client_id).where(cls.is_active == true())
+        )
+        return session.execute(stmt).scalars().all()
+
+    @classmethod
     def GetAllTime(
         cls, session: Session, project_id: Identifier
     ) -> app_types.TimeObject:
@@ -296,6 +303,15 @@ class Task(Base):
     @classmethod
     def GetByProject(cls, session, project_id) -> list["Task"]:
         stmt = select(cls).where(cls.project_id == project_id)
+        return session.execute(stmt).scalars().all()
+
+    @classmethod
+    def GetActiveByProject(cls, session, project_id) -> list["Task"]:
+        stmt = (
+            select(cls)
+            .where(cls.project_id == project_id)
+            .where(cls.is_active == true())
+        )
         return session.execute(stmt).scalars().all()
 
     @classmethod
@@ -389,6 +405,11 @@ class Event(Base):
     @classmethod
     def GetByTask(cls, session, task_id) -> T.Sequence["Event"]:
         stmt = select(cls).filter(cls.by_task(task_id))
+        return session.execute(stmt).scalars().all()
+
+    @classmethod
+    def GetActiveByTask(cls, session, task_id) -> T.Sequence["Event"]:
+        stmt = select(cls).filter(cls.by_task(task_id)).where(cls.is_active == true())
         return session.execute(stmt).scalars().all()
 
     @hybrid_method
@@ -528,9 +549,6 @@ class Queries:
             .join(Project, Task.project_id == Project.id)
             .join(Client, Project.client_id == Client.id)
             .where(Entry.seconds > 0)
-            .where(Client.is_active == true())
-            .where(Project.is_active == true())
-            .where(Task.is_active == true())
             .group_by("client_name", "project_name", "task_name", "date_when")
             .order_by("date_when")
         )

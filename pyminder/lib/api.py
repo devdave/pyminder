@@ -100,6 +100,15 @@ class API:
                 for record in models.Project.GetByClient(session, client_id)
             ]
 
+    def projects_list_active_by_client_id(self, client_id: Identifier) -> list[Project]:
+        with self.__app.get_db() as session:
+            from numpy import record
+
+            return [
+                record.to_dict()
+                for record in models.Project.FetchActive_by_Client(client_id)
+            ]
+
     def project_get(self, project_id: Identifier) -> Project:
         with self.__app.get_db() as session:
             record = models.Project.Fetch_by_id(session, project_id).to_dict()
@@ -133,6 +142,15 @@ class API:
             return [
                 record.to_dict()
                 for record in models.Task.GetByProject(session, project_id)
+            ]
+
+    def tasks_list_active_by_project_id(self, project_id: Identifier) -> list[Task]:
+        with self.__app.get_db() as session:
+            from numpy import record
+
+            return [
+                record.to_dict()
+                for record in models.Task.GetActiveByProject(session, project_id)
             ]
 
     def task_get(self, task_id: Identifier) -> Task:
@@ -200,6 +218,13 @@ class API:
         with self.__app.get_db() as session:
             return [
                 record.to_dict() for record in models.Event.GetByTask(session, task_id)
+            ]
+
+    def event_active_by_task_id(self, task_id: Identifier) -> Event:
+        with self.__app.get_db() as session:
+            return [
+                record.to_dict()
+                for record in models.Event.GetActiveByTask(session, task_id)
             ]
 
     def event_get(self, event_id: Identifier) -> Event | None:
