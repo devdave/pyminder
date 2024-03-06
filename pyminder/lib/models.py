@@ -107,6 +107,11 @@ class Base(DeclarativeBase):
         return session.execute(stmt).scalars().all()
 
     @classmethod
+    def GetAllActive(cls, session: Session) -> T.Sequence[T.Self]:
+        stmt = select(cls).where(cls.is_active == true())
+        return session.execute(stmt).scalars().all()
+
+    @classmethod
     def GetOrCreate(cls, session: Session, defaults=None, **kwargs) -> T.Self | None:
         instance = session.execute(select(cls).filter_by(**kwargs)).one_or_none()
         if instance:

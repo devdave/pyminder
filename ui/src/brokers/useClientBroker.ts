@@ -6,6 +6,7 @@ export interface clientBrokerReturns {
     invalidateClients: () => Promise<void>
     fetch: (client_id: Identifier, enabled: boolean) => UseQueryResult<Client | undefined>
     getAll: () => UseQueryResult<Client[], Error>
+    getAllActive: () => UseQueryResult<Client[], Error>
     create: (client_name: string) => Promise<Client>
     update: (client_id: Identifier, name: string) => Promise<Partial<Client> | undefined>
     destroy: (client_id: Identifier) => Promise<boolean>
@@ -38,6 +39,8 @@ export const useClientBroker = (api: APIBridge): clientBrokerReturns => {
 
     const useGetAll = () => useQuery({ queryKey: ['clients'], queryFn: () => api.clients_list() })
 
+    const useGetAllActive = () => useQuery({ queryKey: ['clients'], queryFn: api.client_list_active })
+
     const create = (client_name: string): Promise<Client> => createMutation(client_name)
 
     const update = (client_id: Identifier, client_name: string) =>
@@ -53,6 +56,7 @@ export const useClientBroker = (api: APIBridge): clientBrokerReturns => {
         invalidateClients,
         fetch: useFetch,
         getAll: useGetAll,
+        getAllActive: useGetAllActive,
         create,
         update,
         destroy

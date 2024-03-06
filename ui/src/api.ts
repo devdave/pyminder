@@ -35,6 +35,9 @@ class APIBridge {
     clients_list():Promise<Client[]> {
         return this.boundary.remote('clients_list') as Promise<Client[]>
     }
+    client_list_active():Promise<Client[]> {
+        return this.boundary.remote('client_list_active') as Promise<Client[]>
+    }
     client_get(client_id:Identifier):Promise<Client | undefined > {
         return this.boundary.remote('client_get', client_id) as Promise<Client | undefined >
     }
@@ -50,6 +53,9 @@ class APIBridge {
     projects_list_by_client_id(client_id:Identifier):Promise<Project[]> {
         return this.boundary.remote('projects_list_by_client_id', client_id) as Promise<Project[]>
     }
+    projects_list_active_by_client_id(client_id:Identifier):Promise<Project[]> {
+        return this.boundary.remote('projects_list_active_by_client_id', client_id) as Promise<Project[]>
+    }
     project_get(project_id:Identifier):Promise<Project> {
         return this.boundary.remote('project_get', project_id) as Promise<Project>
     }
@@ -64,6 +70,9 @@ class APIBridge {
     }
     tasks_lists_by_project_id(project_id:Identifier):Promise<Task[]> {
         return this.boundary.remote('tasks_lists_by_project_id', project_id) as Promise<Task[]>
+    }
+    tasks_list_active_by_project_id(project_id:Identifier):Promise<Task[]> {
+        return this.boundary.remote('tasks_list_active_by_project_id', project_id) as Promise<Task[]>
     }
     task_get(task_id:Identifier):Promise<Task> {
         return this.boundary.remote('task_get', task_id) as Promise<Task>
@@ -85,6 +94,9 @@ class APIBridge {
     }
     events_by_task_id(task_id:Identifier):Promise<Event[]> {
         return this.boundary.remote('events_by_task_id', task_id) as Promise<Event[]>
+    }
+    event_active_by_task_id(task_id:Identifier):Promise<Event> {
+        return this.boundary.remote('event_active_by_task_id', task_id) as Promise<Event>
     }
     event_get(event_id:Identifier): Promise<void> {
         return this.boundary.remote('event_get', event_id) as Promise<void>

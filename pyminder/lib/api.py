@@ -60,6 +60,10 @@ class API:
         with self.__app.get_db() as session:
             return [record.to_dict() for record in models.Client.GetAll(session)]
 
+    def client_list_active(self) -> list[Client]:
+        with self.__app.get_db() as session:
+            return [record.to_dict() for record in models.Client.GetAllActive(session)]
+
     def client_get(self, client_id: Identifier) -> T.Optional[Client]:
         with self.__app.get_db() as session:
             record = models.Client.Fetch_by_id(session, client_id)

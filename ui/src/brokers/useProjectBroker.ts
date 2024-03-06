@@ -17,6 +17,7 @@ export interface projectBrokerReturn {
     invalidateProjects: (client_id: Identifier) => Promise<void>
     fetch: (client_id: Identifier, project_id: Identifier, enabled: boolean) => UseQueryResult<Project>
     useGetAllByClient: (client_id: Identifier, enabled: boolean) => UseQueryResult<Project[]>
+    getAllActiveByClient: (client_id: Identifier, enabled: boolean) => UseQueryResult<Project[]>
     create: (client_id: Identifier, name: string) => Promise<Project>
     update: (project_id: Identifier, name: string) => Promise<Project>
     destroy: (project_id: Identifier) => Promise<boolean>
@@ -60,6 +61,13 @@ export const useProjectBroker = (api: APIBridge): projectBrokerReturn => {
             queryFn: () => api.projects_list_by_client_id(client_id)
         })
 
+    const useGetAllActiveByClient = (client_id: Identifier, enabled: boolean) =>
+        useQuery({
+            enabled,
+            queryKey: ['client', client_id, 'projects'],
+            queryFn: () => api.projects_list_active_by_client_id(client_id)
+        })
+
     const createProject = (client_id: Identifier, name: string) => createMutation({ client_id, name })
 
     const updateProject = (id: Identifier, name: string) => updateMutation({ id, name })
@@ -71,6 +79,7 @@ export const useProjectBroker = (api: APIBridge): projectBrokerReturn => {
         invalidateProjects,
         fetch: useFetch,
         useGetAllByClient,
+        getAllActiveByClient: useGetAllActiveByClient,
         create: createProject,
         update: updateProject,
         destroy
