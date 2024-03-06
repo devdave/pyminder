@@ -64,6 +64,7 @@ def connect(db_path: pathlib.Path, echo=False, create=True):
 
 class Base(DeclarativeBase):
     id: Mapped[int] = mapped_column(primary_key=True)
+    is_active: Mapped[bool] = mapped_column(default=True, server_default=true())
 
     created_on: Mapped[DT.datetime] = mapped_column(
         default=None, server_default=func.now()
@@ -88,6 +89,11 @@ class Base(DeclarativeBase):
     def Fetch_by_id(cls, session: Session, fetch_id: Identifier) -> T.Self:
         stmt = select(cls).where(cls.id == fetch_id)
         return session.execute(stmt).scalars().one()
+
+    @classmethod
+    def FetchActive_by_id(cls, session: Session, fetch_id: Identifier) -> T.Self:
+        stmt = select(cls).where(cls.id == fetch_id).where(cls.is_active == true())
+        return session.execute(stmt).scalars().all()
 
     @classmethod
     def Delete_By_Id(cls, session, client_id) -> bool:
@@ -134,7 +140,6 @@ class Base(DeclarativeBase):
 
 class Client(Base):
     name: Mapped[str] = mapped_column()
-    is_active: Mapped[bool] = mapped_column(default=True, server_default=true())
 
     projects: Mapped[list["Project"]] = relationship(
         "Project", back_populates="client", cascade="all, delete-orphan"
@@ -188,7 +193,6 @@ class Client(Base):
 
 class Project(Base):
     name: Mapped[str] = mapped_column()
-    is_active: Mapped[bool] = mapped_column(default=True, server_default=true())
 
     client_id: Mapped[int] = mapped_column(
         ForeignKey("Client.id", ondelete="CASCADE", name="fk_project_client"),
@@ -262,7 +266,6 @@ class Project(Base):
 
 class Task(Base):
     name: Mapped[str] = mapped_column(index=True)
-    is_active: Mapped[bool] = mapped_column(default=True, server_default=true())
 
     project_id: Mapped[int] = mapped_column(
         ForeignKey("Project.id", ondelete="CASCADE", name="fk_task_project"), index=True
@@ -336,7 +339,6 @@ class Event(Base):
     task: Mapped[Task] = relationship("Task", back_populates="events")
 
     start_date: Mapped[DT.date] = mapped_column()
-    is_active: Mapped[bool] = mapped_column(default=True, server_default=true())
 
     details: Mapped[str] = mapped_column(default="")
     notes: Mapped[str] = mapped_column(default="")
