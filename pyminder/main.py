@@ -1,6 +1,7 @@
 import logging
 import pathlib
 import subprocess
+import multiprocessing as mp
 
 import time
 from pathlib import Path
@@ -17,7 +18,7 @@ from lib.log_helper import getLogger
 IS_FROZEN = getattr(sys, "frozen", False)
 
 LOG = getLogger(__name__)
-HERE = Path(__file__).parent if IS_FROZEN else Path(sys.executable).parent
+HERE = Path(__file__).parent if IS_FROZEN is False else Path(sys.executable).parent
 UI_DIR = (HERE / "ui") if (HERE / "ui").exists() else (HERE / ".." / "ui")
 DB_DIR = pathlib.Path.cwd()
 
@@ -80,34 +81,33 @@ def spinup_pnpm(url_path: pathlib.Path, port: str):
     return process
 
 
-def spinup_flask(ui_dir: pathlib.Path, port: str):
+def run_flask(ui_dir: pathlib.Path, port: str):
     DIST_DIR = ui_dir / "dist"
     if DIST_DIR.exists() is False:
         raise RuntimeError("Dist dir does not exist @ {}".format(ui_dir))
 
-    def run_flask():
-        app = flask.Flask(__name__)
+    app = flask.Flask(__name__)
 
-        @app.route("/", defaults={"path": ""})
-        @app.route("/<path:path>")
-        def catch_all(path):
-            file_path = DIST_DIR / path
-            if (
-                file_path.exists()
-                and file_path.is_relative_to(DIST_DIR)
-                and file_path.is_file()
-            ):
-                return flask.send_file(file_path)
-            else:
-                return (DIST_DIR / "index.html").read_text()
+    @app.route("/", defaults={"path": ""})
+    @app.route("/<path:path>")
+    def catch_all(path):
+        file_path = DIST_DIR / path
+        if (
+            file_path.exists()
+            and file_path.is_relative_to(DIST_DIR)
+            and file_path.is_file()
+        ):
+            return flask.send_file(file_path)
+        else:
+            return (DIST_DIR / "index.html").read_text()
 
-        app.run(host="127.0.0.1", port=int(port))
+    app.run(host="127.0.0.1", port=int(port))
 
-    import threading
 
-    handle = threading.Thread(target=run_flask)
-    handle.start()
-    return handle
+def spinup_flask(ui_dir: pathlib.Path, port: str) -> mp.Process:
+    worker = mp.Process(target=run_flask, args=(ui_dir, port))
+    worker.start()
+    return worker
 
 
 def main(argv):
@@ -166,14 +166,24 @@ def main(argv):
     else:
         webview.start(debug=True)
 
-    if worker:
-        import signal
+    print("Finished, trying to shutdown")
 
     if results.debug:
         import signal
 
+        LOG.debug("Stopping worker")
         worker.send_signal(signal.CTRL_BREAK_EVENT)
         worker.send_signal(signal.CTRL_C_EVENT)
+        LOG.debug("Waiting for worker")
+        time.sleep(2)
+
+    else:
+        LOG.debug("Stopping worker")
+        worker.terminate()
+        worker.kill()
+        LOG.debug("Waiting for worker")
+        worker.join()
+        worker.close()
 
     sys.exit(0)
 
