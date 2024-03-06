@@ -5,7 +5,10 @@ import multiprocessing as mp
 
 import time
 from pathlib import Path
+ from wsgiref.simple_server import make_server
+
 import flask
+import wsgiref
 
 import tap
 import webview  # type: ignore
@@ -101,6 +104,11 @@ def run_flask(ui_dir: pathlib.Path, port: str):
         else:
             return (DIST_DIR / "index.html").read_text()
 
+    from werkzeug import wsgi
+
+    with make_server("127.0.0.1", int(port), app) as httpd:
+        httpd.serve_forever()
+
     app.run(host="127.0.0.1", port=int(port))
 
 
@@ -189,6 +197,9 @@ def main(argv):
 
 
 if __name__ == "__main__":
+    if IS_FROZEN and sys.platform.startswith("win"):
+        mp.freeze_support()
+
     try:
         main(sys.argv)
     except Exception as e:
