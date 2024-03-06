@@ -2,7 +2,6 @@ import '@mantine/core/styles.css'
 
 import { MantineProvider, Text } from '@mantine/core'
 import { Router } from '@src/Router'
-import { theme } from '@src/theme'
 import Boundary, { PYWEBVIEWREADY } from '@src/library/boundary'
 import APIBridge from '@src/api'
 import { useEffect, useMemo, useState } from 'react'

@@ -1,4 +1,4 @@
-import { Breadcrumbs, Table, Title } from '@mantine/core'
+import { Breadcrumbs, LoadingOverlay, Table, Title } from '@mantine/core'
 import { useAppContext } from '@src/App.context'
 import { useEffect, useState } from 'react'
 import { Entry, Identifier } from '@src/types'
@@ -51,6 +51,10 @@ export const EntriesPage = () => {
             setEntries(response)
         })
     }, [api, event_id])
+
+    if (taskIsLoading || projectLoading || clientRecordLoading || eventRecordLoading) {
+        return <LoadingOverlay visible />
+    }
 
     return (
         <>

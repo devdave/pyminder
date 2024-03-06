@@ -48,7 +48,7 @@ export const useEventBroker = (api: APIBridge): UseEventBrokerReturn => {
         mutationFn: (payload) =>
             api.event_create(payload.task_id, payload.start_date, payload.details, payload.notes),
         onSuccess: (event) => {
-            client.invalidateQueries({ queryKey: ['task', event.task_id, 'events'] })
+            client.invalidateQueries({ queryKey: ['task', event.task_id, 'events'] }).then()
         }
     })
 

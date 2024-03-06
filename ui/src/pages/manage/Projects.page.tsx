@@ -37,7 +37,7 @@ export const ProjectsPage = () => {
     const handleProjectDelete = (id: Identifier, name: string) => {
         if (window.confirm(`Are you sure you want to delete ${name} project?`)) {
             projectBroker.destroy(id).then(() => {
-                projectBroker.invalidateProjects(client_id as Identifier)
+                projectBroker.invalidateProjects(client_id as Identifier).then()
             })
         }
     }

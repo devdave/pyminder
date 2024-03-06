@@ -10,7 +10,7 @@ from lib.api import API
 HERE = pathlib.Path(__file__).parent.parent
 
 
-app = Application(HERE, HERE / "events.sqlite3")
+app = Application(HERE, HERE / "pyminder.sqlite3")
 api = API(app)
 
 # report = api.report_build({})

@@ -2,7 +2,7 @@ from lib import models
 import pathlib
 
 engine, Session = models.connect(
-    pathlib.Path("events.sqlite3"), create=False, echo=False
+    pathlib.Path("pyminder.sqlite3"), create=False, echo=False
 )
 
 with Session() as session:

@@ -1,10 +1,9 @@
 import { MainTimer } from '@src/components/MainTimer/MainTimer'
-import { Button, Center, Stack } from '@mantine/core'
+import { Button, Stack } from '@mantine/core'
 import { useAppContext } from '@src/App.context'
 import { useEffect, useState } from 'react'
 import { Client, Identifier, Project, Task, TimeObj, TimeOwner } from '@src/types'
 import { SelectCreatable } from '@src/components/SmartSelect/SmartSelectV2'
-import { Link } from 'react-router-dom'
 import { useToggle } from '@mantine/hooks'
 
 export function HomePage() {

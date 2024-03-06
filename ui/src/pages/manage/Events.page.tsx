@@ -1,7 +1,7 @@
 import { Breadcrumbs, Button, LoadingOverlay, Table, Text, Title } from '@mantine/core'
 import { useAppContext } from '@src/App.context'
 import { Link, Outlet, useParams } from 'react-router-dom'
-import { Event, Client, Identifier } from '@src/types'
+import { Event, Identifier } from '@src/types'
 
 export const EventsPage = () => {
     const { projectBroker, clientBroker, eventBroker, taskBroker } = useAppContext()

@@ -6,7 +6,7 @@ import IPython
 from lib import models
 from lib.app_types import StopReasons
 
-engine, Session = models.connect(pathlib.Path("events.sqlite3"))
+engine, Session = models.connect(pathlib.Path("pyminder.sqlite3"))
 
 
 def other_scope(session, entry_id):

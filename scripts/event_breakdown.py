@@ -6,7 +6,7 @@ from sqlalchemy import func, cast, Integer, Date
 from lib import models
 
 engine, Session = models.connect(
-    pathlib.Path("events.sqlite3"), create=False, echo=True
+    pathlib.Path("pyminder.sqlite3"), create=False, echo=True
 )
 
 """
