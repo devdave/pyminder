@@ -11,7 +11,6 @@ export interface clientBrokerReturns {
     update: (client_id: Identifier, name: string) => Promise<Partial<Client> | undefined>
     destroy: (client_id: Identifier) => Promise<boolean>
 }
-//TODO - fix so update gets Client and not Partial Client
 
 export const useClientBroker = (api: APIBridge): clientBrokerReturns => {
     const queryClient = useQueryClient()
@@ -27,7 +26,7 @@ export const useClientBroker = (api: APIBridge): clientBrokerReturns => {
         }
     })
 
-    const { mutateAsync: updateMutation } = useMutation<Partial<Client> | undefined, Error, Partial<Client>>({
+    const { mutateAsync: updateMutation } = useMutation<Client | undefined, Error, Partial<Client>>({
         mutationFn: ({ id, name }) => api.client_update(id as Identifier, name as string),
         onSuccess: (client) => {
             client && queryClient.invalidateQueries({ queryKey: ['client', client.id] }).then()
