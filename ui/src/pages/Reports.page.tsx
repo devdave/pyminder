@@ -1,7 +1,7 @@
 import { Button, ComboboxItem, Group, NumberInput, Select } from '@mantine/core'
 import { DatePickerInput } from '@mantine/dates'
 import { useAppContext } from '@src/App.context'
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Identifier } from '@src/types'
 import { Downloader } from '@src/library/downloader'
 
@@ -10,7 +10,19 @@ export const ReportsPage = () => {
 
     const [wage, setWage] = useState<number | null>(null)
 
-    const [filterDate, setFilterDate] = useState<[Date | null, Date | null]>([null, null])
+    const currentDate = useMemo(
+        () => ({
+            date: new Date(),
+            firstDay: new Date(new Date().getFullYear(), new Date().getMonth(), 1),
+            lastDay: new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0)
+        }),
+        []
+    )
+
+    const [filterDate, setFilterDate] = useState<[Date | null, Date | null]>([
+        currentDate.firstDay,
+        currentDate.lastDay
+    ])
 
     const [selectedClientOption, setSelectedClientOption] = useState<ComboboxItem | null>(null)
     const { data: allClients, isLoading: allClientsAreLoading } = clientBroker.getAll()
