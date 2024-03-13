@@ -1,9 +1,3 @@
-declare global {
-    interface navigator {
-        msSaveBlob: ((data: Blob[], fileName: string) => void) | undefined
-    }
-}
-
 export const Downloader = async (data: string, fileName: string) => {
     const blob = new Blob([data], { type: 'text/plain' })
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
