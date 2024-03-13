@@ -93,7 +93,7 @@ class Base(DeclarativeBase):
     @classmethod
     def FetchActive_by_id(cls, session: Session, fetch_id: Identifier) -> T.Self:
         stmt = select(cls).where(cls.id == fetch_id).where(cls.is_active == true())
-        return session.execute(stmt).scalars().all()
+        return session.execute(stmt).scalars().one()
 
     @classmethod
     def Delete_By_Id(cls, session, client_id) -> bool:
@@ -533,19 +533,11 @@ class Queries:
     def _BaseSelect(cls):
         return (
             select(
-                Entry.seconds,
                 (func.strftime("%Y-%m-%d", Entry.started_on)).label("date_when"),
                 Client.name.label("client_name"),
                 Project.name.label("project_name"),
                 Task.name.label("task_name"),
-                cast(
-                    func.floor(func.sum(Entry.seconds) / 3600).label("hours"),
-                    Integer,
-                ),
-                cast(
-                    func.round((func.sum(Entry.seconds) % 3600) / 60).label("minutes"),
-                    Integer,
-                ),
+                func.sum(Entry.seconds).label("seconds"),
                 func.count(Entry.id).label("entries"),
             )
             .select_from(Entry)
