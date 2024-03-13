@@ -1,10 +1,13 @@
 from _typeshed import Incomplete
 from collections.abc import Callable as Callable
+from typing import Self
 
 class Menu:
-    title: Incomplete
-    items: Incomplete
-    def __init__(self, title: str, items: list[str] = []) -> None: ...
+    title: str
+    items: list[Self | MenuAction | MenuSeparator]
+    def __init__(
+        self, title: str, items: list[Self | MenuAction | MenuSeparator] = []
+    ) -> None: ...
 
 class MenuAction:
     title: Incomplete

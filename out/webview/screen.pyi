@@ -1,7 +1,5 @@
-from _typeshed import Incomplete
-
 class Screen:
-    width: Incomplete
-    height: Incomplete
-    frame: Incomplete
+    width: int
+    height: int
+    frame: object
     def __init__(self, width: int, height: int, frame: object = None) -> None: ...

@@ -1,4 +1,5 @@
 import webview.http as http
+from logging import Logger
 from .js import css as css
 from .screen import Screen as Screen
 from _typeshed import Incomplete
@@ -19,13 +20,13 @@ from webview.util import (
 
 P = ParamSpec("P")
 T = TypeVar("T")
-logger: Incomplete
+logger: Logger
 
 class FixPoint(Flag):
-    NORTH: Incomplete
-    WEST: Incomplete
-    EAST: Incomplete
-    SOUTH: Incomplete
+    NORTH: int
+    WEST: int
+    EAST: int
+    SOUTH: int
 
 class EventContainer:
     def __getattr__(self, __name: str) -> Event: ...
