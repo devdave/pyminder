@@ -196,6 +196,8 @@ def main(argv):
         wm.MenuAction("Manage database", lambda: app.open_window(api, "manage")),
     ]
 
+    webview.settings["ALLOW_DOWNLOADS"] = True
+
     webview.start(debug=results.debug, menu=menu_items)
 
     print("Finished, trying to shutdown")
