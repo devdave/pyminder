@@ -17,7 +17,7 @@ const switchboard = new Switchboard()
 
 declare global {
     interface navigator {
-        msSaveBlob: ((data: Blob[], fileName: string) => void) | undefined
+        msSaveBlob?: ((data: Blob[], fileName: string) => void) | undefined
     }
 }
 
