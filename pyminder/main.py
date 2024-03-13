@@ -12,7 +12,9 @@ import wsgiref
 
 import tap
 import webview  # type: ignore
+import webview.menu as wm
 import sys
+
 
 from lib.api import API
 from lib.application import Application
@@ -31,6 +33,7 @@ class Arguments(tap.Tap):
     port: str = "8080"
     transform_api_target: Path | None = None
     alternate_db: Path | None = None
+    db_name: str = "pyminder.sqlite3"
 
 
 def setup_logging(level=logging.DEBUG):
@@ -134,7 +137,7 @@ def main(argv):
 
     setup_logging()
 
-    app = Application(HERE, db_dir / "pyminder.sqlite3")
+    app = Application(HERE, db_dir / results.db_name)
     app.port = results.port
 
     if results.debug:
@@ -169,10 +172,31 @@ def main(argv):
 
     app.main_window = webview.create_window(**window_args)
 
-    if results.debug:
-        webview.start(debug=True)
-    else:
-        webview.start(debug=True)
+    toggle_state = True
+
+    class Toggler:
+        state: bool
+
+        def __init__(self):
+            self.state = True
+
+        def __call__(self):
+            self.state = not self.state
+            return "compact" if self.state else "full"
+
+    toggler = Toggler()
+
+    # noinspection PyTypeChecker
+    menu_items = [
+        wm.MenuAction(
+            "Toggle Size",
+            lambda: app.window_toggle_resize("main", toggler()),
+        ),
+        wm.MenuAction("Reports", lambda: app.open_window(api, "reports")),
+        wm.MenuAction("Manage database", lambda: app.open_window(api, "manage")),
+    ]
+
+    webview.start(debug=results.debug, menu=menu_items)
 
     print("Finished, trying to shutdown")
 

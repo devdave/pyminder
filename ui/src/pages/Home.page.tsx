@@ -208,31 +208,32 @@ export function HomePage() {
         <>
             <Stack
                 align='center'
-                gap='4'
+                justify='flex-start'
+                gap='2'
             >
-                <span>
-                    <Button
-                        variant='default'
-                        size='xs'
-                        onClick={toggle_window}
-                    >
-                        Toggle Size
-                    </Button>
-                    <Button
-                        variant='default'
-                        size='xs'
-                        onClick={() => open_window('reports')}
-                    >
-                        Reports
-                    </Button>
-                    <Button
-                        variant='default'
-                        size='xs'
-                        onClick={() => open_window('manage')}
-                    >
-                        Manage
-                    </Button>
-                </span>
+                {/*<span>*/}
+                {/*    <Button*/}
+                {/*        variant='default'*/}
+                {/*        size='xs'*/}
+                {/*        onClick={toggle_window}*/}
+                {/*    >*/}
+                {/*        Toggle Size*/}
+                {/*    </Button>*/}
+                {/*    <Button*/}
+                {/*        variant='default'*/}
+                {/*        size='xs'*/}
+                {/*        onClick={() => open_window('reports')}*/}
+                {/*    >*/}
+                {/*        Reports*/}
+                {/*    </Button>*/}
+                {/*    <Button*/}
+                {/*        variant='default'*/}
+                {/*        size='xs'*/}
+                {/*        onClick={() => open_window('manage')}*/}
+                {/*    >*/}
+                {/*        Manage*/}
+                {/*    </Button>*/}
+                {/*</span>*/}
                 <MainTimer
                     enabled={!!selectedTaskID}
                     time={currentTime}
@@ -243,7 +244,6 @@ export function HomePage() {
                     currentlyRunning={isRunning}
                     currentlyPaused={isPaused}
                 />
-
                 <div>
                     <SelectCreatable
                         data={clientData || []}

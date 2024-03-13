@@ -55,7 +55,10 @@ export const MainTimer: React.FC<MainTimerProps> = ({
     }
 
     return (
-        <Stack>
+        <Stack
+            justify='flex-start'
+            gap='0'
+        >
             <Center className={classes.timer}>
                 <span className={classes.hours}>{time.hour.toString().padStart(2, '0')}</span>
                 <span>:</span>

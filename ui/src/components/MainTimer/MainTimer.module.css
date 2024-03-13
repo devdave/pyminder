@@ -1,4 +1,7 @@
 
 .timer *{
     font-size: 3em;
+    height: 1.4em;
+    margin: 0px;
+    margin-top: -15px;
 }
