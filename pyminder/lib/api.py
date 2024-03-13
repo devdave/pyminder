@@ -473,7 +473,7 @@ class API:
 
                 df = pd.read_sql_query(sql=stmt, con=self.__app.engine)
 
-                report = TimeReport(clients={}, **to_frame(df))
+                report = TimeReport(clients={}, **to_frame("report", "report", df))
 
                 for client, client_data in df.groupby("client_name"):
                     cname = str(client)
@@ -483,7 +483,7 @@ class API:
                     for project, project_data in client_data.groupby("project_name"):
                         pname = str(project)
                         report["clients"][cname]["projects"][pname] = ProjectTime(
-                            dates={}, **to_frame(cname, "project", project_data)
+                            dates={}, **to_frame(pname, "project", project_data)
                         )
 
                         for dtwhen, date_data in project_data.groupby("date_when"):
@@ -499,7 +499,6 @@ class API:
                                     my_date
                                 ]["tasks"].append(
                                     TaskTimeCard(
-                                        name=my_task,
                                         entries=task_data["entries"].sum(),
                                         **to_frame(my_task, "task", task_data),
                                     )
