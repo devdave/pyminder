@@ -231,7 +231,7 @@ class API:
                 record.to_dict() for record in models.Event.GetByTask(session, task_id)
             ]
 
-    def event_active_by_task_id(self, task_id: Identifier) -> Event:
+    def event_active_by_task_id(self, task_id: Identifier) -> T.List[Event]:
         with self.__app.get_db() as session:
             return [
                 record.to_dict()
@@ -424,7 +424,6 @@ class API:
         return self.__app.window_toggle_resize(win_name, size)
 
     def report_generate(self, payload: ReportPayload) -> TimeReport:
-        start_date = payload.get("start_date", None)
         end_date = payload.get("end_date", None)
         client_id = payload.get("client_id", None)
         project_id = payload.get("project_id", None)
@@ -435,13 +434,14 @@ class API:
         with self.__app.get_db() as session:
             with self.__app.get_db() as session:
                 start_date = (
-                    DT.datetime.strptime(start_date, "%Y-%m-%d").date()
-                    if start_date is not None
+                    DT.datetime.strptime(payload.get("start_date"), "%Y-%m-%d").date()
+                    if payload.get("start_date", None) is not None
+                    and isinstance(payload.get("start_date", None), str)
                     else None
                 )
                 end_date = (
                     DT.datetime.strptime(end_date, "%Y-%m-%d").date()
-                    if end_date is not None
+                    if end_date is not None and isinstance(end_date, str)
                     else None
                 )  # type: DT.date
                 stmt = models.Queries.BreakdownByConditionsStmt(
@@ -469,7 +469,7 @@ class API:
                         decimal=total_dec,
                     )
 
-                df = pd.read_sql(sql=stmt, con=self.__app.engine)
+                df = pd.read_sql_query(sql=stmt, con=self.__app.engine)
 
                 report = TimeReport(clients={}, **to_frame(df))
 
