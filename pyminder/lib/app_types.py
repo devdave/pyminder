@@ -93,10 +93,11 @@ class ReportTimeValues(T.TypedDict):
     seconds: float
     total_seconds: float
     decimal: float
+    name: str
+    category: str
 
 
 class TaskTimeCard(ReportTimeValues):
-    name: str
     entries: int
 
 

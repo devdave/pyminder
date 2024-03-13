@@ -456,12 +456,14 @@ class API:
                 def to_dec(hours, minutes, seconds):
                     return hours + (minutes / 60) + (seconds / 3600)
 
-                def to_frame(subframe) -> ReportTimeValues:
+                def to_frame(name, category, subframe) -> ReportTimeValues:
                     total_seconds = subframe["seconds"].sum()
                     total_time = mk_time(total_seconds)
                     total_dec = to_dec(*total_time)
 
                     return dict(
+                        name=name,
+                        category=category,
                         hours=total_time[0],
                         minutes=total_time[1],
                         seconds=total_time[2],
@@ -476,19 +478,21 @@ class API:
                 for client, client_data in df.groupby("client_name"):
                     cname = str(client)
                     report["clients"][cname] = ClientTime(
-                        projects={}, **to_frame(client_data)
+                        projects={}, **to_frame(cname, "client", client_data)
                     )
                     for project, project_data in client_data.groupby("project_name"):
                         pname = str(project)
                         report["clients"][cname]["projects"][pname] = ProjectTime(
-                            dates={}, **to_frame(project_data)
+                            dates={}, **to_frame(cname, "project", project_data)
                         )
 
                         for dtwhen, date_data in project_data.groupby("date_when"):
                             my_date = str(dtwhen)
                             report["clients"][cname]["projects"][pname]["dates"][
                                 my_date
-                            ] = DateTimeCard(tasks=[], **to_frame(date_data))
+                            ] = DateTimeCard(
+                                tasks=[], **to_frame(my_date, "date", date_data)
+                            )
                             for task, task_data in date_data.groupby("task_name"):
                                 my_task = str(task)
                                 report["clients"][cname]["projects"][pname]["dates"][
@@ -497,7 +501,7 @@ class API:
                                     TaskTimeCard(
                                         name=my_task,
                                         entries=task_data["entries"].sum(),
-                                        **to_frame(task_data),
+                                        **to_frame(my_task, "task", task_data),
                                     )
                                 )
 
@@ -533,7 +537,7 @@ class API:
 
             print()
 
-            print("Detailed breakdown:")
+            print("Client & project breakdown:")
             for cname, client in report["clients"].items():
                 perc = client["total_seconds"] / report["total_seconds"]
                 print(
@@ -555,7 +559,7 @@ class API:
                     )
 
             print()
-            print("Details:")
+            print("Daily details:")
 
             for cname, client in report["clients"].items():
                 print("Client: ", cname)
