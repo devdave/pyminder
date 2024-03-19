@@ -51,7 +51,7 @@ class API:
 
     def client_create(self, name: str) -> Client:
         with self.__app.get_db() as session:
-            record = models.Client(name=name)
+            record = models.Client(name=name, is_active=True)
             session.add(record)
             session.commit()
             return record.to_dict()
@@ -92,7 +92,7 @@ class API:
 
     def project_create(self, client_id: Identifier, name: str) -> Project:
         with self.__app.get_db() as session:
-            record = models.Project(name=name, client_id=client_id)
+            record = models.Project(name=name, is_active=True, client_id=client_id)
             session.add(record)
             session.commit()
             return record.to_dict()
@@ -212,6 +212,7 @@ class API:
                 task_id=task_id,
                 details=details,
                 notes=notes,
+                is_active=True,
             )
             session.add(record)
             session.commit()
