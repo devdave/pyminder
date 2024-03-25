@@ -1,11 +1,10 @@
-import { Route, Routes, Link, Outlet } from 'react-router-dom'
+import { Link, Outlet } from 'react-router-dom'
 
 import { useAppContext } from '@src/App.context'
-import { useState } from 'react'
-import { Button, Text, LoadingOverlay, Table } from '@mantine/core'
-import { Client } from '@src/types'
-import { ClientsPage } from '@src/pages/manage/Clients.page'
-import { ProjectsPage } from '@src/pages/manage/Projects.page'
+
+import { Button, Text, LoadingOverlay, Box } from '@mantine/core'
+
+import { DataTable } from 'mantine-datatable'
 
 export const ManagePage = () => {
     const { clientBroker } = useAppContext()
@@ -23,36 +22,53 @@ export const ManagePage = () => {
     return (
         <>
             <Text>Clients</Text>
-            <Table>
-                <Table.Thead>
-                    <Table.Tr>
-                        <Table.Th>Name</Table.Th>
-                        <Table.Th>Enabled</Table.Th>
-                        <Table.Th>View Projects</Table.Th>
-                        <Table.Th>Edit</Table.Th>
-                        <Table.Th>Delete</Table.Th>
-                    </Table.Tr>
-                </Table.Thead>
-                <Table.Tbody>
-                    {allClients.map((client: Client) => (
-                        <Table.Tr key={client.id}>
-                            <Table.Td>{client.name}</Table.Td>
-                            <Table.Td>{client.is_active ? 'True' : 'False'}</Table.Td>
-                            <Table.Td>
-                                <Link to={`client/${client.id}/projects`}>
-                                    View {client.projects_count || 0}
-                                </Link>
-                            </Table.Td>
-                            <Table.Td>
-                                <Button>Edit</Button>
-                            </Table.Td>
-                            <Table.Td>
-                                <Button>Delete</Button>
-                            </Table.Td>
-                        </Table.Tr>
-                    ))}
-                </Table.Tbody>
-            </Table>
+            <DataTable
+                borderRadius='sm'
+                withColumnBorders
+                withTableBorder
+                striped
+                highlightOnHover
+                records={allClients}
+                columns={[
+                    {
+                        accessor: 'id',
+                        title: '#',
+                        textAlign: 'right'
+                    },
+                    {
+                        accessor: 'name'
+                    },
+                    {
+                        accessor: 'is_active',
+                        title: 'Enabled',
+                        render: ({ is_active }) => (
+                            <Box
+                                fw={700}
+                                c={is_active ? 'green' : 'red'}
+                            >
+                                {is_active ? 'True' : 'False'}
+                            </Box>
+                        )
+                    },
+                    {
+                        title: 'View projects',
+                        accessor: 'count',
+                        render: ({ id, projects_count }) => (
+                            <Link to={`client/${id}/projects`}>View {projects_count || 0}</Link>
+                        )
+                    },
+                    {
+                        title: 'Actions',
+                        accessor: 'id',
+                        render: ({ id }) => (
+                            <>
+                                <Button>Edit {id}</Button>
+                                <Button>Delete {id}</Button>
+                            </>
+                        )
+                    }
+                ]}
+            />
             <Outlet />
         </>
     )

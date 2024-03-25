@@ -31,6 +31,7 @@ from .app_types import (
     TaskTimeCard,
     ReportTimeValues,
     ReportPayload,
+    Shortcut,
 )
 from .log_helper import getLogger
 from .timer import Timer
@@ -398,10 +399,12 @@ class API:
         if self.__timer is not None:
             self.__timer.stop()
             time.sleep(1)
-            if self.__timer and self.__timer.running is False:
-                del self.__timer
-                self.__timer = None
-                return True
+            while self.__timer.running:
+                time.sleep(1)
+
+            del self.__timer
+            self.__timer = None
+            return True
 
         return False
 
@@ -417,6 +420,18 @@ class API:
             self.__timer.resume()
             return True
         return False
+
+    def shortcut_get_all(self) -> list[Shortcut]:
+        with self.__app.get_db() as session:
+            return [record.to_dict() for record in models.Shortcut.GetAll(session)]
+
+    def shortcut_add(
+        self, client_id: Identifier, project_id: Identifier, task_id: Identifier
+    ) -> None:
+        with self.__app.get_db() as session:
+            record = models.Shortcut.GetOrCreate(
+                client_id=client_id, project_id=project_id, task_id=task_id
+            )
 
     def open_window(self, win_name: str) -> bool:
         return self.__app.open_window(self, win_name)

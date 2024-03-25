@@ -98,8 +98,8 @@ class APIBridge {
     events_by_task_id(task_id:Identifier):Promise<Event[]> {
         return this.boundary.remote('events_by_task_id', task_id) as Promise<Event[]>
     }
-    event_active_by_task_id(task_id:Identifier):Promise<Event> {
-        return this.boundary.remote('event_active_by_task_id', task_id) as Promise<Event>
+    event_active_by_task_id(task_id:Identifier): Promise<void> {
+        return this.boundary.remote('event_active_by_task_id', task_id) as Promise<void>
     }
     event_get(event_id:Identifier): Promise<void> {
         return this.boundary.remote('event_get', event_id) as Promise<void>
@@ -131,6 +131,9 @@ class APIBridge {
     entry_destroy(entry_id:Identifier):Promise<boolean> {
         return this.boundary.remote('entry_destroy', entry_id) as Promise<boolean>
     }
+    entry_create(event_id:Identifier, started_on:string, stopped_on:string, seconds:number | undefined = undefined):Promise<Entry> {
+        return this.boundary.remote('entry_create', event_id, started_on, stopped_on, seconds) as Promise<Entry>
+    }
     timer_check():Promise<boolean> {
         return this.boundary.remote('timer_check') as Promise<boolean>
     }
@@ -151,6 +154,12 @@ class APIBridge {
     }
     timer_resume():Promise<boolean> {
         return this.boundary.remote('timer_resume') as Promise<boolean>
+    }
+    shortcut_get_all():Promise<Shortcut[]> {
+        return this.boundary.remote('shortcut_get_all') as Promise<Shortcut[]>
+    }
+    shortcut_add(client_id:Identifier, project_id:Identifier, task_id:Identifier): Promise<void> {
+        return this.boundary.remote('shortcut_add', client_id, project_id, task_id) as Promise<void>
     }
     open_window(win_name:string):Promise<boolean> {
         return this.boundary.remote('open_window', win_name) as Promise<boolean>
