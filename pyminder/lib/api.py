@@ -429,81 +429,79 @@ class API:
         client_id = payload.get("client_id", None)
         project_id = payload.get("project_id", None)
         task_id = payload.get("task_id", None)
-        wage = payload.get("wage", None)
         sort_order = payload.get("sort_order", ["cname", "dtwhen", "pname", "tname"])
 
         with self.__app.get_db() as session:
-            with self.__app.get_db() as session:
-                start_date = (
-                    DT.datetime.strptime(payload.get("start_date"), "%Y-%m-%d").date()
-                    if payload.get("start_date", None) is not None
-                    and isinstance(payload.get("start_date", None), str)
-                    else None
+            start_date = (
+                DT.datetime.strptime(payload.get("start_date"), "%Y-%m-%d").date()
+                if payload.get("start_date", None) is not None
+                and isinstance(payload.get("start_date", None), str)
+                else None
+            )
+            end_date = (
+                DT.datetime.strptime(end_date, "%Y-%m-%d").date()
+                if end_date is not None and isinstance(end_date, str)
+                else None
+            )  # type: DT.date
+            stmt = models.Queries.BreakdownByConditionsStmt(
+                client_id, project_id, task_id, start_date, end_date
+            )
+
+            def mk_time(my_seconds):
+                hours, rem = divmod(my_seconds, 3600)
+                minutes, seconds = divmod(rem, 60)
+                return int(hours), int(minutes), int(seconds)
+
+            def to_dec(hours, minutes, seconds):
+                return hours + (minutes / 60) + (seconds / 3600)
+
+            def to_frame(name, category, subframe) -> ReportTimeValues:
+                total_seconds = subframe["seconds"].sum()
+                total_time = mk_time(total_seconds)
+                total_dec = to_dec(*total_time)
+
+                return dict(
+                    name=name,
+                    category=category,
+                    hours=total_time[0],
+                    minutes=total_time[1],
+                    seconds=total_time[2],
+                    total_seconds=total_seconds,
+                    decimal=total_dec,
                 )
-                end_date = (
-                    DT.datetime.strptime(end_date, "%Y-%m-%d").date()
-                    if end_date is not None and isinstance(end_date, str)
-                    else None
-                )  # type: DT.date
-                stmt = models.Queries.BreakdownByConditionsStmt(
-                    client_id, project_id, task_id, start_date, end_date
+
+            df = pd.read_sql_query(sql=stmt, con=self.__app.engine)
+
+            report = TimeReport(clients={}, **to_frame("report", "report", df))
+
+            for client, client_data in df.groupby("client_name"):
+                cname = str(client)
+                report["clients"][cname] = ClientTime(
+                    projects={}, **to_frame(cname, "client", client_data)
                 )
-
-                def mk_time(my_seconds):
-                    hours, rem = divmod(my_seconds, 3600)
-                    minutes, seconds = divmod(rem, 60)
-                    return int(hours), int(minutes), int(seconds)
-
-                def to_dec(hours, minutes, seconds):
-                    return hours + (minutes / 60) + (seconds / 3600)
-
-                def to_frame(name, category, subframe) -> ReportTimeValues:
-                    total_seconds = subframe["seconds"].sum()
-                    total_time = mk_time(total_seconds)
-                    total_dec = to_dec(*total_time)
-
-                    return dict(
-                        name=name,
-                        category=category,
-                        hours=total_time[0],
-                        minutes=total_time[1],
-                        seconds=total_time[2],
-                        total_seconds=total_seconds,
-                        decimal=total_dec,
+                for project, project_data in client_data.groupby("project_name"):
+                    pname = str(project)
+                    report["clients"][cname]["projects"][pname] = ProjectTime(
+                        dates={}, **to_frame(pname, "project", project_data)
                     )
 
-                df = pd.read_sql_query(sql=stmt, con=self.__app.engine)
-
-                report = TimeReport(clients={}, **to_frame("report", "report", df))
-
-                for client, client_data in df.groupby("client_name"):
-                    cname = str(client)
-                    report["clients"][cname] = ClientTime(
-                        projects={}, **to_frame(cname, "client", client_data)
-                    )
-                    for project, project_data in client_data.groupby("project_name"):
-                        pname = str(project)
-                        report["clients"][cname]["projects"][pname] = ProjectTime(
-                            dates={}, **to_frame(pname, "project", project_data)
+                    for dtwhen, date_data in project_data.groupby("date_when"):
+                        my_date = str(dtwhen)
+                        report["clients"][cname]["projects"][pname]["dates"][
+                            my_date
+                        ] = DateTimeCard(
+                            tasks=[], **to_frame(my_date, "date", date_data)
                         )
-
-                        for dtwhen, date_data in project_data.groupby("date_when"):
-                            my_date = str(dtwhen)
+                        for task, task_data in date_data.groupby("task_name"):
+                            my_task = str(task)
                             report["clients"][cname]["projects"][pname]["dates"][
                                 my_date
-                            ] = DateTimeCard(
-                                tasks=[], **to_frame(my_date, "date", date_data)
-                            )
-                            for task, task_data in date_data.groupby("task_name"):
-                                my_task = str(task)
-                                report["clients"][cname]["projects"][pname]["dates"][
-                                    my_date
-                                ]["tasks"].append(
-                                    TaskTimeCard(
-                                        entries=task_data["entries"].sum(),
-                                        **to_frame(my_task, "task", task_data),
-                                    )
+                            ]["tasks"].append(
+                                TaskTimeCard(
+                                    entries=task_data["entries"].sum(),
+                                    **to_frame(my_task, "task", task_data),
                                 )
+                            )
 
         return report
 
