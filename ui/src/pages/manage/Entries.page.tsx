@@ -1,13 +1,47 @@
-import { Breadcrumbs, LoadingOverlay, Table, Title } from '@mantine/core'
+import { Box, Breadcrumbs, Button, Group, LoadingOverlay, NumberInput, Title } from '@mantine/core'
 import { useAppContext } from '@src/App.context'
 import { useEffect, useState } from 'react'
 import { Entry, Identifier } from '@src/types'
 import { Link, useParams } from 'react-router-dom'
+import { DataTable } from 'mantine-datatable'
+import { DateTimePicker } from '@mantine/dates'
+import { useForm } from '@mantine/form'
+
+interface FormProps {
+    started_on: Date
+    stopped_on: Date
+    seconds: number | string
+}
 
 export const EntriesPage = () => {
     const { api, clientBroker, projectBroker, taskBroker, eventBroker } = useAppContext()
     const { client_id, project_id, task_id, event_id } = useParams()
     const [entries, setEntries] = useState<Entry[]>([])
+
+    const form = useForm<FormProps>({
+        initialValues: {
+            started_on: new Date(),
+            stopped_on: new Date(),
+            seconds: 0
+        }
+    })
+
+    const handleFormSubmit = (values: FormProps) => {
+        console.log('handleFormSubmit', values)
+        api.entry_create(
+            event_id as Identifier,
+            values.started_on.toISOString(),
+            values.stopped_on.toISOString(),
+            values.seconds as number
+        ).then((record) => {
+            if (record) {
+                form.reset()
+            } else {
+                // eslint-disable-next-line no-alert
+                window.alert(`Failed to create entry: ${JSON.stringify(values)}`)
+            }
+        })
+    }
 
     const { data: taskData, isLoading: taskIsLoading } = taskBroker.fetch(
         project_id as Identifier,
@@ -65,28 +99,61 @@ export const EntriesPage = () => {
             >
                 {items}
             </Breadcrumbs>
-            <Table>
-                <Table.Thead>
-                    <Table.Tr>
-                        <Table.Th>Started on</Table.Th>
-                        <Table.Th>Stopped on</Table.Th>
-                        <Table.Th>Reason</Table.Th>
-                        <Table.Th>Seconds</Table.Th>
-                        <Table.Th>Edit</Table.Th>
-                        <Table.Th>Delete</Table.Th>
-                    </Table.Tr>
-                </Table.Thead>
-                <Table.Tbody>
-                    {entries.map((entry: Entry) => (
-                        <Table.Tr key={entry.id}>
-                            <Table.Td>{entry.started_on}</Table.Td>
-                            <Table.Td>{entry.stopped_on}</Table.Td>
-                            <Table.Td>{entry.stop_reason}</Table.Td>
-                            <Table.Td>{entry.seconds}</Table.Td>
-                        </Table.Tr>
-                    ))}
-                </Table.Tbody>
-            </Table>
+            <DataTable
+                borderRadius='sm'
+                withColumnBorders
+                withTableBorder
+                striped
+                highlightOnHover
+                records={entries}
+                columns={[
+                    {
+                        accessor: 'id',
+                        title: '#'
+                    },
+                    {
+                        accessor: 'started_on',
+                        title: 'Started @'
+                    },
+                    {
+                        accessor: 'stopped_on',
+                        title: 'Stopped @'
+                    },
+                    {
+                        accessor: 'stop_reason',
+                        title: 'Reason stopped'
+                    },
+                    {
+                        accessor: 'seconds'
+                    }
+                ]}
+            />
+            <Title>New event</Title>
+            <Box
+                mx='auto'
+                w='60vw'
+            >
+                <form onSubmit={form.onSubmit(handleFormSubmit)}>
+                    <Group>
+                        <DateTimePicker
+                            label='Start time'
+                            required
+                            {...form.getInputProps('started_on')}
+                        />
+                        <DateTimePicker
+                            label='Stop time'
+                            required
+                            {...form.getInputProps('stopped_on')}
+                        />
+                    </Group>
+                    <NumberInput
+                        placeholder='Optional seconds'
+                        label='Seconds(optional)'
+                        {...form.getInputProps('seconds')}
+                    />
+                    <Button type='submit'>Submit</Button>
+                </form>
+            </Box>
         </>
     )
 }
