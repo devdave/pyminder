@@ -150,6 +150,10 @@ class Client(Base):
         "Project", back_populates="client", cascade="all, delete-orphan"
     )
 
+    shortcuts: Mapped[list["Shortcut"]] = relationship(
+        "Shortcut", back_populates="client", cascade="all, delete-orphan"
+    )
+
     def to_dict(self) -> app_types.Client:
         return app_types.Client(
             name=self.name,
@@ -207,6 +211,10 @@ class Project(Base):
 
     tasks: Mapped[list["Task"]] = relationship(
         "Task", back_populates="project", cascade="all, delete-orphan"
+    )
+
+    shortcuts: Mapped[list["Shortcut"]] = relationship(
+        "Shortcut", back_populates="project", cascade="all, delete-orphan"
     )
 
     __table_args__ = (
@@ -287,6 +295,10 @@ class Task(Base):
     status: Mapped[TaskStatus] = mapped_column(default=TaskStatus.ACTIVE)
     events: Mapped[list["Event"]] = relationship(
         "Event", back_populates="task", cascade="all, delete-orphan"
+    )
+
+    shortcuts: Mapped[list["Shortcut"]] = relationship(
+        "Shortcut", back_populates="task", cascade="all, delete-orphan"
     )
 
     __table_args__ = (
@@ -386,8 +398,8 @@ class Event(Base):
 
     def create_entry(
         self,
-        start: DT.date,
-        end: DT.date,
+        start: DT.datetime,
+        end: DT.datetime,
         seconds: int,
         stop_reason=StopReasons.PLACEHOLDER,
     ) -> "Entry":
@@ -398,7 +410,7 @@ class Event(Base):
             seconds=seconds,
             stop_reason=stop_reason,
         )
-        self.entries.append(entry)
+        # self.entries.append(entry)
         return entry
 
     def get_time(self):
@@ -503,7 +515,7 @@ class Entry(Base):
 
     def to_dict(self) -> app_types.Entry:
         return app_types.Entry(
-            id=self.event_id,
+            id=self.id,
             event_id=self.event_id,
             started_on=self.started_on.strftime("%Y-%m-%d %H:%M:%S"),
             stopped_on=self.stopped_on.strftime("%Y-%m-%d %H:%M:%S"),
@@ -526,6 +538,75 @@ class Entry(Base):
     def GetByEvent(cls, session, event_id) -> T.Sequence["Entry"]:
         stmt = select(cls).where(cls.event_id == event_id)
         return session.execute(stmt).scalars().all()
+
+
+class Shortcut(Base):
+    client: Mapped[Client] = relationship("Client", back_populates="shortcuts")
+    client_id: Mapped[int] = mapped_column(ForeignKey("Client.id"))
+
+    project: Mapped[Project] = relationship("Project", back_populates="shortcuts")
+    project_id: Mapped[int] = mapped_column(ForeignKey("Project.id"))
+
+    task: Mapped[Task] = relationship("Task", back_populates="shortcuts")
+    task_id: Mapped[int] = mapped_column(ForeignKey("Task.id"))
+
+    @hybrid_property
+    def name(self) -> str:
+        return f"{self.client.name}->{self.project.name}->{self.task.name}"
+
+    @classmethod
+    def GetAll(cls, session: Session) -> T.Sequence[T.Self]:
+        return (
+            session.execute(select(cls).order_by(cls.created_on.desc())).scalars().all()
+        )
+
+    @classmethod
+    def GetOrCreate(
+        cls,
+        session,
+        client_id: Identifier,
+        project_id: Identifier,
+        task_id: Identifier,
+    ) -> T.Sequence[T.Self]:
+        record = session.execute(
+            select(cls)
+            .where(cls.client_id == client_id)
+            .where(cls.project_id == project_id)
+            .where(cls.task_id == task_id)
+        ).one_or_none()
+
+        if record is not None:
+            return record
+
+        record = cls.Create(session, client_id, project_id, task_id)
+
+    @classmethod
+    def Create(
+        cls,
+        session: Session,
+        client_id: Identifier,
+        project_id: Identifier,
+        task_id: Identifier,
+    ) -> None:
+        shortcut = Shortcut(client_id=client_id, project_id=project_id, task_id=task_id)
+        session.add(shortcut)
+        session.commit()
+        shortcuts = cls.GetAll(session)
+        if len(shortcuts) > 5:
+            done = shortcuts[0]
+            session.delete(done)
+            session.commit()
+
+    def to_dict(self) -> app_types.Shortcut:
+        return app_types.Shortcut(
+            id=self.id,
+            compound_name=f"{self.client.name}->{self.project.name}->{self.task.name}",
+            client_id=self.client_id,
+            project_id=self.project_id,
+            task_id=self.task_id,
+            created_on=self.created_on,
+            updated_on=self.updated_on,
+        )
 
 
 class Queries:

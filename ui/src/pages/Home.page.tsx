@@ -1,5 +1,5 @@
 import { MainTimer } from '@src/components/MainTimer/MainTimer'
-import { Button, Stack } from '@mantine/core'
+import { Button, Select, Stack } from '@mantine/core'
 import { useAppContext } from '@src/App.context'
 import { useEffect, useState } from 'react'
 import { Client, Identifier, Project, Task, TimeObj, TimeOwner } from '@src/types'
@@ -8,8 +8,6 @@ import { useToggle } from '@mantine/hooks'
 
 export function HomePage() {
     const { api, switchboard, clientBroker, projectBroker, taskBroker } = useAppContext()
-
-    const [windowSize, toggleWindowSize] = useToggle(['compact', 'regular'])
 
     const [currentTime, setCurrentTime] = useState<TimeObj>({ hour: 0, minute: 0, second: 0 })
     const [isPaused, setIsPaused] = useState(false)
@@ -201,6 +199,7 @@ export function HomePage() {
             justify='flex-start'
             gap='2'
         >
+            <Select placeholder='Select shortcut' />
             <MainTimer
                 enabled={!!selectedTaskID}
                 time={currentTime}
