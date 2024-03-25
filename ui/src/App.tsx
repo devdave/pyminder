@@ -1,4 +1,6 @@
 import '@mantine/core/styles.css'
+import '@mantine/dates/styles.css'
+import 'mantine-datatable/styles.layer.css'
 
 import { MantineProvider, Text } from '@mantine/core'
 import { Router } from '@src/Router'
