@@ -10,7 +10,12 @@ class BraceMessage(object):
         self.kwargs = kwargs
 
     def __str__(self):
-        return str(self.fmt).format(*self.args, **self.kwargs)
+        if self.kwargs and self.args:
+            return str(self.fmt).format(*self.args, **self.kwargs)
+        elif self.kwargs:
+            return str(self.fmt).format(**self.kwargs)
+        else:
+            return str(self.fmt)
 
 
 class StyleAdapter(logging.LoggerAdapter):
