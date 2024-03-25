@@ -44,35 +44,38 @@ class Timer(threading.Thread):
             session.commit()
             self.entry_id = record.id
 
+    def update_record(
+        self,
+        stopped_on: DT.datetime,
+        seconds: float,
+        reason=models.StopReasons.PLACEHOLDER,
+    ):
+        with self.app.get_db() as session:
+            entry = models.Entry.Fetch_by_id(
+                session, self.entry_id
+            )  # type: models.Entry
+            entry.stop_reason = reason
+            entry.seconds = seconds
+            entry.stopped_on = stopped_on
+            session.add(entry)
+            session.commit()
+
     def pause(self):
         self.paused = True
-        with self.app.get_db() as session:
-            record = models.Entry.Fetch_by_id(session, self.entry_id)
-            record.stop_reason = models.StopReasons.PAUSED
-            record.stopped_on = DT.datetime.now()
-            record.seconds = self.accumulated_seconds
-            session.add(record)
-            session.commit()
+        self.update_record(
+            DT.datetime.now(), self.accumulated_seconds, models.StopReasons.PLACEHOLDER
+        )
 
     def resume(self):
         self.paused = False
         self.now = time.time()
-        with self.app.get_db() as session:
-            record = models.Entry.Fetch_by_id(session, self.entry_id)
-            record.stop_reason = models.StopReasons.PLACEHOLDER
-            record.seconds = self.accumulated_seconds
-            session.add(record)
-            session.commit()
+        # self.update_record(DT.datetime.now(), self.accumulated_seconds, models.StopReasons.PLACEHOLDER)
 
     def stop(self):
         self.status = False
-        with self.app.get_db() as session:
-            record = models.Entry.Fetch_by_id(session, self.entry_id)
-            record.status = models.StopReasons.FINISHED
-            record.stopped_on = DT.datetime.now()
-            record.seconds = self.accumulated_seconds
-            session.add(record)
-            session.commit()
+        self.update_record(
+            DT.datetime.now(), self.accumulated_seconds, models.StopReasons.FINISHED
+        )
 
     def run(self):
         LOG.debug("Timer started: {}", self.identifier)
@@ -89,12 +92,11 @@ class Timer(threading.Thread):
                 hours, remainder = divmod(self.accumulated_seconds, 3600)
                 minutes, seconds = divmod(remainder, 60)
                 if seconds % 10 == 0:
-                    with self.app.get_db() as session:
-                        record = models.Entry.Fetch_by_id(session, self.entry_id)
-                        record.status = models.StopReasons.PLACEHOLDER
-                        record.seconds = self.accumulated_seconds
-                        session.add(record)
-                        session.commit()
+                    self.update_record(
+                        DT.datetime.now(),
+                        self.accumulated_seconds,
+                        models.StopReasons.PLACEHOLDER,
+                    )
 
                 self.app.tell(self.identifier, hours, minutes, math.floor(seconds))
 
