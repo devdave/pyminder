@@ -346,6 +346,36 @@ class API:
             session.commit()
             return retval
 
+    def entry_create(
+        self,
+        event_id: Identifier,
+        started_on: str,
+        stopped_on: str,
+        seconds: int | None = None,
+    ) -> Entry:
+        with self.__app.get_db() as session:
+            LOG.debug(f"creating entry {started_on=} to {stopped_on=} with {seconds=}")
+            started_on = datetime.datetime.fromisoformat(started_on)
+            stopped_on = datetime.datetime.fromisoformat(stopped_on)
+
+            if seconds is not None and seconds > 0:
+                record = models.Entry(
+                    started_on=started_on, stopped_on=stopped_on, seconds=seconds
+                )
+            else:
+                diff = stopped_on - started_on
+                record = models.Entry(
+                    event_id=event_id,
+                    started_on=started_on,
+                    stopped_on=stopped_on,
+                    seconds=int(diff.total_seconds()),
+                    stop_reason=app_types.StopReasons.FINISHED,
+                )
+
+            session.add(record)
+            session.commit()
+            return record.to_dict()
+
     def timer_check(self) -> bool:
         return self.__timer is not None and self.__timer.running is True
 
