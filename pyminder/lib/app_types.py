@@ -20,40 +20,39 @@ class StopReasons(enum.Enum):
     FINISHED = "finished"
 
 
-class Client(T.TypedDict):
-    id: int
+class Base(T.TypedDict):
+    id: Identifier
+    is_active: bool
+    created_on: DT.datetime
+    updated_on: DT.datetime
+
+
+class Client(Base):
     name: str
     projects_count: int
-    is_active: bool
     time: T.Optional["TimeObject"]
 
 
-class Project(T.TypedDict):
-    id: int
+class Project(Base):
     name: str
     client_id: int
-    is_active: bool
     tasks_count: int
     time: T.Optional["TimeObject"]
 
 
-class Task(T.TypedDict):
-    id: int
+class Task(Base):
     name: str
     project_id: int
     status: str
-    is_active: bool
     events_count: int
     time: T.Optional["TimeObject"]
 
 
-class Event(T.TypedDict):
-    id: int
+class Event(Base):
     task_id: int
     start_date: str
     details: str
     notes: str
-    is_active: bool
     time: T.Optional["TimeObject"]
     entries: list["Entry"]
 
@@ -63,13 +62,19 @@ class EventDate(T.TypedDict):
     start_date: str | DT.datetime
 
 
-class Entry(T.TypedDict):
-    id: int
+class Entry(Base):
     event_id: int
     started_on: str
     stopped_on: str
     seconds: int
     stop_reason: str | StopReasons
+
+
+class Shortcut(Base):
+    compound_name: list[str]
+    client_id: Identifier
+    project_id: Identifier
+    task_id: Identifier
 
 
 class TimeOwner(T.TypedDict):
@@ -125,3 +130,16 @@ class ReportPayload(T.TypedDict):
     task_id: int
     wage: int
     sort_order: list[str]
+
+
+class Timeframe:
+    seconds: float
+    child_type: str
+    children: list["Timeframe"]
+
+
+class TimeReportCard(T.TypedDict):
+    options: ReportPayload
+    seconds: float
+    child_type: str
+    children: list[Timeframe]
