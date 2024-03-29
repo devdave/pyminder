@@ -71,6 +71,7 @@ export function HomePage() {
             api.title_set('PyMinder').then()
             setIsRunning(() => false)
             setIsPaused(() => false)
+            // setCurrentTime(() => ({ hour: 0, minute: 0, second: 0 }))
         })
     }
 
@@ -162,6 +163,7 @@ export function HomePage() {
         setSelectedClientID(null)
         setSelectedProjectID(null)
         setSelectedTaskID(null)
+        setCurrentTime(() => ({ hour: 0, minute: 0, second: 0 }))
     }
 
     const addProject = (projectName: string) => {
@@ -184,6 +186,7 @@ export function HomePage() {
         api.timer_stop().then()
         setSelectedProjectID(null)
         setSelectedTaskID(null)
+        setCurrentTime(() => ({ hour: 0, minute: 0, second: 0 }))
     }
 
     const addTask = (taskName: string) => {
@@ -223,6 +226,7 @@ export function HomePage() {
             setIsPaused(false)
         }
         setSelectedTaskID(null)
+        setCurrentTime(() => ({ hour: 0, minute: 0, second: 0 }))
     }
 
     const deleteSelectedTask = async (id: Identifier, value: string) => {
