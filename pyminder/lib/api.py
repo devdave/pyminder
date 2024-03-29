@@ -50,6 +50,9 @@ class API:
     def info(self, message: str | None = None) -> None:
         LOG.info("frontend-> {}", message)
 
+    def title_set(self, new_title: str) -> None:
+        self.__app.main_window.set_title(new_title)
+
     def client_create(self, name: str) -> Client:
         with self.__app.get_db() as session:
             record = models.Client(name=name, is_active=True)
@@ -455,13 +458,19 @@ class API:
         with self.__app.get_db() as session:
             return [record.to_dict() for record in models.Shortcut.GetAll(session)]
 
+    def shortcut_get(self, shortcut_id: Identifier) -> Shortcut:
+        with self.__app.get_db() as session:
+            record = models.Shortcut.Fetch_by_id(session, shortcut_id)
+            return record.to_dict()
+
     def shortcut_add(
         self, client_id: Identifier, project_id: Identifier, task_id: Identifier
-    ) -> None:
+    ) -> Shortcut:
         with self.__app.get_db() as session:
             record = models.Shortcut.GetOrCreate(
-                client_id=client_id, project_id=project_id, task_id=task_id
+                session, client_id=client_id, project_id=project_id, task_id=task_id
             )
+            return record.to_dict()
 
     def open_window(self, win_name: str) -> bool:
         return self.__app.open_window(self, win_name)

@@ -6,6 +6,7 @@ import {
     type Event,
     type Entry,
     type TimeOwner,
+    type Shortcut,
     type StopReasons,
     type DateTimeCard,
     type ProjectTime,
@@ -28,6 +29,9 @@ class APIBridge {
 
     info(message:string | undefined = undefined): Promise<void> {
         return this.boundary.remote('info', message) as Promise<void>
+    }
+    title_set(new_title:string): Promise<void> {
+        return this.boundary.remote('title_set', new_title) as Promise<void>
     }
     client_create(name:string):Promise<Client> {
         return this.boundary.remote('client_create', name) as Promise<Client>
@@ -158,8 +162,11 @@ class APIBridge {
     shortcut_get_all():Promise<Shortcut[]> {
         return this.boundary.remote('shortcut_get_all') as Promise<Shortcut[]>
     }
-    shortcut_add(client_id:Identifier, project_id:Identifier, task_id:Identifier): Promise<void> {
-        return this.boundary.remote('shortcut_add', client_id, project_id, task_id) as Promise<void>
+    shortcut_get(shortcut_id:Identifier):Promise<Shortcut> {
+        return this.boundary.remote('shortcut_get', shortcut_id) as Promise<Shortcut>
+    }
+    shortcut_add(client_id:Identifier, project_id:Identifier, task_id:Identifier):Promise<Shortcut> {
+        return this.boundary.remote('shortcut_add', client_id, project_id, task_id) as Promise<Shortcut>
     }
     open_window(win_name:string):Promise<boolean> {
         return this.boundary.remote('open_window', win_name) as Promise<boolean>

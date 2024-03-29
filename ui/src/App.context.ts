@@ -5,6 +5,7 @@ import { clientBrokerReturns } from '@src/brokers/useClientBroker'
 import { projectBrokerReturn } from '@src/brokers/useProjectBroker'
 import { UseTaskBrokerReturns } from '@src/brokers/useTaskBroker'
 import { UseEventBrokerReturn } from '@src/brokers/useEventBroker'
+import { ShortcutBrokerFunctions } from '@src/brokers/use-shortcut-broker'
 
 export interface AppContextValue {
     api: APIBridge
@@ -13,6 +14,7 @@ export interface AppContextValue {
     projectBroker: projectBrokerReturn
     taskBroker: UseTaskBrokerReturns
     eventBroker: UseEventBrokerReturn
+    shortcutBroker: ShortcutBrokerFunctions
 }
 
 export const AppContext = createContext<AppContextValue>({} as AppContextValue)

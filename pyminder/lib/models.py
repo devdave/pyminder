@@ -14,8 +14,6 @@ from sqlalchemy import (
     UniqueConstraint,
     and_,
     delete,
-    cast,
-    Integer,
     CheckConstraint,
     true,
 )
@@ -122,7 +120,7 @@ class Base(DeclarativeBase):
             try:
                 session.add(new_instance)
                 session.commit()
-            except sqlalchemy.exc.SqlAlchemyError:  # type: ignore
+            except sqlalchemy.exc.IntegrityError:  # type: ignore
                 session.rollback()
                 return session.execute(select(cls).filter_by(**kwargs)).one()[0]
             else:
@@ -161,6 +159,8 @@ class Client(Base):
             is_active=self.is_active,
             projects_count=len(self.projects),
             time=None,
+            created_on=self.created_on.isoformat(),
+            updated_on=self.updated_on.isoformat(),
         )
 
     @classmethod
@@ -233,6 +233,8 @@ class Project(Base):
             is_active=self.is_active,
             tasks_count=len(self.tasks),
             time=None,
+            created_on=self.created_on.isoformat(),
+            updated_on=self.updated_on.isoformat(),
         )
 
     @classmethod
@@ -315,6 +317,8 @@ class Task(Base):
             is_active=self.is_active,
             events_count=len(self.events),
             time=None,
+            created_on=self.created_on.isoformat(),
+            updated_on=self.updated_on.isoformat(),
         )
 
     @classmethod
@@ -394,6 +398,8 @@ class Event(Base):
             is_active=self.is_active,
             entries=[entry.to_dict() for entry in self.entries],
             time=None,
+            created_on=self.created_on.isoformat(),
+            updated_on=self.updated_on.isoformat(),
         )
 
     def create_entry(
@@ -414,7 +420,7 @@ class Event(Base):
         return entry
 
     def get_time(self):
-        total_seconds = sum(entry.second for entry in self.entries)
+        total_seconds = sum(entry.seconds for entry in self.entries)
         hours, remainder = divmod(total_seconds, 3600)
         minutes, seconds = divmod(remainder, 60)
         return TimeObject(hours=hours, minutes=minutes, seconds=seconds)
@@ -521,6 +527,9 @@ class Entry(Base):
             stopped_on=self.stopped_on.strftime("%Y-%m-%d %H:%M:%S"),
             seconds=self.seconds,
             stop_reason=self.stop_reason.value,
+            created_on=self.created_on.isoformat(),
+            updated_on=self.updated_on.isoformat(),
+            is_active=self.is_active,
         )
 
     @hybrid_property
@@ -564,10 +573,12 @@ class Shortcut(Base):
     def GetOrCreate(
         cls,
         session,
-        client_id: Identifier,
-        project_id: Identifier,
-        task_id: Identifier,
-    ) -> T.Sequence[T.Self]:
+        client_id: Identifier = None,
+        project_id: Identifier = None,
+        task_id: Identifier = None,
+    ) -> T.Optional["Shortcut"]:
+        assert client_id and project_id and task_id
+
         record = session.execute(
             select(cls)
             .where(cls.client_id == client_id)
@@ -576,9 +587,19 @@ class Shortcut(Base):
         ).one_or_none()
 
         if record is not None:
-            return record
+            return record[0]
 
-        record = cls.Create(session, client_id, project_id, task_id)
+        try:
+            record = cls.Create(session, client_id, project_id, task_id)
+        except sqlalchemy.exc.IntegrityError:
+            return session.execute(
+                select(cls)
+                .where(cls.client_id == client_id)
+                .where(cls.project_id == project_id)
+                .where(cls.task_id == task_id)
+            ).one_or_none()
+
+        return record
 
     @classmethod
     def Create(
@@ -587,7 +608,7 @@ class Shortcut(Base):
         client_id: Identifier,
         project_id: Identifier,
         task_id: Identifier,
-    ) -> None:
+    ) -> "Shortcut":
         shortcut = Shortcut(client_id=client_id, project_id=project_id, task_id=task_id)
         session.add(shortcut)
         session.commit()
@@ -597,15 +618,18 @@ class Shortcut(Base):
             session.delete(done)
             session.commit()
 
+        return shortcut
+
     def to_dict(self) -> app_types.Shortcut:
         return app_types.Shortcut(
             id=self.id,
-            compound_name=f"{self.client.name}->{self.project.name}->{self.task.name}",
+            compound_name=[self.client.name, self.project.name, self.task.name],
             client_id=self.client_id,
             project_id=self.project_id,
             task_id=self.task_id,
-            created_on=self.created_on,
-            updated_on=self.updated_on,
+            is_active=self.is_active,
+            created_on=self.created_on.isoformat(),
+            updated_on=self.updated_on.isoformat(),
         )
 
 

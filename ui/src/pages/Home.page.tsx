@@ -1,13 +1,12 @@
 import { MainTimer } from '@src/components/MainTimer/MainTimer'
-import { Button, Select, Stack } from '@mantine/core'
+import { Select, Stack } from '@mantine/core'
 import { useAppContext } from '@src/App.context'
 import { useEffect, useState } from 'react'
 import { Client, Identifier, Project, Task, TimeObj, TimeOwner } from '@src/types'
 import { SelectCreatable } from '@src/components/SmartSelect/SmartSelectV2'
-import { useToggle } from '@mantine/hooks'
 
 export function HomePage() {
-    const { api, switchboard, clientBroker, projectBroker, taskBroker } = useAppContext()
+    const { api, switchboard, clientBroker, projectBroker, taskBroker, shortcutBroker } = useAppContext()
 
     const [currentTime, setCurrentTime] = useState<TimeObj>({ hour: 0, minute: 0, second: 0 })
     const [isPaused, setIsPaused] = useState(false)
@@ -16,6 +15,9 @@ export function HomePage() {
     const [selectedClientID, setSelectedClientID] = useState<Identifier | null>(null)
     const [selectedProjectID, setSelectedProjectID] = useState<Identifier | null>(null)
     const [selectedTaskID, setSelectedTaskID] = useState<Identifier | null>(null)
+    const [selectedShortcutID, setSelectedShortcutID] = useState<Identifier | null>(null)
+
+    const { data: shortcuts } = shortcutBroker.fetchAll()
 
     const { data: clients, isLoading: clientsAreLoading } = clientBroker.getAll()
 
@@ -66,6 +68,9 @@ export function HomePage() {
                 .invalidateProject(selectedClientID as Identifier, selectedProjectID as Identifier)
                 .then()
             taskBroker.invalidateTask(selectedProjectID as Identifier, selectedTaskID as Identifier).then()
+            api.title_set('PyMinder').then()
+            setIsRunning(() => false)
+            setIsPaused(() => false)
         })
     }
 
@@ -74,9 +79,17 @@ export function HomePage() {
         // @ts-ignore
         const id = switchboard.generate(timeChanged)
         await api.timer_start(id, selectedTaskID as Identifier)
+        await api.title_set(`PyMinder->${selectedTask?.name}`)
+        await shortcutBroker.create(
+            selectedClientID as Identifier,
+            selectedProjectID as Identifier,
+            selectedTaskID as Identifier
+        )
+        await shortcutBroker.invalidate()
     }
 
     useEffect(() => {
+        console.log('use effected')
         api.timer_check().then((status) => {
             if (status) {
                 api.timer_owner().then((owner: TimeOwner | undefined) => {
@@ -95,6 +108,15 @@ export function HomePage() {
                 })
             }
         })
+
+        // api.shortcut_get_all().then((records) => {
+        //     setShortOptions(() =>
+        //         records.map((record) => ({
+        //             value: record.id.toString(),
+        //             label: record.compound_name.join('->') as string
+        //         }))
+        //     )
+        // })
     }, [api, switchboard])
 
     if (
@@ -107,6 +129,13 @@ export function HomePage() {
     ) {
         return 'Loading data'
     }
+
+    const shortOptions = shortcuts
+        ? shortcuts.map((record) => ({
+              value: record.id.toString(),
+              label: record.compound_name.join('->') as string
+          }))
+        : []
 
     const clientData = clients?.map((element: Client) => ({ id: element.id, value: element.name }))
 
@@ -172,6 +201,21 @@ export function HomePage() {
         }
     }
 
+    const handleShortcutChange = async (shortcutId: string) => {
+        timeStop()
+        setIsRunning(false)
+        setIsRunning(() => false)
+        setIsPaused(false)
+        setIsPaused(() => false)
+        setSelectedShortcutID(shortcutId)
+        const selectedShortcut = await api.shortcut_get(shortcutId)
+        if (selectedShortcut) {
+            setSelectedClientID(selectedShortcut.client_id)
+            setSelectedProjectID(selectedShortcut.project_id)
+            setSelectedTaskID(selectedShortcut.task_id)
+        }
+    }
+
     const clearTask = () => {
         api.timer_stop().then()
         if (isRunning || isPaused) {
@@ -199,7 +243,17 @@ export function HomePage() {
             justify='flex-start'
             gap='2'
         >
-            <Select placeholder='Select shortcut' />
+            <Select
+                placeholder='Select shortcut'
+                data={shortOptions}
+                value={selectedShortcutID ? selectedShortcutID.toString() : null}
+                onChange={(value, option) => {
+                    console.log(option)
+                    if (value) {
+                        handleShortcutChange(value)
+                    }
+                }}
+            />
             <MainTimer
                 enabled={!!selectedTaskID}
                 time={currentTime}

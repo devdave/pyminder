@@ -75,6 +75,14 @@ export interface Entry {
     seconds: number
 }
 
+export interface Shortcut {
+    id: string | number
+    compound_name: string[]
+    client_id: Identifier
+    project_id: Identifier
+    task_id: Identifier
+}
+
 export interface TimeOwner {
     client: Client
     project: Project

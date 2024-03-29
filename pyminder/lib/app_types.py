@@ -23,8 +23,8 @@ class StopReasons(enum.Enum):
 class Base(T.TypedDict):
     id: Identifier
     is_active: bool
-    created_on: DT.datetime
-    updated_on: DT.datetime
+    created_on: str
+    updated_on: str
 
 
 class Client(Base):

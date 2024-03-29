@@ -13,6 +13,8 @@ import { useClientBroker } from '@src/brokers/useClientBroker'
 import { useProjectBroker } from '@src/brokers/useProjectBroker'
 import { useTaskBroker } from '@src/brokers/useTaskBroker'
 import { useEventBroker } from '@src/brokers/useEventBroker'
+import { DatesProvider } from '@mantine/dates'
+import { useShortcutBroker } from '@src/brokers/use-shortcut-broker'
 
 const boundary = new Boundary()
 const switchboard = new Switchboard()
@@ -31,6 +33,7 @@ export default function App() {
     const projectBroker = useProjectBroker(api)
     const taskBroker = useTaskBroker(api)
     const eventBroker = useEventBroker(api)
+    const shortcutBroker = useShortcutBroker(api)
 
     const appContextValue = useMemo<AppContextValue>(
         () => ({
@@ -39,9 +42,10 @@ export default function App() {
             clientBroker,
             projectBroker,
             taskBroker,
-            eventBroker
+            eventBroker,
+            shortcutBroker
         }),
-        [api, clientBroker, eventBroker, projectBroker, taskBroker]
+        [api, clientBroker, eventBroker, projectBroker, taskBroker, shortcutBroker]
     )
 
     useEffect(() => {
@@ -63,9 +67,11 @@ export default function App() {
 
     return (
         <MantineProvider defaultColorScheme='dark'>
-            <AppContext.Provider value={appContextValue}>
-                <Router />
-            </AppContext.Provider>
+            <DatesProvider settings={{ timezone: 'MST' }}>
+                <AppContext.Provider value={appContextValue}>
+                    <Router />
+                </AppContext.Provider>
+            </DatesProvider>
         </MantineProvider>
     )
 }
