@@ -118,7 +118,10 @@ export const SelectCreatable: React.FC<SelectCreatableProps> = ({
             </Combobox.Target>
 
             <Combobox.Dropdown>
-                <Combobox.Options>
+                <Combobox.Options
+                    mah={180}
+                    style={{ overflowY: 'auto' }}
+                >
                     {options}
                     {!exactOptionMatch && search.trim().length > 0 && (
                         <Combobox.Option value='$create'>+ Create {search}</Combobox.Option>
