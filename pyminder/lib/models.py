@@ -566,7 +566,7 @@ class Shortcut(Base):
     @classmethod
     def GetAll(cls, session: Session) -> T.Sequence[T.Self]:
         return (
-            session.execute(select(cls).order_by(cls.created_on.desc())).scalars().all()
+            session.execute(select(cls).order_by(cls.created_on.asc())).scalars().all()
         )
 
     @classmethod
