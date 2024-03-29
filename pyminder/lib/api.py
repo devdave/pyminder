@@ -47,9 +47,13 @@ class API:
         self.__app = app
         self.__timer = None
 
-    def info(self, message: str | None = None) -> None:
-        # LOG.info("frontend-> {}", message)
-        pass
+    def info(self, message: str) -> None:
+        if isinstance(message, str) and message.strip():
+            LOG.info("frontend-> {}", message)
+        elif message:
+            LOG.info(
+                f"frontend-> {message}",
+            )
 
     def title_set(self, new_title: str) -> None:
         self.__app.main_window.set_title(new_title)
