@@ -573,9 +573,9 @@ class Shortcut(Base):
     def GetOrCreate(
         cls,
         session,
-        client_id: Identifier = None,
-        project_id: Identifier = None,
-        task_id: Identifier = None,
+        client_id: Identifier | None = None,
+        project_id: Identifier | None = None,
+        task_id: Identifier | None = None,
     ) -> T.Optional["Shortcut"]:
         assert client_id and project_id and task_id
 
@@ -591,6 +591,7 @@ class Shortcut(Base):
 
         try:
             record = cls.Create(session, client_id, project_id, task_id)
+            session.add(record)
         except sqlalchemy.exc.IntegrityError:
             return session.execute(
                 select(cls)
@@ -613,7 +614,7 @@ class Shortcut(Base):
         session.add(shortcut)
         session.commit()
         shortcuts = cls.GetAll(session)
-        if len(shortcuts) > 5:
+        if len(shortcuts) > 4:
             done = shortcuts[0]
             session.delete(done)
             session.commit()
