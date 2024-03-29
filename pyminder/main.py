@@ -178,7 +178,7 @@ def main(argv):
         state: bool
 
         def __init__(self):
-            self.state = True
+            self.state = False
 
         def __call__(self):
             self.state = not self.state
