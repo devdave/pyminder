@@ -17,6 +17,9 @@ flask = "^3.0.2"
 pandas-stubs = "^2.2.0.240218"
 
 
+[tool.poetry.group.dev.dependencies]
+pylint = "^3.1.0"
+
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
