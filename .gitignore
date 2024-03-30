@@ -1,6 +1,7 @@
-/events.sqlite3
+events.sqlite3
 .idea/dataSources.xml
 *.sqlite3
 build/*
 dist/*
 __pycache__
+pyminder.exe.spec
