@@ -1,3 +1,9 @@
+"""
+A python class to typescript adapter/bridge transformer.
+
+The transformed product is a helper class for use with PyWebview and the js_api bridge.
+
+"""
 import ast
 import pathlib
 import typing as T
@@ -6,7 +12,7 @@ from itertools import zip_longest
 import jinja2
 import tap
 
-template_body = """
+TEMPLATE_BODY = """
 interface Boundary {
     remote: (method_name:string, ...args:unknown[])=> Promise<unknown>
 }
@@ -37,11 +43,19 @@ export default APIBridge
 
 
 class FuncArg(T.NamedTuple):
+    """
+    A simple function name and its annotated type tuple
+    """
+
     name: T.Optional[ast.expr]
     annotype: T.Optional[str] = None
 
 
 class FuncDef(T.NamedTuple):
+    """
+    A transformed function definition
+    """
+
     args: T.List[FuncArg]
     doc: T.Optional[str]
     compiled: T.List[str]
@@ -49,7 +63,16 @@ class FuncDef(T.NamedTuple):
     return_type: T.Optional[str]
 
 
+ClassDigest = T.NewType("ClassDigest", tuple[str, dict[str, FuncDef]])
+
+
 def python2ts_types(typename: str | None) -> str:
+    """
+    Given a python type name, return its typescript equivalent.
+
+    :param typename:
+    :return:
+    """
     match typename:
         case "str":
             return "string"
@@ -73,8 +96,16 @@ def process_source(
     src_file: pathlib.Path | str,
     dest: pathlib.Path | None = None,
     header: pathlib.Path | None = None,
-    product_template: str = template_body,
+    product_template: str = TEMPLATE_BODY,
 ) -> str:
+    """
+
+    :param src_file: misnomer as this can be a pathlike object or a string
+    :param dest: where to write the transformed product file
+    :param header: a header file to append to the transformed product file
+    :param product_template: the template for generating the transformed product file
+    :return:
+    """
     if isinstance(src_file, pathlib.Path):
         module = ast.parse(src_file.read_text(), src_file.name, mode="exec")
     else:
@@ -101,6 +132,12 @@ def process_source(
 
 
 def process_class(class_elm: ast.ClassDef) -> tuple[str, dict[str, FuncDef]]:
+    """
+    Given a class definition, return a manifect of parsed method definitions.
+
+    :param class_elm:
+    :return:
+    """
     cls_name = class_elm.name
     functions = {}
     for element in class_elm.body:
@@ -114,6 +151,11 @@ def process_class(class_elm: ast.ClassDef) -> tuple[str, dict[str, FuncDef]]:
 
 
 def py2ts_value(something):
+    """
+    Convert a python value to a transformed value.
+    :param something:
+    :return:
+    """
     if isinstance(something, str):
         return f"'{something}'"
     elif isinstance(something, bool):
@@ -123,6 +165,12 @@ def py2ts_value(something):
 
 
 def sanitize_defaults(def_type):
+    """
+    Check for falsey def type and convert it to be TS undefined
+
+    :param def_type:
+    :return:
+    """
     if def_type in [None, "None", "'None'"]:
         return "undefined"
 
@@ -130,10 +178,16 @@ def sanitize_defaults(def_type):
 
 
 def process_function(func_elm: ast.FunctionDef) -> FuncDef:
+    """
+    Given a function definition, return a transformed function definition.
+
+    :param func_elm:
+    :return:
+    """
     # unit tests... we don't need no stinking unit tests!
     # beeline for the args
 
-    arg_map = dict()
+    arg_map = {}
 
     definition = FuncDef(
         process_args(func_elm.args.args),
@@ -143,7 +197,7 @@ def process_function(func_elm: ast.FunctionDef) -> FuncDef:
         process_returntype(func_elm),
     )
 
-    mapped_defaults = dict()
+    mapped_defaults = {}
 
     # does the function have default arguments?
     if len(func_elm.args.defaults) > 0:
@@ -151,7 +205,7 @@ def process_function(func_elm: ast.FunctionDef) -> FuncDef:
         names.reverse()
         try:
             defaults = []
-            for idx, elm in enumerate(func_elm.args.defaults):
+            for _, elm in enumerate(func_elm.args.defaults):
                 val = py2ts_value(process_default_argument(elm))
                 defaults.append(val)
 
@@ -171,9 +225,7 @@ def process_function(func_elm: ast.FunctionDef) -> FuncDef:
 
         definition.arg_names.append(arg.arg)
 
-        func_name = func_elm.name
         func_type = "any"
-        arg_def = func_elm
 
         if isinstance(arg.annotation, ast.Name):
             func_type = python2ts_types(arg.annotation.id)
@@ -235,10 +287,16 @@ def process_function(func_elm: ast.FunctionDef) -> FuncDef:
     return definition
 
 
-def process_default_argument(defaultOp):
+def process_default_argument(default_op):
+    """
+    Looks for complex default arguments like `list[int,bool]` and converts them to be `number|boolean` if possible
+
+    :param default_op:
+    :return:
+    """
     if (
         isinstance(
-            defaultOp,
+            default_op,
             (
                 ast.unaryop,
                 ast.UnaryOp,
@@ -247,32 +305,38 @@ def process_default_argument(defaultOp):
         is True
     ):
         # Very likely a negative number
-        if isinstance(defaultOp.op, ast.USub):
-            return f"-{defaultOp.operand.value}"
-        elif isinstance(defaultOp.op, ast.UAdd):
-            return f"+{defaultOp.operand.value}"
-    elif isinstance(defaultOp, ast.Constant):
-        if defaultOp.value is True:
+        if isinstance(default_op.op, ast.USub):
+            return f"-{default_op.operand.value}"
+        elif isinstance(default_op.op, ast.UAdd):
+            return f"+{default_op.operand.value}"
+    elif isinstance(default_op, ast.Constant):
+        if default_op.value is True:
             return "true"
-        elif defaultOp.value is False:
+        elif default_op.value is False:
             return "false"
         else:
-            return str(defaultOp.value)
+            return str(default_op.value)
 
-    elif hasattr(defaultOp, "val"):
-        return defaultOp.val
-    elif isinstance(defaultOp, ast.BinOp) and isinstance(defaultOp.op, ast.BitOr):
-        left = python2ts_types(defaultOp.left.id)
-        right = python2ts_types(defaultOp.right.value)
+    elif hasattr(default_op, "val"):
+        return default_op.val
+    elif isinstance(default_op, ast.BinOp) and isinstance(default_op.op, ast.BitOr):
+        left = python2ts_types(default_op.left.id)
+        right = python2ts_types(default_op.right.value)
         return f"{left} | {right}"
 
     else:
         raise ValueError(
-            f"I don't know how to handle {type(defaultOp)} {vars(defaultOp)}"
+            f"I don't know how to handle {type(default_op)} {vars(default_op)}"
         )
 
 
 def process_args(func_args: T.List[ast.arg]):
+    """
+    Takes a function arguments, excludes 'self', and converts the rest to TS definitions
+
+    :param func_args:
+    :return:
+    """
     return {
         arg_elm.arg: FuncArg(arg_elm.annotation)
         for arg_elm in func_args
@@ -281,6 +345,13 @@ def process_args(func_args: T.List[ast.arg]):
 
 
 def process_returntype(func_elm: ast.FunctionDef):
+    """
+    Converts a function return type to be TS safe.
+
+
+    :param func_elm:
+    :return:
+    """
     # match func_elm.returns:
     #     case ast.Subscript():
     #         print("Subscript")
@@ -299,9 +370,9 @@ def process_returntype(func_elm: ast.FunctionDef):
             and func_elm.returns.value.id == "list"
         ):
             name_elm = func_elm.returns.value  # type: ast.Name
-            slice = func_elm.returns.slice  # type: ast.Name
-            if name_elm.id == "list" and isinstance(slice, ast.Name):
-                return f"{slice.id}[]"
+            return_slice = func_elm.returns.slice  # type: ast.Name
+            if name_elm.id == "list" and isinstance(return_slice, ast.Name):
+                return f"{return_slice.id}[]"
         elif isinstance(func_elm.returns.value, ast.Attribute):
             if func_elm.returns.value.attr == "Optional":
                 if isinstance(func_elm.returns.slice, ast.Attribute):
@@ -318,16 +389,33 @@ def process_returntype(func_elm: ast.FunctionDef):
     return None
 
 
-def process_dict_returntype(return_elm: ast.Subscript):
+def process_dict_returntype(return_elm: ast.Subscript) -> str:
+    """
+    Given a return type like `dict[str, int]`, converts it into a TS object definition like
+        {[key:str]:int}
+
+    :param return_elm:
+    :return:
+    """
     if len(return_elm.slice.dims) == 2:
         left_side = python2ts_types(return_elm.slice.dims[0].id)
         right_side = python2ts_types(return_elm.slice.dims[1].id)
         return f"{{[key:{left_side}]: {right_side}}}"
-    else:
-        raise ValueError("I don't know how to handle dict[] {return_elm.slice.dims}")
+
+    raise ValueError("I don't know how to handle dict[] {return_elm.slice.dims}")
 
 
-def transform(payload: tuple[str, dict[str, FuncDef]], product_template: str):
+def transform(payload: ClassDigest, product_template: str) -> str:
+    """
+
+    Converts a ClassDigest using product_template into a transformed string for use with
+        typescript
+
+    :param payload:
+    :param product_template:
+    :return:
+    """
+
     cls_name, functions = payload
 
     template = jinja2.Template(product_template, newline_sequence="\n")
@@ -353,6 +441,11 @@ class MainArgs(tap.Tap):
 
 
 def main():
+    """
+        see `--help` for more info
+
+    :return:
+    """
     args = MainArgs().parse_args()
     assert args.source.exists(), f"Cannot find source {args.source} file to process!"
 
