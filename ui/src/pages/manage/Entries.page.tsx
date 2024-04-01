@@ -1,11 +1,23 @@
-import { Box, Breadcrumbs, Button, Group, LoadingOverlay, NumberInput, Title } from '@mantine/core'
+import {
+    ActionIcon,
+    Box,
+    Breadcrumbs,
+    Button,
+    Group,
+    LoadingOverlay,
+    NumberInput,
+    Title
+} from '@mantine/core'
 import { useAppContext } from '@src/App.context'
+import { ConfirmModal } from '@src/components/Modals/ConfirmModal'
+
 import { useEffect, useState } from 'react'
 import { Entry, Identifier } from '@src/types'
 import { Link, useParams } from 'react-router-dom'
 import { DataTable } from 'mantine-datatable'
 import { DateTimePicker } from '@mantine/dates'
 import { useForm } from '@mantine/form'
+import { IconEdit, IconTrash } from '@tabler/icons-react'
 
 interface FormProps {
     started_on: Date
@@ -26,6 +38,13 @@ export const EntriesPage = () => {
         }
     })
 
+    const handleDelete = async (entryId: Identifier) => {
+        const response = await ConfirmModal('Delete', 'Are you sure you want to delete this entry?')
+        if (response) {
+            console.log('would delete', entryId)
+        }
+    }
+
     const handleFormSubmit = (values: FormProps) => {
         console.log('handleFormSubmit', values)
         api.entry_create(
@@ -36,6 +55,9 @@ export const EntriesPage = () => {
         ).then((record) => {
             if (record) {
                 form.reset()
+                api.entries_lists_by_event_id(event_id as Identifier).then((response) => {
+                    setEntries(response)
+                })
             } else {
                 // eslint-disable-next-line no-alert
                 window.alert(`Failed to create entry: ${JSON.stringify(values)}`)
@@ -125,6 +147,33 @@ export const EntriesPage = () => {
                     },
                     {
                         accessor: 'seconds'
+                    },
+                    {
+                        accessor: 'actions',
+                        title: 'Actions',
+                        render: (entry) => (
+                            <Group
+                                gap={4}
+                                justify='right'
+                                wrap='nowrap'
+                            >
+                                <ActionIcon
+                                    size='sm'
+                                    variant='subtle'
+                                    color='blue'
+                                >
+                                    <IconEdit size={16} />
+                                </ActionIcon>
+                                <ActionIcon
+                                    size='sm'
+                                    variant='subtle'
+                                    color='red'
+                                    onClick={() => handleDelete(entry.id).then()}
+                                >
+                                    <IconTrash size={16} />
+                                </ActionIcon>
+                            </Group>
+                        )
                     }
                 ]}
             />
