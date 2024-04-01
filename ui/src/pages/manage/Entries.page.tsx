@@ -18,6 +18,50 @@ import { DataTable } from 'mantine-datatable'
 import { DateTimePicker } from '@mantine/dates'
 import { useForm } from '@mantine/form'
 import { IconEdit, IconTrash } from '@tabler/icons-react'
+import { modals } from '@mantine/modals'
+
+const EditEntryModal = (entry: Entry) =>
+    new Promise((resolve) => {
+        const new_entry: Entry = { ...entry }
+        new_entry.started_on = new Date(new_entry.started_on as string)
+        new_entry.stopped_on = new Date(new_entry.stopped_on as string)
+
+        const handleStartedChanged = (evt) => {
+            new_entry.started_on = evt.currentTarget.value
+        }
+
+        const handleStoppedChanged = (evt) => {
+            new_entry.stopped_on = evt.currentTarget.value
+        }
+
+        const handleSubmit = () => {
+            modals.close('editEntryModal')
+            resolve(new_entry)
+        }
+
+        modals.open({
+            modalId: 'editEntryModal',
+            children: (
+                <>
+                    <DateTimePicker
+                        label='Started on'
+                        value={new_entry.started_on}
+                        onChange={handleStartedChanged}
+                    />
+                    <DateTimePicker
+                        label='Stopped on'
+                        value={new_entry.stopped_on}
+                        onChange={handleStoppedChanged}
+                    />
+                    <NumberInput
+                        label='seconds'
+                        value={new_entry.seconds}
+                    />
+                    <Button onClick={handleSubmit}>Submit</Button>
+                </>
+            )
+        })
+    })
 
 interface FormProps {
     started_on: Date
