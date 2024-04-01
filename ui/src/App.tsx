@@ -3,6 +3,7 @@ import '@mantine/dates/styles.css'
 import 'mantine-datatable/styles.layer.css'
 
 import { MantineProvider, Text } from '@mantine/core'
+import { ModalsProvider } from '@mantine/modals'
 import { Router } from '@src/Router'
 import Boundary, { PYWEBVIEWREADY } from '@src/library/boundary'
 import APIBridge from '@src/api'
@@ -68,9 +69,11 @@ export default function App() {
     return (
         <MantineProvider defaultColorScheme='dark'>
             <DatesProvider settings={{ timezone: 'MST' }}>
-                <AppContext.Provider value={appContextValue}>
-                    <Router />
-                </AppContext.Provider>
+                <ModalsProvider>
+                    <AppContext.Provider value={appContextValue}>
+                        <Router />
+                    </AppContext.Provider>
+                </ModalsProvider>
             </DatesProvider>
         </MantineProvider>
     )
