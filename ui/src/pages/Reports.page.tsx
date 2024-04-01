@@ -169,9 +169,10 @@ export const ReportsPage = () => {
                     value={selectedTaskOption ? selectedTaskOption.value : null}
                     onChange={handleTaskSelect}
                 />
+                <Button onClick={() => Downloader(reportData.toString(), 'report.txt')}>Download</Button>
             </Group>
+
             <pre style={{ whiteSpace: 'pre-wrap' }}>{reportData.toString()}</pre>
-            <Button onClick={() => Downloader(reportData.toString(), 'report.txt')}>Download</Button>
         </>
     )
 }
