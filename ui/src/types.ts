@@ -71,8 +71,8 @@ export interface EventDate {
 export interface Entry {
     id: Identifier
     event_id: Identifier
-    started_on: string | Date | dayjs.Dayjs
-    stopped_on: string | Date | dayjs.Dayjs
+    started_on: string | Date | null
+    stopped_on: string | Date | null
     stop_reason: string
     seconds: number
 }

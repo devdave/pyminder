@@ -20,18 +20,24 @@ import { useForm } from '@mantine/form'
 import { IconEdit, IconTrash } from '@tabler/icons-react'
 import { modals } from '@mantine/modals'
 
-const EditEntryModal = (entry: Entry) =>
-    new Promise((resolve) => {
-        const new_entry: Entry = { ...entry }
-        new_entry.started_on = new Date(new_entry.started_on as string)
-        new_entry.stopped_on = new Date(new_entry.stopped_on as string)
+const EditEntryModal = (entry: Entry) => {
+    const new_entry: Entry = { ...entry }
+    new_entry.started_on = new Date(new_entry.started_on as string)
+    new_entry.stopped_on = new Date(new_entry.stopped_on as string)
 
-        const handleStartedChanged = (evt) => {
-            new_entry.started_on = evt.currentTarget.value
+    return new Promise((resolve) => {
+        const handleStartedChanged = (new_date: Date | null) => {
+            console.log(new_entry.started_on, new_date)
+            new_entry.started_on = new_date
+            console.log(new_entry.started_on)
         }
 
-        const handleStoppedChanged = (evt) => {
-            new_entry.stopped_on = evt.currentTarget.value
+        const handleStoppedChanged = (new_date: Date | null) => {
+            new_entry.stopped_on = new_date
+        }
+
+        const handleSecondsChanged = (new_seconds: string | number) => {
+            new_entry.seconds = Number(new_seconds)
         }
 
         const handleSubmit = () => {
@@ -45,23 +51,29 @@ const EditEntryModal = (entry: Entry) =>
                 <>
                     <DateTimePicker
                         label='Started on'
+                        valueFormat='DD/MM/YYYY hh:mm:ss A'
+                        withSeconds
                         value={new_entry.started_on}
-                        onChange={handleStartedChanged}
+                        onChange={(v) => handleStartedChanged(v)}
                     />
                     <DateTimePicker
                         label='Stopped on'
+                        valueFormat='DD/MM/YYYY hh:mm:ss A'
+                        withSeconds
                         value={new_entry.stopped_on}
                         onChange={handleStoppedChanged}
                     />
                     <NumberInput
                         label='seconds'
                         value={new_entry.seconds}
+                        onChange={handleSecondsChanged}
                     />
                     <Button onClick={handleSubmit}>Submit</Button>
                 </>
             )
         })
     })
+}
 
 interface FormProps {
     started_on: Date
@@ -81,6 +93,11 @@ export const EntriesPage = () => {
             seconds: 0
         }
     })
+
+    const handleEdit = async (entry: Entry) => {
+        const new_entry = await EditEntryModal(entry)
+        console.log('new entry', new_entry)
+    }
 
     const handleDelete = async (entryId: Identifier) => {
         const response = await ConfirmModal('Delete', 'Are you sure you want to delete this entry?')
@@ -205,6 +222,7 @@ export const EntriesPage = () => {
                                     size='sm'
                                     variant='subtle'
                                     color='blue'
+                                    onClick={() => handleEdit(entry).then()}
                                 >
                                     <IconEdit size={16} />
                                 </ActionIcon>
