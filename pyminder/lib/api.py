@@ -1,8 +1,10 @@
-import decimal
+"""
+Bridge API between the frontend and the backend models & Application instance
+
+"""
 import io
-import json
+
 import typing as T
-import datetime
 import datetime as DT
 import time
 import contextlib
@@ -10,9 +12,9 @@ from decimal import Decimal
 
 import pandas as pd
 
-from . import app_types
-from .application import Application
 from . import models
+from .application import Application
+
 from .app_types import (
     Identifier,
     Client,
@@ -40,7 +42,13 @@ LOG = getLogger(__name__)
 
 
 class API:
+    """
+    Project bridge API class
+
+    """
+
     __app: Application
+    # todo relocate this to app
     __timer: T.Optional["Timer"]
 
     def __init__(self, app):
@@ -48,6 +56,12 @@ class API:
         self.__timer = None
 
     def info(self, message: str) -> None:
+        """
+        Print a message to the console.
+
+        :param message:
+        :return:
+        """
         if isinstance(message, str) and message.strip():
             LOG.info("frontend-> {}", message)
         elif message:
@@ -56,9 +70,20 @@ class API:
             )
 
     def title_set(self, new_title: str) -> None:
+        """
+        Set the application window title.
+
+        :param new_title:
+        :return:
+        """
         self.__app.main_window.set_title(new_title)
 
     def client_create(self, name: str) -> Client:
+        """
+        Create a client instance.
+        :param name:
+        :return:
+        """
         with self.__app.get_db() as session:
             record = models.Client(name=name, is_active=True)
             session.add(record)
@@ -66,14 +91,29 @@ class API:
             return record.to_dict()
 
     def clients_list(self) -> list[Client]:
+        """
+        List all clients.
+        :return:
+        """
         with self.__app.get_db() as session:
             return [record.to_dict() for record in models.Client.GetAll(session)]
 
     def client_list_active(self) -> list[Client]:
+        """
+        List all active clients.
+
+        :return:
+        """
         with self.__app.get_db() as session:
             return [record.to_dict() for record in models.Client.GetAllActive(session)]
 
     def client_get(self, client_id: Identifier) -> T.Optional[Client]:
+        """
+        Get a client instance.
+
+        :param client_id:
+        :return:
+        """
         with self.__app.get_db() as session:
             record = models.Client.Fetch_by_id(session, client_id)
             if record:
@@ -84,6 +124,12 @@ class API:
     def client_update(
         self, client_id: Identifier, client_name: str
     ) -> T.Optional[Client]:
+        """
+        Update a client record.
+        :param client_id:
+        :param client_name:
+        :return:
+        """
         with self.__app.get_db() as session:
             record = models.Client.Fetch_by_id(session, client_id)
             if record:
@@ -94,12 +140,23 @@ class API:
             return None
 
     def client_destroy(self, client_id: Identifier) -> bool:
+        """
+        Destroy a client record.
+        :param client_id:
+        :return:
+        """
         with self.__app.get_db() as session:
             models.Client.Delete_By_Id(session, client_id)
             session.commit()
             return True
 
     def project_create(self, client_id: Identifier, name: str) -> Project:
+        """
+        Create a project record.
+        :param client_id:
+        :param name:
+        :return:
+        """
         with self.__app.get_db() as session:
             record = models.Project(name=name, is_active=True, client_id=client_id)
             session.add(record)
@@ -107,6 +164,11 @@ class API:
             return record.to_dict()
 
     def projects_list_by_client_id(self, client_id: Identifier) -> list[Project]:
+        """
+        List all projects by client.
+        :param client_id:
+        :return:
+        """
         with self.__app.get_db() as session:
             return [
                 record.to_dict()
@@ -114,21 +176,35 @@ class API:
             ]
 
     def projects_list_active_by_client_id(self, client_id: Identifier) -> list[Project]:
+        """
+        List all active projects by client.
+        :param client_id:
+        :return:
+        """
         with self.__app.get_db() as session:
-            from numpy import record
-
             return [
                 record.to_dict()
                 for record in models.Project.FetchActive_by_Client(session, client_id)
             ]
 
     def project_get(self, project_id: Identifier) -> Project:
+        """
+        Get a project record.
+        :param project_id:
+        :return:
+        """
         with self.__app.get_db() as session:
             record = models.Project.Fetch_by_id(session, project_id).to_dict()
             record["time"] = models.Project.GetAllTime(session, project_id)
             return record
 
     def project_update(self, project_id: Identifier, project_name: str) -> Project:
+        """
+        Update a project record.
+        :param project_id:
+        :param project_name:
+        :return:
+        """
         with self.__app.get_db() as session:
             record = models.Project.Fetch_by_id(session, project_id)
             if record:
@@ -138,6 +214,12 @@ class API:
             return record.to_dict()
 
     def project_set_status(self, project_id: Identifier, status: bool) -> Project:
+        """
+        Set a project status.
+        :param project_id:
+        :param status:
+        :return:
+        """
         with self.__app.get_db() as session:
             record = models.Project.Fetch_by_id(session, project_id)
             record.is_active = status
@@ -145,12 +227,23 @@ class API:
             return record.to_dict()
 
     def project_destroy(self, project_id: Identifier) -> bool:
+        """
+        Destroy a project record.
+        :param project_id:
+        :return:
+        """
         with self.__app.get_db() as session:
             retval = models.Project.Delete_By_Id(session, project_id)
             session.commit()
             return retval
 
     def task_create(self, project_id: Identifier, name: str) -> Task:
+        """
+        Create a task record.
+        :param project_id:
+        :param name:
+        :return:
+        """
         with self.__app.get_db() as session:
             record = models.Task(name=name, project_id=project_id)
             session.add(record)
@@ -158,6 +251,11 @@ class API:
             return record.to_dict()
 
     def tasks_lists_by_project_id(self, project_id: Identifier) -> list[Task]:
+        """
+        List all tasks by project.
+        :param project_id:
+        :return:
+        """
         with self.__app.get_db() as session:
             return [
                 record.to_dict()
@@ -165,15 +263,23 @@ class API:
             ]
 
     def tasks_list_active_by_project_id(self, project_id: Identifier) -> list[Task]:
+        """
+        List all active tasks by project.
+        :param project_id:
+        :return:
+        """
         with self.__app.get_db() as session:
-            from numpy import record
-
             return [
                 record.to_dict()
                 for record in models.Task.GetActiveByProject(session, project_id)
             ]
 
     def task_get(self, task_id: Identifier) -> Task:
+        """
+        Get a task record.
+        :param task_id:
+        :return:
+        """
         with self.__app.get_db() as session:
             record = models.Task.Fetch_by_id(session, task_id).to_dict()
             record["time"] = models.Task.GetAllTime(session, task_id)
@@ -182,6 +288,13 @@ class API:
     def task_update(
         self, task_id: Identifier, name: str | None = None, status: str | None = None
     ) -> T.Optional[Task]:
+        """
+        Update a task record.
+        :param task_id:
+        :param name:
+        :param status:
+        :return:
+        """
         with self.__app.get_db() as session:
             record = models.Task.Fetch_by_id(session, task_id)
             if record:
@@ -210,12 +323,12 @@ class API:
     def event_create(
         self,
         task_id: Identifier,
-        start_date: datetime.date | None = None,
+        start_date: DT.datetime.date | None = None,
         details: str | None = None,
         notes: str | None = None,
     ) -> Event:
         with self.__app.get_db() as session:
-            my_date = start_date or datetime.date.today()
+            my_date = start_date or DT.date.today()
             record = models.Event(
                 start_date=my_date,
                 task_id=task_id,
@@ -228,10 +341,10 @@ class API:
             return record.to_dict()
 
     def events_get_or_create_by_date(
-        self, task_id: Identifier, start_date: datetime.date | None = None
+        self, task_id: Identifier, start_date: DT.datetime.date | None = None
     ) -> list[Event]:
         with self.__app.get_db() as session:
-            my_date = start_date or datetime.date.today()
+            my_date = start_date or DT.date.today()
             record = models.Event.GetOrCreateByDate(session, task_id, my_date)
             return record.to_dict()
 
@@ -264,13 +377,13 @@ class API:
             record = models.Event.GetByDate(session, task_id, event_date)
             if record is not None:
                 return record.to_dict()
-            else:
-                return None
+
+            return None
 
     def event_list_dates_by_project_id(self, task_id: Identifier) -> list[EventDate]:
         with self.__app.get_db() as session:
             return [
-                dict(event_id=record.id, start_date=record.start_date)
+                {"event_id": record.id, "start_date": record.start_date}
                 for record in models.Event.GetAllEventDatesByTask(session, task_id)
             ]
 
@@ -298,8 +411,8 @@ class API:
     def event_add_entry(
         self,
         event_id: Identifier,
-        start_dt: datetime.datetime,
-        end_dt: datetime.datetime,
+        start_dt: DT.datetime,
+        end_dt: DT.datetime,
         seconds: int,
         reason: str,
     ) -> Entry:
@@ -329,10 +442,10 @@ class API:
     def entry_update(
         self,
         entry_id: Identifier,
-        start_dt: datetime.datetime | None = None,
-        end_dt: datetime.datetime | None = None,
+        start_dt: DT.datetime | None = None,
+        end_dt: DT.datetime | None = None,
         seconds: int | None = None,
-        reason: app_types.StopReasons | None = None,
+        reason: StopReasons | None = None,
     ) -> Entry:
         with self.__app.get_db() as session:
             record = models.Entry.Fetch_by_id(session, entry_id)
@@ -364,8 +477,8 @@ class API:
     ) -> Entry:
         with self.__app.get_db() as session:
             LOG.debug(f"creating entry {started_on=} to {stopped_on=} with {seconds=}")
-            started_on = datetime.datetime.fromisoformat(started_on)
-            stopped_on = datetime.datetime.fromisoformat(stopped_on)
+            started_on = DT.datetime.fromisoformat(started_on)
+            stopped_on = DT.datetime.fromisoformat(stopped_on)
 
             if seconds is not None and seconds > 0:
                 record = models.Entry(
@@ -378,7 +491,7 @@ class API:
                     started_on=started_on,
                     stopped_on=stopped_on,
                     seconds=int(diff.total_seconds()),
-                    stop_reason=app_types.StopReasons.FINISHED,
+                    stop_reason=StopReasons.FINISHED,
                 )
 
             session.add(record)
@@ -488,9 +601,9 @@ class API:
         client_id = payload.get("client_id", None)
         project_id = payload.get("project_id", None)
         task_id = payload.get("task_id", None)
-        sort_order = payload.get("sort_order", ["cname", "dtwhen", "pname", "tname"])
+        # sort_order = payload.get("sort_order", ["cname", "dtwhen", "pname", "tname"])
 
-        with self.__app.get_db() as session:
+        with self.__app.get_db():
             start_date = (
                 DT.datetime.strptime(payload.get("start_date"), "%Y-%m-%d").date()
                 if payload.get("start_date", None) is not None
@@ -519,15 +632,15 @@ class API:
                 total_time = mk_time(total_seconds)
                 total_dec = to_dec(*total_time)
 
-                return dict(
-                    name=name,
-                    category=category,
-                    hours=total_time[0],
-                    minutes=total_time[1],
-                    seconds=total_time[2],
-                    total_seconds=total_seconds,
-                    decimal=total_dec,
-                )
+                return {
+                    "name": name,
+                    "category": category,
+                    "hours": total_time[0],
+                    "minutes": total_time[1],
+                    "seconds": total_time[2],
+                    "total_seconds": total_seconds,
+                    "decimal": total_dec,
+                }
 
             df = pd.read_sql_query(sql=stmt, con=self.__app.engine)
 

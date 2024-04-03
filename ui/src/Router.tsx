@@ -7,7 +7,9 @@ import { ManagePage } from '@src/pages/manage/Manage.page'
 import { ProjectsPage } from '@src/pages/manage/Projects.page'
 import { TasksPage } from '@src/pages/manage/Tasks.page'
 import { EventsPage } from '@src/pages/manage/Events.page'
-import { EntriesPage } from '@src/pages/manage/Entries.page'
+import { MainPage as EntriesMainPage } from '@src/pages/manage/entries/Main.page'
+import { ListPage as EntriesListPage } from '@src/pages/manage/entries/List.page'
+import { CreatePage as CreateEntryPage } from '@src/pages/manage/entries/Create.page'
 import { HomePage } from './pages/Home.page'
 
 const AppRoutes = () => {
@@ -42,8 +44,17 @@ const AppRoutes = () => {
             />
             <Route
                 path='/manage/client/:client_id/projects/:project_id/tasks/:task_id/events/:event_id/entries'
-                element={<EntriesPage />}
-            />
+                element={<EntriesMainPage />}
+            >
+                <Route
+                    path=''
+                    element={<EntriesListPage />}
+                />
+                <Route
+                    path='create'
+                    element={<CreateEntryPage />}
+                />
+            </Route>
             <Route
                 path='*'
                 element={<Page404 />}
