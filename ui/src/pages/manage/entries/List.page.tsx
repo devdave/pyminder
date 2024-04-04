@@ -4,7 +4,7 @@ import { ConfirmModal } from '@src/components/Modals/ConfirmModal'
 
 import { useEffect, useState } from 'react'
 import { Entry, Identifier } from '@src/types'
-import { useParams } from 'react-router-dom'
+import { useNavigate, useParams } from 'react-router-dom'
 import { DataTable } from 'mantine-datatable'
 
 import { IconEdit, IconTrash } from '@tabler/icons-react'
@@ -14,8 +14,10 @@ export const ListPage = () => {
     const { event_id } = useParams()
     const [entries, setEntries] = useState<Entry[]>([])
 
+    const navigate = useNavigate()
+
     const handleEdit = async (entry: Entry) => {
-        console.log('new entry', entry)
+        navigate(`update/${entry.id}`)
     }
 
     const handleDelete = async (entryId: Identifier) => {
