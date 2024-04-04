@@ -77,6 +77,12 @@ export interface Entry {
     seconds: number
 }
 
+export interface EntryUpdate {
+    started_on: string | Date | null | undefined
+    stopped_on: string | Date | null | undefined
+    seconds: number | string | undefined
+}
+
 export interface Shortcut {
     id: string | number
     compound_name: string[]
