@@ -337,7 +337,7 @@ class API:
     def event_create(
         self,
         task_id: Identifier,
-        start_date: DT.datetime.date | None = None,
+        start_date: DT.date | None = None,
         details: str | None = None,
         notes: str | None = None,
     ) -> Event:
