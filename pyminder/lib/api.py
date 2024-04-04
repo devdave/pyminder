@@ -518,7 +518,7 @@ class API:
                 entry.to_dict() for entry in models.Entry.GetByEvent(session, event_id)
             ]
 
-    def entry_get(self, entry_id: Identifier) -> Entry | None:
+    def entry_get(self, entry_id: Identifier) -> Entry:
         """
         Get an entry record.
 
@@ -529,7 +529,8 @@ class API:
             record = models.Entry.Fetch_by_id(session, entry_id)
             if record:
                 return record.to_dict()
-            return None
+
+        return None
 
     def entry_update(
         self,

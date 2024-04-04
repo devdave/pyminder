@@ -24,7 +24,12 @@ class APIBridge {
         this.boundary = boundary
     }
 {% for func_name, func_def in functions|items() -%}
-{%if func_def.doc %}/* {{func_def.doc}} */{% endif%}
+{%if func_def.doc %}
+
+/*
+{{func_def.doc}}
+*/
+{% endif -%}
     {{ func_name }}({{func_def.compiled|join(', ')}}){%if func_def.return_type %}:Promise<{{func_def.return_type}}>{% else %}: Promise<void>{% endif %} {
         {% if func_def.arg_names|length >= 2 -%}
         return this.boundary.remote('{{ func_name }}', {{func_def.arg_names|join(', ')}}) as {%if func_def.return_type %}Promise<{{func_def.return_type}}>{%else%}Promise<void>{% endif %}
