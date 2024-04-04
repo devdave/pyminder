@@ -13,7 +13,7 @@ interface FormProps {
     seconds: number | string
 }
 
-export const CreatePage = () => {
+export const UpdatePage = () => {
     const { event_id, entry_id } = useParams()
     const { api, entryBroker } = useAppContext()
     const navigate = useNavigate()
