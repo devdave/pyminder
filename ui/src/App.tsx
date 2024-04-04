@@ -16,6 +16,7 @@ import { useTaskBroker } from '@src/brokers/useTaskBroker'
 import { useEventBroker } from '@src/brokers/useEventBroker'
 import { DatesProvider } from '@mantine/dates'
 import { useShortcutBroker } from '@src/brokers/use-shortcut-broker'
+import { useEntryBroker } from '@src/brokers/use-entry-broker'
 
 const boundary = new Boundary()
 const switchboard = new Switchboard()
@@ -35,6 +36,7 @@ export default function App() {
     const taskBroker = useTaskBroker(api)
     const eventBroker = useEventBroker(api)
     const shortcutBroker = useShortcutBroker(api)
+    const entryBroker = useEntryBroker(api)
 
     const appContextValue = useMemo<AppContextValue>(
         () => ({
@@ -44,7 +46,8 @@ export default function App() {
             projectBroker,
             taskBroker,
             eventBroker,
-            shortcutBroker
+            shortcutBroker,
+            entryBroker
         }),
         [api, clientBroker, eventBroker, projectBroker, taskBroker, shortcutBroker]
     )
