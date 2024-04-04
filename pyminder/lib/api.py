@@ -24,6 +24,7 @@ from .app_types import (
     EventDate,
     StopReasons,
     Entry,
+    EntryUpdate,
     TaskStatus,
     TimeOwner,
     TimeReport,
@@ -532,14 +533,7 @@ class API:
 
         return None
 
-    def entry_update(
-        self,
-        entry_id: Identifier,
-        start_dt: DT.datetime | None = None,
-        end_dt: DT.datetime | None = None,
-        seconds: int | None = None,
-        reason: StopReasons | None = None,
-    ) -> Entry:
+    def entry_update(self, entry_id: Identifier, changeset: EntryUpdate) -> Entry:
         """
         Update an entry record.
         @TODO refactor so its a changeset and not a bunch of arguments
@@ -554,14 +548,9 @@ class API:
 
         with self.__app.get_db() as session:
             record = models.Entry.Fetch_by_id(session, entry_id)
-            if start_dt is not None:
-                record.started_on = start_dt
-            if end_dt is not None:
-                record.started_on = end_dt
-            if seconds is not None:
-                record.seconds = seconds
-            if reason is not None:
-                record.stop_reason = reason
+            record.started_on = changeset["started_on"]
+            record.stopped_on = changeset["stopped_on"]
+            record.seconds = changeset["seconds"]
 
             session.add(record)
             session.commit()
