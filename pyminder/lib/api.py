@@ -309,12 +309,25 @@ class API:
             return None
 
     def task_destroy(self, task_id: Identifier) -> bool:
+        """
+        Destroy given task record by its id
+        :param task_id:
+        :return:
+        """
         with self.__app.get_db() as session:
             models.Task.Delete_By_Id(session, task_id)
             session.commit()
             return True
 
     def task_set_status(self, task_id: Identifier, status: bool) -> bool:
+        """
+        Set a task status to hide it from the select/dropdown list.
+
+        Even if deactivated, the time will still be counted.
+        :param task_id:
+        :param status:
+        :return:
+        """
         with self.__app.get_db() as session:
             status = models.Task.Update_Status(session, task_id, status)
             session.commit()
@@ -327,6 +340,15 @@ class API:
         details: str | None = None,
         notes: str | None = None,
     ) -> Event:
+        """
+        Create an event record.
+
+        :param task_id:
+        :param start_date:
+        :param details:
+        :param notes:
+        :return:
+        """
         with self.__app.get_db() as session:
             my_date = start_date or DT.date.today()
             record = models.Event(
@@ -343,18 +365,34 @@ class API:
     def events_get_or_create_by_date(
         self, task_id: Identifier, start_date: DT.datetime.date | None = None
     ) -> list[Event]:
+        """
+        Get an event by date no matter if it doesn't exist yet.
+        :param task_id:
+        :param start_date:
+        :return:
+        """
         with self.__app.get_db() as session:
             my_date = start_date or DT.date.today()
             record = models.Event.GetOrCreateByDate(session, task_id, my_date)
             return record.to_dict()
 
     def events_by_task_id(self, task_id: Identifier) -> list[Event]:
+        """
+        Get all events by task id.
+        :param task_id:
+        :return:
+        """
         with self.__app.get_db() as session:
             return [
                 record.to_dict() for record in models.Event.GetByTask(session, task_id)
             ]
 
     def event_active_by_task_id(self, task_id: Identifier) -> T.List[Event]:
+        """
+        Get all active events by task id.
+        :param task_id:
+        :return:
+        """
         with self.__app.get_db() as session:
             return [
                 record.to_dict()
@@ -362,6 +400,11 @@ class API:
             ]
 
     def event_get(self, event_id: Identifier) -> Event | None:
+        """
+        Get an event record.
+        :param event_id:
+        :return:
+        """
         with self.__app.get_db() as session:
             record = models.Event.Fetch_by_id(session, event_id)
             if record:
@@ -373,6 +416,12 @@ class API:
     def event_get_by_date(
         self, task_id: Identifier, event_date: str | None
     ) -> Event | None:
+        """
+        Get an event record based on date.
+        :param task_id:
+        :param event_date:
+        :return:
+        """
         with self.__app.get_db() as session:
             record = models.Event.GetByDate(session, task_id, event_date)
             if record is not None:
@@ -381,6 +430,11 @@ class API:
             return None
 
     def event_list_dates_by_project_id(self, task_id: Identifier) -> list[EventDate]:
+        """
+        Get a list of event record id by their start date.
+        :param task_id:
+        :return:
+        """
         with self.__app.get_db() as session:
             return [
                 {"event_id": record.id, "start_date": record.start_date}
@@ -390,6 +444,14 @@ class API:
     def event_update(
         self, event_id: Identifier, details: str | None = None, notes: str | None = None
     ) -> Event | None:
+        """
+        Update an event record.
+
+        :param event_id:
+        :param details:
+        :param notes:
+        :return:
+        """
         with self.__app.get_db() as session:
             record = models.Event.Fetch_by_id(session, event_id)
             if record:
@@ -404,6 +466,12 @@ class API:
             return None
 
     def event_destroy(self, event_id: Identifier) -> bool:
+        """
+        Destroy an event record.
+
+        :param event_id:
+        :return:
+        """
         with self.__app.get_db() as session:
             retval = models.Event.Delete_By_Id(session, event_id)
             return retval
@@ -416,6 +484,18 @@ class API:
         seconds: int,
         reason: str,
     ) -> Entry:
+        """
+        Add an entry to the event record.
+
+        @TODO refactor so its a changeset and not a bunch of arguments
+
+        :param event_id:
+        :param start_dt:
+        :param end_dt:
+        :param seconds:
+        :param reason:
+        :return:
+        """
         with self.__app.get_db() as session:
             event = models.Event.Fetch_by_id(session, event_id)
             key = StopReasons[reason]
@@ -427,12 +507,24 @@ class API:
             return entry.to_dict()
 
     def entries_lists_by_event_id(self, event_id: Identifier) -> list[Entry]:
+        """
+        Get all entries by the given parent event id.
+
+        :param event_id:
+        :return:
+        """
         with self.__app.get_db() as session:
             return [
                 entry.to_dict() for entry in models.Entry.GetByEvent(session, event_id)
             ]
 
     def entry_get(self, entry_id: Identifier) -> Entry | None:
+        """
+        Get an entry record.
+
+        :param entry_id:
+        :return:
+        """
         with self.__app.get_db() as session:
             record = models.Entry.Fetch_by_id(session, entry_id)
             if record:
@@ -447,6 +539,18 @@ class API:
         seconds: int | None = None,
         reason: StopReasons | None = None,
     ) -> Entry:
+        """
+        Update an entry record.
+        @TODO refactor so its a changeset and not a bunch of arguments
+
+        :param entry_id:
+        :param start_dt:
+        :param end_dt:
+        :param seconds:
+        :param reason:
+        :return:
+        """
+
         with self.__app.get_db() as session:
             record = models.Entry.Fetch_by_id(session, entry_id)
             if start_dt is not None:
@@ -463,6 +567,12 @@ class API:
             return record.to_dict()
 
     def entry_destroy(self, entry_id: Identifier) -> bool:
+        """
+        Destroy an entry record.
+
+        :param entry_id:
+        :return:
+        """
         with self.__app.get_db() as session:
             retval = models.Entry.Delete_By_Id(session, entry_id)
             session.commit()
@@ -475,6 +585,15 @@ class API:
         stopped_on: str,
         seconds: int | None = None,
     ) -> Entry:
+        """
+        Create an entry record.
+
+        :param event_id:
+        :param started_on:
+        :param stopped_on:
+        :param seconds:
+        :return:
+        """
         with self.__app.get_db() as session:
             LOG.debug(f"creating entry {started_on=} to {stopped_on=} with {seconds=}")
             started_on = DT.datetime.fromisoformat(started_on)
@@ -499,9 +618,19 @@ class API:
             return record.to_dict()
 
     def timer_check(self) -> bool:
+        """
+        Check if timer still exists and is running.
+
+        :return:
+        """
         return self.__timer is not None and self.__timer.running is True
 
     def timer_owner(self) -> T.Optional[TimeOwner]:
+        """
+        Get everything about the timer's owner.
+
+        :return:
+        """
         if self.__timer is not None:
             with self.__app.get_db() as session:
                 entry = models.Entry.Fetch_by_id(session, self.__timer.entry_id)
@@ -520,6 +649,12 @@ class API:
         return None
 
     def timer_override(self, new_receiver: Identifier) -> None:
+        """
+        Change how to update the frontend
+
+        :param new_receiver:
+        :return:
+        """
         if self.__timer is not None:
             old_receiver = self.__timer.identifier
             self.__timer.identifier = new_receiver
@@ -530,6 +665,14 @@ class API:
         listener_id: Identifier,
         task_id: Identifier,
     ) -> Event:
+        """
+        Create a new event if not exists and then start the timer with the provised event record id.
+
+        :param listener_id:
+        :param task_id:
+        :return:
+        """
+
         with self.__app.get_db() as session:
             event = models.Event.GetOrCreateByDate(session, task_id, DT.date.today())
             session.commit()
@@ -547,6 +690,11 @@ class API:
             return models.Event.Fetch_by_id(session, event_id).to_dict()
 
     def timer_stop(self) -> bool:
+        """
+        Stop the timer.
+
+        :return:
+        """
         if self.__timer is not None:
             self.__timer.stop()
             time.sleep(1)
@@ -560,6 +708,11 @@ class API:
         return False
 
     def timer_pause(self) -> bool:
+        """
+        Pause the timer.
+
+        :return:
+        """
         if self.__timer is not None:
             self.__timer.pause()
             return True
@@ -567,16 +720,31 @@ class API:
         return False
 
     def timer_resume(self) -> bool:
+        """
+        Resume the timer.
+        :return:
+        """
         if self.__timer is not None:
             self.__timer.resume()
             return True
         return False
 
     def shortcut_get_all(self) -> list[Shortcut]:
+        """
+        Get all shortcuts (client, project, task) for rapid context switching.
+
+        :return:
+        """
         with self.__app.get_db() as session:
             return [record.to_dict() for record in models.Shortcut.GetAll(session)]
 
     def shortcut_get(self, shortcut_id: Identifier) -> Shortcut:
+        """
+        Get a specific shortcut by its id.
+
+        :param shortcut_id:
+        :return:
+        """
         with self.__app.get_db() as session:
             record = models.Shortcut.Fetch_by_id(session, shortcut_id)
             return record.to_dict()
@@ -584,6 +752,14 @@ class API:
     def shortcut_add(
         self, client_id: Identifier, project_id: Identifier, task_id: Identifier
     ) -> Shortcut:
+        """
+        Add a new shortcut .
+
+        :param client_id:
+        :param project_id:
+        :param task_id:
+        :return:
+        """
         with self.__app.get_db() as session:
             record = models.Shortcut.GetOrCreate(
                 session, client_id=client_id, project_id=project_id, task_id=task_id
@@ -591,12 +767,31 @@ class API:
             return record.to_dict()
 
     def open_window(self, win_name: str) -> bool:
+        """
+        Open a new child window.
+
+        :param win_name:
+        :return:
+        """
         return self.__app.open_window(self, win_name)
 
     def window_toggle_resize(self, win_name: str, size: str) -> bool:
+        """
+        Resize the main window as either expanded or minimized.
+
+        :param win_name:
+        :param size:
+        :return:
+        """
         return self.__app.window_toggle_resize(win_name, size)
 
     def report_generate(self, payload: ReportPayload) -> TimeReport:
+        """
+        Generate a report using the given payload.
+
+        :param payload:
+        :return:
+        """
         end_date = payload.get("end_date", None)
         client_id = payload.get("client_id", None)
         project_id = payload.get("project_id", None)
@@ -678,15 +873,22 @@ class API:
         return report
 
     def report_build2text(self, payload: ReportPayload) -> str:
+        """
+        Converts a Report payload dictionary into a text block.
+
+        :param payload:
+        :return:
+        """
+
         report = self.report_generate(payload)
 
         def frame2time(frame):
             return f"{frame['hours']:02}:{frame['minutes']:02}:{frame['seconds']:02}"
 
         def get_wage(message: ReportPayload) -> Decimal | None:
-            wage = message.get("wage", None)
-            if wage and str(wage).isnumeric():
-                return Decimal(wage)
+            wage_value = message.get("wage", None)
+            if wage_value and str(wage_value).isnumeric():
+                return Decimal(wage_value)
 
             return None
 
