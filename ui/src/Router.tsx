@@ -6,7 +6,12 @@ import { useMantineColorScheme } from '@mantine/core'
 import { ManagePage } from '@src/pages/manage/Manage.page'
 import { ProjectsPage } from '@src/pages/manage/Projects.page'
 import { TasksPage } from '@src/pages/manage/Tasks.page'
-import { EventsPage } from '@src/pages/manage/Events.page'
+
+import { MainPage as EventsMainPage } from '@src/pages/manage/events/Main.page'
+import { ListPage as EventsListPage } from '@src/pages/manage/events/List.page'
+import { CreatePage as EventsCreatePage } from '@src/pages/manage/events/Create.page'
+import { UpdatePage as EventsUpdatePage } from '@src/pages/manage/events/Update.page'
+
 import { MainPage as EntriesMainPage } from '@src/pages/manage/entries/Main.page'
 import { ListPage as EntriesListPage } from '@src/pages/manage/entries/List.page'
 import { CreatePage as CreateEntryPage } from '@src/pages/manage/entries/Create.page'
@@ -41,8 +46,21 @@ const AppRoutes = () => {
             />
             <Route
                 path='/manage/client/:client_id/projects/:project_id/tasks/:task_id/events'
-                element={<EventsPage />}
-            />
+                element={<EventsMainPage />}
+            >
+                <Route
+                    path=''
+                    element={<EventsListPage />}
+                />
+                <Route
+                    path='create'
+                    element={<EventsCreatePage />}
+                />
+                <Route
+                    path='update/:event_id'
+                    element={<EventsUpdatePage />}
+                />
+            </Route>
             <Route
                 path='/manage/client/:client_id/projects/:project_id/tasks/:task_id/events/:event_id/entries'
                 element={<EntriesMainPage />}

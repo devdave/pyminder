@@ -3,7 +3,7 @@ import { useAppContext } from '@src/App.context'
 import { Link, Outlet, useParams } from 'react-router-dom'
 import { Event, Identifier } from '@src/types'
 
-export const EventsPage = () => {
+export const MainPage = () => {
     const { projectBroker, clientBroker, eventBroker, taskBroker } = useAppContext()
     const { client_id, task_id, project_id } = useParams()
 
@@ -22,15 +22,11 @@ export const EventsPage = () => {
         true
     )
 
-    const { data: allEvents, isLoading: allEventsAreLoading } = eventBroker.useGetAllByTask(
-        task_id as Identifier
-    )
-
-    if (allEventsAreLoading || taskIsLoading || projectLoading || clientRecordLoading) {
+    if (taskIsLoading || projectLoading || clientRecordLoading) {
         return <LoadingOverlay visible />
     }
 
-    if (!allEvents || !myProject || !clientRecord) {
+    if (!myProject || !clientRecord) {
         return <Text>No events available or failed to load!</Text>
     }
     if (!taskData) {
@@ -61,32 +57,7 @@ export const EventsPage = () => {
         <>
             <Title>Events for Task {taskData.name}</Title>
             <Breadcrumbs>{items}</Breadcrumbs>
-            <Table>
-                <Table.Thead>
-                    <Table.Tr>
-                        <Table.Th>Start date</Table.Th>
-                        <Table.Th>Entries</Table.Th>
-                        <Table.Th>Edit?</Table.Th>
-                        <Table.Th>Delete?</Table.Th>
-                    </Table.Tr>
-                </Table.Thead>
-                <Table.Tbody>
-                    {allEvents.map((record: Event) => (
-                        <Table.Tr key={record.id}>
-                            <Table.Td>{record.start_date}</Table.Td>
-                            <Table.Td>
-                                <Link to={`${record.id}/entries`}>{record.entries.length || 0}</Link>
-                            </Table.Td>
-                            <Table.Td>
-                                <Button>Edit</Button>
-                            </Table.Td>
-                            <Table.Td>
-                                <Button>Delete</Button>
-                            </Table.Td>
-                        </Table.Tr>
-                    ))}
-                </Table.Tbody>
-            </Table>
+            <Link to='create'>Create new Event</Link>
             <Outlet />
         </>
     )
