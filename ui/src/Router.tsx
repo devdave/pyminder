@@ -10,6 +10,7 @@ import { EventsPage } from '@src/pages/manage/Events.page'
 import { MainPage as EntriesMainPage } from '@src/pages/manage/entries/Main.page'
 import { ListPage as EntriesListPage } from '@src/pages/manage/entries/List.page'
 import { CreatePage as CreateEntryPage } from '@src/pages/manage/entries/Create.page'
+import { UpdatePage as UpdateEntryPage } from '@src/pages/manage/entries/Update.page'
 import { HomePage } from './pages/Home.page'
 
 const AppRoutes = () => {
@@ -53,6 +54,10 @@ const AppRoutes = () => {
                 <Route
                     path='create'
                     element={<CreateEntryPage />}
+                />
+                <Route
+                    path='update/:entry_id'
+                    element={<UpdateEntryPage />}
                 />
             </Route>
             <Route
