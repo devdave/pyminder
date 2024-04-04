@@ -38,6 +38,10 @@ export const CreatePage = () => {
         })
     }
 
+    const handleCancel = () => {
+        navigate(-1)
+    }
+
     return (
         <>
             <Title>New event</Title>
@@ -64,6 +68,12 @@ export const CreatePage = () => {
                         {...form.getInputProps('seconds')}
                     />
                     <Button type='submit'>Submit</Button>
+                    <Button
+                        type='button'
+                        onClick={handleCancel}
+                    >
+                        Cancel
+                    </Button>
                 </form>
             </Box>
         </>
