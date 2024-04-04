@@ -1,4 +1,4 @@
-import { Box, Button, Group, NumberInput, Title } from '@mantine/core'
+import { Box, Button, Group, LoadingOverlay, NumberInput, Text, Title } from '@mantine/core'
 import { DateTimePicker } from '@mantine/dates'
 
 import { useForm } from '@mantine/form'
@@ -19,7 +19,7 @@ export const UpdatePage = () => {
     const { api, entryBroker } = useAppContext()
     const navigate = useNavigate()
 
-    const { data: entryData } = entryBroker.get(entry_id as Identifier)
+    const { data: entryData, isLoading: dataIsLoading } = entryBroker.get(entry_id as Identifier)
 
     const form = useForm<FormProps>({
         initialValues: {
@@ -46,6 +46,15 @@ export const UpdatePage = () => {
 
     const handleCancel = () => {
         navigate(-1)
+    }
+
+    if (dataIsLoading) {
+        return (
+            <>
+                <LoadingOverlay visible />
+                <Text>Loading data...</Text>
+            </>
+        )
     }
 
     return (
