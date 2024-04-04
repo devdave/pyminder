@@ -364,7 +364,7 @@ class API:
             return record.to_dict()
 
     def events_get_or_create_by_date(
-        self, task_id: Identifier, start_date: DT.datetime.date | None = None
+        self, task_id: Identifier, start_date: DT.date | None = None
     ) -> list[Event]:
         """
         Get an event by date no matter if it doesn't exist yet.
