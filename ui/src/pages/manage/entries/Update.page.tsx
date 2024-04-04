@@ -6,6 +6,7 @@ import { Entry, EntryUpdate, Identifier } from '@src/types'
 
 import { useNavigate, useParams } from 'react-router-dom'
 import { useAppContext } from '@src/App.context'
+import { useEffect } from 'react'
 
 interface FormProps {
     started_on: Date | null | undefined
@@ -18,15 +19,24 @@ export const UpdatePage = () => {
     const { api, entryBroker } = useAppContext()
     const navigate = useNavigate()
 
-    const { data: EntryData } = entryBroker.get(entry_id as Identifier)
+    const { data: entryData } = entryBroker.get(entry_id as Identifier)
 
     const form = useForm<FormProps>({
         initialValues: {
-            started_on: EntryData && EntryData.started_on ? new Date(EntryData.started_on) : new Date(),
-            stopped_on: EntryData && EntryData.stopped_on ? new Date(EntryData.stopped_on) : new Date(),
-            seconds: EntryData?.seconds || 0
+            started_on: null,
+            stopped_on: null,
+            seconds: 0
         }
     })
+
+    useEffect(() => {
+        if (entryData) {
+            form.values.started_on = entryData.started_on ? new Date(entryData.started_on) : new Date()
+            form.values.stopped_on = entryData.stopped_on ? new Date(entryData.stopped_on) : new Date()
+            form.values.seconds = entryData.seconds
+            form.resetDirty()
+        }
+    }, [entryData])
 
     const handleFormSubmit = (values: FormProps) => {
         console.log('handleFormSubmit', values)
