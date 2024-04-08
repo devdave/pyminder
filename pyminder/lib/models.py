@@ -323,7 +323,11 @@ class Task(Base):
 
     @classmethod
     def GetByProject(cls, session, project_id) -> list["Task"]:
-        stmt = select(cls).where(cls.project_id == project_id)
+        stmt = (
+            select(cls)
+            .where(cls.project_id == project_id)
+            .order_by(cls.created_on.desc())
+        )
         return session.execute(stmt).scalars().all()
 
     @classmethod
@@ -332,6 +336,7 @@ class Task(Base):
             select(cls)
             .where(cls.project_id == project_id)
             .where(cls.is_active == true())
+            .order_by(cls.created_on.desc())
         )
         return session.execute(stmt).scalars().all()
 

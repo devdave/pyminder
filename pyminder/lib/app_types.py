@@ -70,6 +70,12 @@ class Entry(Base):
     stop_reason: str | StopReasons
 
 
+class EntryUpdate(T.TypedDict):
+    started_on: str
+    stopped_on: str
+    seconds: int
+
+
 class Shortcut(Base):
     compound_name: list[str]
     client_id: Identifier

@@ -1,8 +1,10 @@
 import '@mantine/core/styles.css'
 import '@mantine/dates/styles.css'
 import 'mantine-datatable/styles.layer.css'
+import './layout.css'
 
-import { MantineProvider, Text } from '@mantine/core'
+import { ColorSchemeScript, MantineProvider, Text } from '@mantine/core'
+import { ModalsProvider } from '@mantine/modals'
 import { Router } from '@src/Router'
 import Boundary, { PYWEBVIEWREADY } from '@src/library/boundary'
 import APIBridge from '@src/api'
@@ -15,6 +17,7 @@ import { useTaskBroker } from '@src/brokers/useTaskBroker'
 import { useEventBroker } from '@src/brokers/useEventBroker'
 import { DatesProvider } from '@mantine/dates'
 import { useShortcutBroker } from '@src/brokers/use-shortcut-broker'
+import { useEntryBroker } from '@src/brokers/use-entry-broker'
 
 const boundary = new Boundary()
 const switchboard = new Switchboard()
@@ -34,6 +37,7 @@ export default function App() {
     const taskBroker = useTaskBroker(api)
     const eventBroker = useEventBroker(api)
     const shortcutBroker = useShortcutBroker(api)
+    const entryBroker = useEntryBroker(api)
 
     const appContextValue = useMemo<AppContextValue>(
         () => ({
@@ -43,7 +47,8 @@ export default function App() {
             projectBroker,
             taskBroker,
             eventBroker,
-            shortcutBroker
+            shortcutBroker,
+            entryBroker
         }),
         [api, clientBroker, eventBroker, projectBroker, taskBroker, shortcutBroker]
     )
@@ -66,12 +71,21 @@ export default function App() {
     }
 
     return (
-        <MantineProvider defaultColorScheme='dark'>
-            <DatesProvider settings={{ timezone: 'MST' }}>
-                <AppContext.Provider value={appContextValue}>
-                    <Router />
-                </AppContext.Provider>
-            </DatesProvider>
-        </MantineProvider>
+        <html>
+            <head>
+                <ColorSchemeScript defaultColorScheme='dark' />
+            </head>
+            <body>
+                <MantineProvider defaultColorScheme='dark'>
+                    <DatesProvider settings={{ timezone: 'MST' }}>
+                        <ModalsProvider>
+                            <AppContext.Provider value={appContextValue}>
+                                <Router />
+                            </AppContext.Provider>
+                        </ModalsProvider>
+                    </DatesProvider>
+                </MantineProvider>
+            </body>
+        </html>
     )
 }

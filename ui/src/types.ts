@@ -1,3 +1,5 @@
+import dayjs from 'dayjs'
+
 export type Identifier = string | number
 
 export enum TaskStatus {
@@ -69,10 +71,16 @@ export interface EventDate {
 export interface Entry {
     id: Identifier
     event_id: Identifier
-    started_on: string
-    stopped_on: string
+    started_on: string | Date | null
+    stopped_on: string | Date | null
     stop_reason: string
     seconds: number
+}
+
+export interface EntryUpdate {
+    started_on: string | Date | null | undefined
+    stopped_on: string | Date | null | undefined
+    seconds: number | string | undefined
 }
 
 export interface Shortcut {
