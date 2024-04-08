@@ -1,5 +1,5 @@
-import { ActionIcon, Button, Group, LoadingOverlay, Table, Text } from '@mantine/core'
-import { Event, Identifier } from '@src/types'
+import { ActionIcon, Group, LoadingOverlay, Text } from '@mantine/core'
+import { Identifier } from '@src/types'
 import { Link, useParams } from 'react-router-dom'
 import { useAppContext } from '@src/App.context'
 
