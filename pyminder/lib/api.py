@@ -726,7 +726,9 @@ class API:
         :return:
         """
         with self.__app.get_db() as session:
-            return [record.to_dict() for record in models.Shortcut.GetAll(session)]
+            return [
+                record.to_dict() for record in models.Shortcut.GetAllReversed(session)
+            ]
 
     def shortcut_get(self, shortcut_id: Identifier) -> Shortcut:
         """
