@@ -5,7 +5,9 @@ PyMinder
 
 A time tracker that breaks down tracked events by Client->Project->Task.
 
-Status: pre-release
+Status: Beta/0.0.1
+
+Works but it has some issues.
 
 ## Project goals
 
@@ -15,6 +17,14 @@ Status: pre-release
 4. Learn ReactJS
 5. Learn how to use the ReactJS UI library MantineJS
 
+## Standing issues
+
+- Resolve the issue with python .net library breaking poetry!
+- Date time madness regarding timezones (local, gmt, and utc).
+- Shortcuts partially work but should I clear the timer?
+- Code consistency in the api.py file.
+- Make pylint "happier"
+- Wrap transformer with much more tests and then cleanup/factor before I forget how it works!
 
 ## Major components
 
