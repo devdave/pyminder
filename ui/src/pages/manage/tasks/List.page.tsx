@@ -1,42 +1,24 @@
-import { Breadcrumbs, Button, Checkbox, LoadingOverlay, Table, Text, Title } from '@mantine/core'
+import { Button, Checkbox, LoadingOverlay, Table, Text } from '@mantine/core'
 import { useAppContext } from '@src/App.context'
-import { useParams, Link, Outlet } from 'react-router-dom'
+import { useParams, Link } from 'react-router-dom'
 import { Identifier, Task } from '@src/types'
 
-export const TasksPage = () => {
-    const { api, clientBroker, taskBroker, projectBroker } = useAppContext()
+export const TasksListPage = () => {
+    const { api, taskBroker } = useAppContext()
 
-    const { client_id, project_id } = useParams()
-
-    const { data: myProject } = projectBroker.fetch(client_id as Identifier, project_id as Identifier, true)
-    const { data: clientRecord, isLoading: clientRecordLoading } = clientBroker.fetch(
-        client_id as Identifier,
-        true
-    )
+    const { project_id } = useParams()
 
     const { data: allTasks, isLoading: allTasksAreLoading } = taskBroker.getAllByProject(
         project_id as Identifier,
         true
     )
 
-    if (allTasksAreLoading || clientRecordLoading) {
+    if (allTasksAreLoading) {
         return <LoadingOverlay visible />
     }
-    if (!allTasks || !clientRecord) {
+    if (!allTasks) {
         return <Text>Failed loading data</Text>
     }
-
-    const items = [
-        { title: 'Clients', href: '/manage' },
-        { title: `${clientRecord.name}'s projects`, href: `/manage/client/${client_id}/projects` }
-    ].map((item, index) => (
-        <Link
-            key={index}
-            to={item.href}
-        >
-            {item.title}
-        </Link>
-    ))
 
     const handleDeleteTask = (taskId: Identifier, taskName: string) => {
         if (window.confirm(`Are you sure you want to delete ${taskName} task?`)) {
@@ -56,8 +38,6 @@ export const TasksPage = () => {
 
     return (
         <>
-            <Title>Tasks for {myProject?.name}</Title>
-            <Breadcrumbs>{items}</Breadcrumbs>
             <Table>
                 <Table.Thead>
                     <Table.Tr>
@@ -75,9 +55,10 @@ export const TasksPage = () => {
                             <Table.Td>
                                 <Checkbox
                                     checked={task.is_active}
-                                    onChange={(event) =>
+                                    onChange={(event) => {
                                         handleToggleStatus(task.id, event.currentTarget.checked)
-                                    }
+                                        event.stopPropagation()
+                                    }}
                                 />
                             </Table.Td>
                             <Table.Td>
@@ -93,7 +74,6 @@ export const TasksPage = () => {
                     ))}
                 </Table.Tbody>
             </Table>
-            <Outlet />
         </>
     )
 }

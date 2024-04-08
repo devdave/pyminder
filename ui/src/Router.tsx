@@ -3,9 +3,12 @@ import { Page404 } from '@src/404.page'
 import { ReportsPage } from '@src/pages/Reports.page'
 import { useHotkeys } from '@mantine/hooks'
 import { useMantineColorScheme } from '@mantine/core'
+
 import { ManagePage } from '@src/pages/manage/Manage.page'
 import { ProjectsPage } from '@src/pages/manage/Projects.page'
-import { TasksPage } from '@src/pages/manage/Tasks.page'
+
+import { TasksMainPage } from '@src/pages/manage/tasks/Main.page'
+import { TasksListPage } from '@src/pages/manage/tasks/List.page'
 
 import { MainPage as EventsMainPage } from '@src/pages/manage/events/Main.page'
 import { ListPage as EventsListPage } from '@src/pages/manage/events/List.page'
@@ -42,8 +45,14 @@ const AppRoutes = () => {
             />
             <Route
                 path='/manage/client/:client_id/projects/:project_id/tasks'
-                element={<TasksPage />}
-            />
+                element={<TasksMainPage />}
+            >
+                <Route
+                    path=''
+                    element={<TasksListPage />}
+                />
+            </Route>
+
             <Route
                 path='/manage/client/:client_id/projects/:project_id/tasks/:task_id/events'
                 element={<EventsMainPage />}
