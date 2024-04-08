@@ -21,6 +21,7 @@ Works but it has some issues.
 
 - Resolve the issue with python .net library breaking poetry!
 - Date time madness regarding timezones (local, gmt, and utc).
+  - Maybe make the python/backend layer the source of "truth" for time?
 - Shortcuts partially work but should I clear the timer?
 - Code consistency in the api.py file.
 - Make pylint "happier"
