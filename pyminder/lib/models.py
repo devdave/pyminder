@@ -575,6 +575,12 @@ class Shortcut(Base):
         )
 
     @classmethod
+    def GetAllReversed(cls, session: Session) -> T.Sequence[T.Self]:
+        return (
+            session.execute(select(cls).order_by(cls.created_on.desc())).scalars().all()
+        )
+
+    @classmethod
     def GetOrCreate(
         cls,
         session,
