@@ -1,8 +1,9 @@
 import '@mantine/core/styles.css'
 import '@mantine/dates/styles.css'
 import 'mantine-datatable/styles.layer.css'
+import './layout.css'
 
-import { MantineProvider, Text } from '@mantine/core'
+import { ColorSchemeScript, MantineProvider, Text } from '@mantine/core'
 import { ModalsProvider } from '@mantine/modals'
 import { Router } from '@src/Router'
 import Boundary, { PYWEBVIEWREADY } from '@src/library/boundary'
@@ -70,14 +71,21 @@ export default function App() {
     }
 
     return (
-        <MantineProvider defaultColorScheme='dark'>
-            <DatesProvider settings={{ timezone: 'MST' }}>
-                <ModalsProvider>
-                    <AppContext.Provider value={appContextValue}>
-                        <Router />
-                    </AppContext.Provider>
-                </ModalsProvider>
-            </DatesProvider>
-        </MantineProvider>
+        <html>
+            <head>
+                <ColorSchemeScript defaultColorScheme='dark' />
+            </head>
+            <body>
+                <MantineProvider defaultColorScheme='dark'>
+                    <DatesProvider settings={{ timezone: 'MST' }}>
+                        <ModalsProvider>
+                            <AppContext.Provider value={appContextValue}>
+                                <Router />
+                            </AppContext.Provider>
+                        </ModalsProvider>
+                    </DatesProvider>
+                </MantineProvider>
+            </body>
+        </html>
     )
 }
