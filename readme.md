@@ -22,9 +22,10 @@ Works but it has some issues.
 ## Tooling
 1. PyCharm
 2. Black
-4. Pylint
-5. mypy
-6. Eslint + Prettier
+3. Pylint
+4. mypy
+5. Eslint + Prettier
+6. PyInstaller to make an exe
 
 
 ## Project goals
