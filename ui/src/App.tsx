@@ -50,7 +50,7 @@ export default function App() {
             shortcutBroker,
             entryBroker
         }),
-        [api, clientBroker, eventBroker, projectBroker, taskBroker, shortcutBroker]
+        [api, clientBroker, projectBroker, taskBroker, eventBroker, shortcutBroker, entryBroker]
     )
 
     useEffect(() => {
@@ -71,21 +71,14 @@ export default function App() {
     }
 
     return (
-        <html>
-            <head>
-                <ColorSchemeScript defaultColorScheme='dark' />
-            </head>
-            <body>
-                <MantineProvider defaultColorScheme='dark'>
-                    <DatesProvider settings={{ timezone: 'MST' }}>
-                        <ModalsProvider>
-                            <AppContext.Provider value={appContextValue}>
-                                <Router />
-                            </AppContext.Provider>
-                        </ModalsProvider>
-                    </DatesProvider>
-                </MantineProvider>
-            </body>
-        </html>
+        <MantineProvider defaultColorScheme='dark'>
+            <DatesProvider settings={{ timezone: Intl.DateTimeFormat().resolvedOptions().timeZone }}>
+                <ModalsProvider>
+                    <AppContext.Provider value={appContextValue}>
+                        <Router />
+                    </AppContext.Provider>
+                </ModalsProvider>
+            </DatesProvider>
+        </MantineProvider>
     )
 }
