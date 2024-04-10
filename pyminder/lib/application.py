@@ -116,10 +116,12 @@ class Application:
 
             self.windows[win_name].events.closed += handle_close
             return True
-
         elif win_name in self.windows:
+            self.windows[win_name].restore()
             self.windows[win_name].show()
-            return True
+            self.windows[win_name].on_top = True
+            time.sleep(1)
+            self.windows[win_name].on_top = False
 
         return False
 
