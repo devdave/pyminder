@@ -5,7 +5,9 @@ import { useHotkeys } from '@mantine/hooks'
 import { useMantineColorScheme } from '@mantine/core'
 
 import { ManagePage } from '@src/pages/manage/Manage.page'
-import { ProjectsPage } from '@src/pages/manage/Projects.page'
+
+import { ProjectsPage } from '@src/pages/manage/projects/Projects.page'
+import { ListPage as ProjectListPage } from '@src/pages/manage/projects/List.page'
 
 import { TasksMainPage } from '@src/pages/manage/tasks/Main.page'
 import { TasksListPage } from '@src/pages/manage/tasks/List.page'
@@ -42,7 +44,12 @@ const AppRoutes = () => {
             <Route
                 path='/manage/client/:client_id/projects'
                 element={<ProjectsPage />}
-            />
+            >
+                <Route
+                    path=''
+                    element={<ProjectListPage />}
+                />
+            </Route>
             <Route
                 path='/manage/client/:client_id/projects/:project_id/tasks'
                 element={<TasksMainPage />}
