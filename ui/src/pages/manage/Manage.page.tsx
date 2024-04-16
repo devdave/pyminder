@@ -2,7 +2,7 @@ import { Link, Outlet } from 'react-router-dom'
 
 import { useAppContext } from '@src/App.context'
 
-import { Text, LoadingOverlay, Box, Group, ActionIcon } from '@mantine/core'
+import { Text, LoadingOverlay, Box, Group, ActionIcon, Title } from '@mantine/core'
 
 import { DataTable } from 'mantine-datatable'
 import { IconEdit, IconTrash } from '@tabler/icons-react'
@@ -32,7 +32,7 @@ export const ManagePage = () => {
 
     return (
         <>
-            <Text>Clients</Text>
+            <Title>Clients</Title>
             <DataTable
                 borderRadius='sm'
                 withColumnBorders
