@@ -1,9 +1,12 @@
 import { MainTimer } from '@src/components/MainTimer/MainTimer'
 import { Select, Stack } from '@mantine/core'
+import { notifications } from '@mantine/notifications'
+
 import { useAppContext } from '@src/App.context'
 import { useCallback, useEffect, useState } from 'react'
 import { Client, Identifier, Project, Task, TimeObj, TimeOwner } from '@src/types'
 import { SelectCreatable } from '@src/components/SmartSelect/SmartSelectV2'
+import { IconX } from '@tabler/icons-react'
 
 export function HomePage() {
     const { api, switchboard, clientBroker, projectBroker, taskBroker, shortcutBroker } = useAppContext()
@@ -199,8 +202,22 @@ export function HomePage() {
                     const record = await api.task_get_by_name(taskName)
                     await api.task_set_status(record.id, true)
                     setSelectedTaskID(record.id)
+                    notifications.show({
+                        withCancelable: true,
+                        autoClose: 2500,
+                        title: 'Info',
+                        color: 'green',
+                        message: `${taskName} already existed, re-enabled`
+                    })
                 } else {
-                    alert(`Unknown/unexpected error: ${JSON.stringify(error)}`)
+                    notifications.show({
+                        withCloseButton: true,
+                        autoClose: 5500,
+                        title: 'Error',
+                        message: `Unknown/unexpected error: ${JSON.stringify(error)}`,
+                        color: 'red',
+                        icon: <IconX />
+                    })
                 }
             }
         }
