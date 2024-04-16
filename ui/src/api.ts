@@ -205,6 +205,8 @@ Get a task record.
 */
 task_get(task_id:Identifier):Promise<Task> {
         return this.boundary.remote('task_get', task_id) as Promise<Task>
+    }task_get_by_name(task_name:string):Promise<Task> {
+        return this.boundary.remote('task_get_by_name', task_name) as Promise<Task>
     }
 
 /*
@@ -225,6 +227,8 @@ Destroy given task record by its id
 */
 task_destroy(task_id:Identifier):Promise<boolean> {
         return this.boundary.remote('task_destroy', task_id) as Promise<boolean>
+    }task_set_status_by_name(task_name:string, status:boolean):Promise<boolean> {
+        return this.boundary.remote('task_set_status_by_name', task_name, status) as Promise<boolean>
     }
 
 /*

@@ -286,6 +286,11 @@ class API:
             record["time"] = models.Task.GetAllTime(session, task_id)
             return record
 
+    def task_get_by_name(self, task_name: str) -> Task:
+        with self.__app.get_db() as session:
+            record = models.Task.GetByName(session, task_name)
+            return record.to_dict()
+
     def task_update(
         self, task_id: Identifier, name: str | None = None, status: str | None = None
     ) -> T.Optional[Task]:
@@ -319,6 +324,13 @@ class API:
             models.Task.Delete_By_Id(session, task_id)
             session.commit()
             return True
+
+    def task_set_status_by_name(self, task_name: str, status: bool) -> bool:
+        with self.__app.get_db() as session:
+            task = models.Task.GetByName(session, task_name)
+            task.is_active = status
+            session.commit()
+            return status
 
     def task_set_status(self, task_id: Identifier, status: bool) -> bool:
         """
