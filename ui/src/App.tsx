@@ -1,6 +1,6 @@
 import '@mantine/core/styles.css'
-import '@mantine/dates/styles.css'
 import 'mantine-datatable/styles.layer.css'
+import '@mantine/dates/styles.css'
 import './layout.css'
 
 import { ColorSchemeScript, MantineProvider, Text } from '@mantine/core'
@@ -18,6 +18,8 @@ import { useEventBroker } from '@src/brokers/useEventBroker'
 import { DatesProvider } from '@mantine/dates'
 import { useShortcutBroker } from '@src/brokers/use-shortcut-broker'
 import { useEntryBroker } from '@src/brokers/use-entry-broker'
+
+import { Notifications } from '@mantine/notifications'
 
 const boundary = new Boundary()
 const switchboard = new Switchboard()
@@ -72,9 +74,11 @@ export default function App() {
 
     return (
         <MantineProvider defaultColorScheme='dark'>
+            <ColorSchemeScript defaultColorScheme='dark' />
             <DatesProvider settings={{ timezone: Intl.DateTimeFormat().resolvedOptions().timeZone }}>
                 <ModalsProvider>
                     <AppContext.Provider value={appContextValue}>
+                        <Notifications />
                         <Router />
                     </AppContext.Provider>
                 </ModalsProvider>
