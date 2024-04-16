@@ -373,6 +373,11 @@ class Task(Base):
         stmt = update(cls).values(is_active=status).where(cls.id == task_id)
         return session.execute(stmt).rowcount == 1
 
+    @classmethod
+    def GetByName(cls, session, task_name):
+        stmt = select(cls).where(cls.name == task_name)
+        return session.execute(stmt).scalars().one()
+
 
 class Event(Base):
     task_id: Mapped[int] = mapped_column(
