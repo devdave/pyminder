@@ -2,14 +2,25 @@ import { Link, Outlet } from 'react-router-dom'
 
 import { useAppContext } from '@src/App.context'
 
-import { Button, Text, LoadingOverlay, Box } from '@mantine/core'
+import { Text, LoadingOverlay, Box, Group, ActionIcon } from '@mantine/core'
 
 import { DataTable } from 'mantine-datatable'
+import { IconEdit, IconTrash } from '@tabler/icons-react'
+import { useCallback } from 'react'
+import { Identifier } from '@src/types'
 
 export const ManagePage = () => {
     const { clientBroker } = useAppContext()
 
     const { data: allClients, isLoading: allClientsAreLoading } = clientBroker.getAll()
+
+    const handleDelete = useCallback((recordId: Identifier) => {
+        alert(`Would delete${recordId}`)
+    }, [])
+
+    const handleEdit = useCallback((recordId: Identifier) => {
+        alert(`Would edit${recordId}`)
+    }, [])
 
     if (allClientsAreLoading) {
         return <LoadingOverlay visible />
@@ -61,10 +72,28 @@ export const ManagePage = () => {
                         title: 'Actions',
                         accessor: 'id',
                         render: ({ id }) => (
-                            <>
-                                <Button>Edit {id}</Button>
-                                <Button>Delete {id}</Button>
-                            </>
+                            <Group
+                                gap={4}
+                                justify='center'
+                                wrap='nowrap'
+                            >
+                                <ActionIcon
+                                    size='sm'
+                                    variant='subtle'
+                                    color='blue'
+                                    onClick={() => handleEdit(id)}
+                                >
+                                    <IconEdit size={16} />
+                                </ActionIcon>
+                                <ActionIcon
+                                    size='sm'
+                                    variant='subtle'
+                                    color='red'
+                                    onClick={() => handleDelete(id)}
+                                >
+                                    <IconTrash size={16} />
+                                </ActionIcon>
+                            </Group>
                         )
                     }
                 ]}
