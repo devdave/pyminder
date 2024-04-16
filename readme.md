@@ -12,7 +12,7 @@ Works but it has some issues.
 ## Major components
 1. Fowler's PyWebview
 2. SQLAlchemy 2 w/Alembic
-3. Vite Reactjs w/smc + Mantine
+3. Vite Reactjs + Mantine
 
 ## Minor/mid-tier components
 1. Tanstack query
@@ -48,12 +48,14 @@ Works but it has some issues.
 
 - Date time madness regarding timezones (local, gmt, and utc).
   - Maybe make the python/backend layer the source of "truth" for time?
+  - 2024-04-10: partially fixed as now mantine datetime system uses local timezone.
 - Resolve the issue with python .net library breaking poetry!
 - Shortcuts partially work but should I clear the timer?
-- Code consistency in the api.py file.
+- Code naming consistency in the api.py file (make everything snakeCase).
 - Make pylint "happier"
 - Wrap transformer with much more tests and then cleanup/factor before I forget how it works!
 - Mantine DataTable styling isn't applying/doesn't load!
+
 
 ## Major components
 
