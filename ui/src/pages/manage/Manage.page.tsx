@@ -2,15 +2,15 @@ import { Link, Outlet } from 'react-router-dom'
 
 import { useAppContext } from '@src/App.context'
 
-import { Text, LoadingOverlay, Box, Group, ActionIcon, Title } from '@mantine/core'
+import { Text, LoadingOverlay, Box, Group, ActionIcon, Title, Checkbox } from '@mantine/core'
 
 import { DataTable } from 'mantine-datatable'
 import { IconEdit, IconTrash } from '@tabler/icons-react'
-import { useCallback } from 'react'
+import React, { useCallback } from 'react'
 import { Identifier } from '@src/types'
 
 export const ManagePage = () => {
-    const { clientBroker } = useAppContext()
+    const { api, clientBroker } = useAppContext()
 
     const { data: allClients, isLoading: allClientsAreLoading } = clientBroker.getAll()
 
@@ -21,6 +21,13 @@ export const ManagePage = () => {
     const handleEdit = useCallback((recordId: Identifier) => {
         alert(`Would edit${recordId}`)
     }, [])
+
+    const handleStatusUpdate = useCallback(
+        (recordId: Identifier, status: boolean) => {
+            api.client_set_status(recordId, status).then(() => {})
+        },
+        [api]
+    )
 
     if (allClientsAreLoading) {
         return <LoadingOverlay visible />
@@ -34,9 +41,9 @@ export const ManagePage = () => {
         <>
             <Title>Clients</Title>
             <DataTable
-                borderRadius='sm'
-                withColumnBorders
                 withTableBorder
+                borderRadius='xl'
+                shadow='xl'
                 striped
                 highlightOnHover
                 records={allClients}
@@ -52,25 +59,36 @@ export const ManagePage = () => {
                     {
                         accessor: 'is_active',
                         title: 'Enabled',
-                        render: ({ is_active }) => (
-                            <Box
-                                fw={700}
-                                c={is_active ? 'green' : 'red'}
-                            >
-                                {is_active ? 'True' : 'False'}
-                            </Box>
+                        render: ({ id, is_active }) => (
+                            <Checkbox
+                                checked={!!is_active}
+                                onChange={(event) => {
+                                    handleStatusUpdate(id, !is_active)
+                                    event.preventDefault()
+                                    event.stopPropagation()
+                                }}
+                            />
                         )
                     },
                     {
-                        title: 'View projects',
+                        title: 'Projects',
                         accessor: 'count',
                         render: ({ id, projects_count }) => (
                             <Link to={`client/${id}/projects`}>View {projects_count || 0}</Link>
                         )
                     },
                     {
-                        title: 'Actions',
-                        accessor: 'id',
+                        accessor: 'created_on',
+                        title: 'Created on(UTC)'
+                    },
+                    {
+                        accessor: 'updated_on',
+                        title: 'Updated on(UTC)'
+                    },
+                    {
+                        title: <Box mr={6}>Row actions</Box>,
+                        accessor: 'actions',
+                        textAlign: 'center',
                         render: ({ id }) => (
                             <Group
                                 gap={4}

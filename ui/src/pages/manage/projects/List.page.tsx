@@ -18,11 +18,7 @@ export const ListPage = () => {
 
     const handleEdit = useCallback(
         (project_id: Identifier, name: string) => {
-            if (window.confirm(`Are you sure you want to delete ${name} project?`)) {
-                projectBroker.destroy(project_id).then(() => {
-                    projectBroker.invalidateProjects(client_id as Identifier).then()
-                })
-            }
+            alert('@TODO finish edit option')
         },
         [projectBroker, client_id]
     )
@@ -45,7 +41,7 @@ export const ListPage = () => {
                 projectBroker.invalidateProject(client_id as Identifier, id).then(() => {})
             })
         },
-        [api, projectBroker, client_id]
+        [api, client_id, projectBroker]
     )
 
     if (allProjectsAreLoading) {
@@ -58,12 +54,9 @@ export const ListPage = () => {
 
     return (
         <DataTable
-            withTableBorder
-            borderRadius='sm'
-            shadow='sm'
+            shadow='xl'
             striped
             highlightOnHover
-            verticalAlign='center'
             records={allProjects}
             columns={[
                 {
@@ -85,7 +78,10 @@ export const ListPage = () => {
                     render: ({ is_active, id }) => (
                         <Checkbox
                             checked={!!is_active}
-                            onChange={(event) => handleProjectStatusChange(id, !event.currentTarget.checked)}
+                            onChange={(event) => {
+                                handleProjectStatusChange(id, !is_active)
+                                event.stopPropagation()
+                            }}
                         />
                     )
                 },
@@ -100,7 +96,7 @@ export const ListPage = () => {
                 {
                     accessor: 'actions',
                     title: <Box mr={6}>Row actions</Box>,
-                    textAlign: 'right',
+                    textAlign: 'center',
                     render: ({ id, name }) => (
                         <Group
                             gap={4}
