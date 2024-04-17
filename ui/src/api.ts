@@ -83,6 +83,8 @@ Get a client instance.
 */
 client_get(client_id:Identifier):Promise<Client | undefined > {
         return this.boundary.remote('client_get', client_id) as Promise<Client | undefined >
+    }client_set_status(client_id:Identifier, status:boolean):Promise<boolean> {
+        return this.boundary.remote('client_set_status', client_id, status) as Promise<boolean>
     }
 
 /*

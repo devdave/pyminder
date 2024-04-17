@@ -116,11 +116,18 @@ class API:
         :return:
         """
         with self.__app.get_db() as session:
-            record = models.Client.Fetch_by_id(session, client_id)
+            record = models.Client.GetByIc(session, client_id)
             if record:
                 all_time = models.Client.GetAllTime(session, record.id)
                 return record.to_dict() if all_time else None
             return None
+
+    def client_set_status(self, client_id: Identifier, status: bool) -> bool:
+        with self.__app.get_db() as session:
+            record = models.Client.GetById(session, client_id)
+            record.is_active = status
+            session.commit()
+            return status
 
     def client_update(
         self, client_id: Identifier, client_name: str
@@ -132,7 +139,7 @@ class API:
         :return:
         """
         with self.__app.get_db() as session:
-            record = models.Client.Fetch_by_id(session, client_id)
+            record = models.Client.GetByIc(session, client_id)
             if record:
                 record.name = client_name
                 session.add(record)
@@ -195,7 +202,7 @@ class API:
         :return:
         """
         with self.__app.get_db() as session:
-            record = models.Project.Fetch_by_id(session, project_id).to_dict()
+            record = models.Project.GetByIc(session, project_id).to_dict()
             record["time"] = models.Project.GetAllTime(session, project_id)
             return record
 
@@ -207,7 +214,7 @@ class API:
         :return:
         """
         with self.__app.get_db() as session:
-            record = models.Project.Fetch_by_id(session, project_id)
+            record = models.Project.GetByIc(session, project_id)
             if record:
                 record.name = project_name
                 session.add(record)
@@ -222,7 +229,7 @@ class API:
         :return:
         """
         with self.__app.get_db() as session:
-            record = models.Project.Fetch_by_id(session, project_id)
+            record = models.Project.GetByIc(session, project_id)
             record.is_active = status
             session.commit()
             return record.to_dict()
@@ -282,7 +289,7 @@ class API:
         :return:
         """
         with self.__app.get_db() as session:
-            record = models.Task.Fetch_by_id(session, task_id).to_dict()
+            record = models.Task.GetByIc(session, task_id).to_dict()
             record["time"] = models.Task.GetAllTime(session, task_id)
             return record
 
@@ -302,7 +309,7 @@ class API:
         :return:
         """
         with self.__app.get_db() as session:
-            record = models.Task.Fetch_by_id(session, task_id)
+            record = models.Task.GetByIc(session, task_id)
             if record:
                 if name is not None:
                     record.name = name
@@ -419,7 +426,7 @@ class API:
         :return:
         """
         with self.__app.get_db() as session:
-            record = models.Event.Fetch_by_id(session, event_id)
+            record = models.Event.GetByIc(session, event_id)
             if record:
                 response = record.to_dict()
                 response["time"] = models.Event.GetAllTime(session, event_id)
@@ -466,7 +473,7 @@ class API:
         :return:
         """
         with self.__app.get_db() as session:
-            record = models.Event.Fetch_by_id(session, event_id)
+            record = models.Event.GetByIc(session, event_id)
             if record:
                 if details is not None:
                     record.details = details
@@ -510,7 +517,7 @@ class API:
         :return:
         """
         with self.__app.get_db() as session:
-            event = models.Event.Fetch_by_id(session, event_id)
+            event = models.Event.GetByIc(session, event_id)
             key = StopReasons[reason]
             entry = event.create_entry(
                 start=start_dt, end=end_dt, seconds=seconds, stop_reason=key
@@ -539,7 +546,7 @@ class API:
         :return:
         """
         with self.__app.get_db() as session:
-            record = models.Entry.Fetch_by_id(session, entry_id)
+            record = models.Entry.GetByIc(session, entry_id)
             if record:
                 return record.to_dict()
 
@@ -559,7 +566,7 @@ class API:
         """
 
         with self.__app.get_db() as session:
-            record = models.Entry.Fetch_by_id(session, entry_id)
+            record = models.Entry.GetByIc(session, entry_id)
             record.started_on = changeset["started_on"]
             record.stopped_on = changeset["stopped_on"]
             record.seconds = changeset["seconds"]
@@ -635,7 +642,7 @@ class API:
         """
         if self.__timer is not None:
             with self.__app.get_db() as session:
-                entry = models.Entry.Fetch_by_id(session, self.__timer.entry_id)
+                entry = models.Entry.GetByIc(session, self.__timer.entry_id)
                 event = entry.event
                 task = event.task
                 project = task.project
@@ -689,7 +696,7 @@ class API:
             LOG.debug("timer_started")
 
         with self.__app.get_db() as session:
-            return models.Event.Fetch_by_id(session, event_id).to_dict()
+            return models.Event.GetByIc(session, event_id).to_dict()
 
     def timer_stop(self) -> bool:
         """
@@ -750,7 +757,7 @@ class API:
         :return:
         """
         with self.__app.get_db() as session:
-            record = models.Shortcut.Fetch_by_id(session, shortcut_id)
+            record = models.Shortcut.GetByIc(session, shortcut_id)
             return record.to_dict()
 
     def shortcut_add(
