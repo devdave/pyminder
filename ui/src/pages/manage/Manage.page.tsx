@@ -1,4 +1,4 @@
-import { Link, Outlet } from 'react-router-dom'
+import { Link, Outlet, useNavigate } from 'react-router-dom'
 
 import { useAppContext } from '@src/App.context'
 
@@ -6,27 +6,29 @@ import { Text, LoadingOverlay, Box, Group, ActionIcon, Title, Checkbox } from '@
 
 import { DataTable } from 'mantine-datatable'
 import { IconEdit, IconTrash } from '@tabler/icons-react'
-import React, { useCallback } from 'react'
+import React, { useCallback, useState } from 'react'
 import { Identifier } from '@src/types'
+import { InputModal } from '@src/components/Modals/InputModal'
+import { c } from 'vite/dist/node/types.d-aGj9QkWt'
 
 export const ManagePage = () => {
     const { api, clientBroker } = useAppContext()
 
+    const navigate = useNavigate()
+
     const { data: allClients, isLoading: allClientsAreLoading } = clientBroker.getAll()
 
-    const handleDelete = useCallback((recordId: Identifier) => {
-        alert(`Would delete${recordId}`)
-    }, [])
-
-    const handleEdit = useCallback((recordId: Identifier) => {
-        alert(`Would edit${recordId}`)
+    const handleDelete = useCallback((recordId: Identifier, name: string) => {
+        alert(`Are you sure you want to delete ${name}(${recordId})`)
     }, [])
 
     const handleStatusUpdate = useCallback(
         (recordId: Identifier, status: boolean) => {
-            api.client_set_status(recordId, status).then(() => {})
+            api.client_set_status(recordId, status).then(() => {
+                clientBroker.invalidateClients().then()
+            })
         },
-        [api]
+        [api, clientBroker]
     )
 
     if (allClientsAreLoading) {
@@ -41,11 +43,11 @@ export const ManagePage = () => {
         <>
             <Title>Clients</Title>
             <DataTable
+                striped
+                highlightOnHover
                 withTableBorder
                 borderRadius='xl'
                 shadow='xl'
-                striped
-                highlightOnHover
                 records={allClients}
                 columns={[
                     {
@@ -89,7 +91,7 @@ export const ManagePage = () => {
                         title: <Box mr={6}>Row actions</Box>,
                         accessor: 'actions',
                         textAlign: 'center',
-                        render: ({ id }) => (
+                        render: ({ id, name }) => (
                             <Group
                                 gap={4}
                                 justify='center'
@@ -99,7 +101,7 @@ export const ManagePage = () => {
                                     size='sm'
                                     variant='subtle'
                                     color='blue'
-                                    onClick={() => handleEdit(id)}
+                                    onClick={() => navigate(`edit/${id}`)}
                                 >
                                     <IconEdit size={16} />
                                 </ActionIcon>
@@ -107,7 +109,7 @@ export const ManagePage = () => {
                                     size='sm'
                                     variant='subtle'
                                     color='red'
-                                    onClick={() => handleDelete(id)}
+                                    onClick={() => handleDelete(id, name)}
                                 >
                                     <IconTrash size={16} />
                                 </ActionIcon>
