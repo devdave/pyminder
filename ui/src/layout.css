@@ -1,1 +1,2 @@
-@layer mantine, mantine-datatable;
+/* 👇 Make sure the styles are applied in the correct order */
+@layer mantine-core, mantine-datatable;

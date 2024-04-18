@@ -61,12 +61,11 @@ export const useEntryBroker = (api: APIBridge): EntryBrokerFunctions => {
 
     const updateEntry = useMutation<Entry, Error, UpdatedEntry>({
         mutationFn: (changeset) =>
-            api.entry_update(
-                changeset.entry_id,
-                _possibleDate2string(changeset.started_on),
-                _possibleDate2string(changeset.stopped_on),
-                changeset.seconds
-            )
+            api.entry_update(changeset.entry_id, {
+                started_on: _possibleDate2string(changeset.started_on),
+                stopped_on: _possibleDate2string(changeset.stopped_on),
+                seconds: changeset.seconds
+            })
     })
 
     return {
