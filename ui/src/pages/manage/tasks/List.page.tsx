@@ -1,6 +1,6 @@
 import { ActionIcon, Box, Button, Checkbox, Group, LoadingOverlay, Table, Text } from '@mantine/core'
 import { useAppContext } from '@src/App.context'
-import { useParams, Link } from 'react-router-dom'
+import { useParams, Link, Outlet } from 'react-router-dom'
 import { Identifier, Task } from '@src/types'
 import { DataTable, DataTableSortStatus } from 'mantine-datatable'
 import { sortBy } from 'lodash'
@@ -76,7 +76,8 @@ export const TasksListPage = () => {
                 columns={[
                     {
                         accessor: 'id',
-                        title: '#'
+                        title: '#',
+                        sortable: true
                     },
                     {
                         accessor: 'name',
@@ -152,42 +153,7 @@ export const TasksListPage = () => {
                     }
                 ]}
             />
-            <Table>
-                <Table.Thead>
-                    <Table.Tr>
-                        <Table.Th>Name</Table.Th>
-                        <Table.Th>Enabled</Table.Th>
-                        <Table.Th>View Events</Table.Th>
-                        <Table.Th>Edit</Table.Th>
-                        <Table.Th>Delete</Table.Th>
-                    </Table.Tr>
-                </Table.Thead>
-                <Table.Tbody>
-                    {allTasks.map((task: Task) => (
-                        <Table.Tr key={task.id}>
-                            <Table.Td>{task.name}</Table.Td>
-                            <Table.Td>
-                                <Checkbox
-                                    checked={task.is_active}
-                                    onChange={(event) => {
-                                        handleToggleStatus(task.id, event.currentTarget.checked)
-                                        event.stopPropagation()
-                                    }}
-                                />
-                            </Table.Td>
-                            <Table.Td>
-                                <Link to={`${task.id}/events`}>Events {task.events_count || 0}</Link>
-                            </Table.Td>
-                            <Table.Td>
-                                <Button>Edit</Button>
-                            </Table.Td>
-                            <Table.Td>
-                                <Button onClick={() => handleDeleteTask(task.id, task.name)}>Delete</Button>
-                            </Table.Td>
-                        </Table.Tr>
-                    ))}
-                </Table.Tbody>
-            </Table>
+            <Outlet />
         </>
     )
 }

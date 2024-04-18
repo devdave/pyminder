@@ -9,6 +9,7 @@ import { UpdatePage as ClientUpdatePage } from '@src/pages/manage/clients/Update
 
 import { ProjectsPage } from '@src/pages/manage/projects/Projects.page'
 import { ListPage as ProjectListPage } from '@src/pages/manage/projects/List.page'
+import { UpdatePage as ProjectUpdatePage } from '@src/pages/manage/projects/Update.page'
 
 import { TasksMainPage } from '@src/pages/manage/tasks/Main.page'
 import { TasksListPage } from '@src/pages/manage/tasks/List.page'
@@ -54,7 +55,12 @@ const AppRoutes = () => {
                 <Route
                     path=''
                     element={<ProjectListPage />}
-                />
+                >
+                    <Route
+                        path='edit/:project_id'
+                        element={<ProjectUpdatePage />}
+                    />
+                </Route>
             </Route>
             <Route
                 path='/manage/client/:client_id/projects/:project_id/tasks'

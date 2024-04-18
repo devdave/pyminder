@@ -1,6 +1,6 @@
 import { ActionIcon, Box, Checkbox, Group, LoadingOverlay, Text } from '@mantine/core'
 import { useAppContext } from '@src/App.context'
-import { useParams, Link } from 'react-router-dom'
+import { useParams, Link, useNavigate, Outlet } from 'react-router-dom'
 import { Identifier } from '@src/types'
 
 import { DataTable } from 'mantine-datatable'
@@ -10,6 +10,8 @@ import React, { useCallback } from 'react'
 export const ListPage = () => {
     const { api, projectBroker } = useAppContext()
 
+    const navigate = useNavigate()
+
     const { client_id } = useParams()
     const { data: allProjects, isLoading: allProjectsAreLoading } = projectBroker.useGetAllByClient(
         client_id as Identifier,
@@ -18,9 +20,9 @@ export const ListPage = () => {
 
     const handleEdit = useCallback(
         (project_id: Identifier, name: string) => {
-            alert('@TODO finish edit option')
+            navigate(`edit/${project_id}`)
         },
-        [projectBroker, client_id]
+        [navigate]
     )
 
     const handleProjectDelete = useCallback(
@@ -53,76 +55,79 @@ export const ListPage = () => {
     }
 
     return (
-        <DataTable
-            shadow='xl'
-            striped
-            highlightOnHover
-            records={allProjects}
-            columns={[
-                {
-                    accessor: 'id',
-                    title: '#'
-                },
-                {
-                    accessor: 'name',
-                    title: 'Name'
-                },
-                {
-                    accessor: 'tasks',
-                    title: 'Tasks',
-                    render: ({ id, tasks_count }) => <Link to={`${id}/tasks`}>Tasks {tasks_count}</Link>
-                },
-                {
-                    accessor: 'is_active',
-                    title: 'Enabled',
-                    render: ({ is_active, id }) => (
-                        <Checkbox
-                            checked={!!is_active}
-                            onChange={(event) => {
-                                handleProjectStatusChange(id, !is_active)
-                                event.stopPropagation()
-                            }}
-                        />
-                    )
-                },
-                {
-                    accessor: 'created_on',
-                    title: 'Created on(UTC)'
-                },
-                {
-                    accessor: 'updated_on',
-                    title: 'Updated on(UTC)'
-                },
-                {
-                    accessor: 'actions',
-                    title: <Box mr={6}>Row actions</Box>,
-                    textAlign: 'center',
-                    render: ({ id, name }) => (
-                        <Group
-                            gap={4}
-                            justify='center'
-                            wrap='nowrap'
-                        >
-                            <ActionIcon
-                                size='sm'
-                                variant='subtle'
-                                color='blue'
-                                onClick={() => handleEdit(id, name)}
+        <>
+            <DataTable
+                shadow='xl'
+                striped
+                highlightOnHover
+                records={allProjects}
+                columns={[
+                    {
+                        accessor: 'id',
+                        title: '#'
+                    },
+                    {
+                        accessor: 'name',
+                        title: 'Name'
+                    },
+                    {
+                        accessor: 'tasks',
+                        title: 'Tasks',
+                        render: ({ id, tasks_count }) => <Link to={`${id}/tasks`}>Tasks {tasks_count}</Link>
+                    },
+                    {
+                        accessor: 'is_active',
+                        title: 'Enabled',
+                        render: ({ is_active, id }) => (
+                            <Checkbox
+                                checked={!!is_active}
+                                onChange={(event) => {
+                                    handleProjectStatusChange(id, !is_active)
+                                    event.stopPropagation()
+                                }}
+                            />
+                        )
+                    },
+                    {
+                        accessor: 'created_on',
+                        title: 'Created on(UTC)'
+                    },
+                    {
+                        accessor: 'updated_on',
+                        title: 'Updated on(UTC)'
+                    },
+                    {
+                        accessor: 'actions',
+                        title: <Box mr={6}>Row actions</Box>,
+                        textAlign: 'center',
+                        render: ({ id, name }) => (
+                            <Group
+                                gap={4}
+                                justify='center'
+                                wrap='nowrap'
                             >
-                                <IconEdit size={16} />
-                            </ActionIcon>
-                            <ActionIcon
-                                size='sm'
-                                variant='subtle'
-                                color='red'
-                                onClick={() => handleProjectDelete(id, name)}
-                            >
-                                <IconTrash size={16} />
-                            </ActionIcon>
-                        </Group>
-                    )
-                }
-            ]}
-        />
+                                <ActionIcon
+                                    size='sm'
+                                    variant='subtle'
+                                    color='blue'
+                                    onClick={() => handleEdit(id, name)}
+                                >
+                                    <IconEdit size={16} />
+                                </ActionIcon>
+                                <ActionIcon
+                                    size='sm'
+                                    variant='subtle'
+                                    color='red'
+                                    onClick={() => handleProjectDelete(id, name)}
+                                >
+                                    <IconTrash size={16} />
+                                </ActionIcon>
+                            </Group>
+                        )
+                    }
+                ]}
+            />
+            <Outlet />
+        </>
     )
 }
