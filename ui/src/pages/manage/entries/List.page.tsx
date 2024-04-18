@@ -33,10 +33,11 @@ export const ListPage = () => {
         })
     }, [api, event_id])
 
+    const seconds2time = (seconds: number) => new Date(seconds * 1000).toISOString().slice(11, 19)
+
     return (
         <DataTable
             borderRadius='sm'
-            withColumnBorders
             withTableBorder
             striped
             highlightOnHover
@@ -59,7 +60,8 @@ export const ListPage = () => {
                     title: 'Reason stopped'
                 },
                 {
-                    accessor: 'seconds'
+                    accessor: 'seconds',
+                    render: ({ seconds }) => <div title={seconds.toString()}>{seconds2time(seconds)}</div>
                 },
                 {
                     accessor: 'actions',

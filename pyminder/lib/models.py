@@ -84,7 +84,30 @@ class Base(DeclarativeBase):
         self.updated_on = DT.datetime.now()
 
     @classmethod
+    def GetById(cls, session: Session, record_id: Identifier) -> T.Self:
+        """
+        Get a record by its ID.
+
+        :param session:
+        :param record_id:
+        :return:
+        """
+        stmt = select(cls).where(cls.id == record_id)
+        return session.execute(stmt).scalars().one()
+
+    @classmethod
     def Fetch_by_id(cls, session: Session, fetch_id: Identifier) -> T.Self:
+        """
+        Fetch a record by its ID.
+
+        :param session:
+        :param fetch_id:
+
+
+        .. deprecated:: 1.0.0
+        Use GetById instead.
+        :return:
+        """
         stmt = select(cls).where(cls.id == fetch_id)
         return session.execute(stmt).scalars().one()
 
@@ -373,6 +396,11 @@ class Task(Base):
         stmt = update(cls).values(is_active=status).where(cls.id == task_id)
         return session.execute(stmt).rowcount == 1
 
+    @classmethod
+    def GetByName(cls, session, task_name):
+        stmt = select(cls).where(cls.name == task_name)
+        return session.execute(stmt).scalars().one()
+
 
 class Event(Base):
     task_id: Mapped[int] = mapped_column(
@@ -572,6 +600,12 @@ class Shortcut(Base):
     def GetAll(cls, session: Session) -> T.Sequence[T.Self]:
         return (
             session.execute(select(cls).order_by(cls.created_on.asc())).scalars().all()
+        )
+
+    @classmethod
+    def GetAllReversed(cls, session: Session) -> T.Sequence[T.Self]:
+        return (
+            session.execute(select(cls).order_by(cls.created_on.desc())).scalars().all()
         )
 
     @classmethod

@@ -1,6 +1,7 @@
 import '@mantine/core/styles.css'
-import '@mantine/dates/styles.css'
 import 'mantine-datatable/styles.layer.css'
+import 'mantine-datatable/styles.css'
+import '@mantine/dates/styles.css'
 import './layout.css'
 
 import { ColorSchemeScript, MantineProvider, Text } from '@mantine/core'
@@ -18,6 +19,8 @@ import { useEventBroker } from '@src/brokers/useEventBroker'
 import { DatesProvider } from '@mantine/dates'
 import { useShortcutBroker } from '@src/brokers/use-shortcut-broker'
 import { useEntryBroker } from '@src/brokers/use-entry-broker'
+
+import { Notifications } from '@mantine/notifications'
 
 const boundary = new Boundary()
 const switchboard = new Switchboard()
@@ -50,7 +53,7 @@ export default function App() {
             shortcutBroker,
             entryBroker
         }),
-        [api, clientBroker, eventBroker, projectBroker, taskBroker, shortcutBroker]
+        [api, clientBroker, projectBroker, taskBroker, eventBroker, shortcutBroker, entryBroker]
     )
 
     useEffect(() => {
@@ -71,21 +74,16 @@ export default function App() {
     }
 
     return (
-        <html>
-            <head>
-                <ColorSchemeScript defaultColorScheme='dark' />
-            </head>
-            <body>
-                <MantineProvider defaultColorScheme='dark'>
-                    <DatesProvider settings={{ timezone: 'MST' }}>
-                        <ModalsProvider>
-                            <AppContext.Provider value={appContextValue}>
-                                <Router />
-                            </AppContext.Provider>
-                        </ModalsProvider>
-                    </DatesProvider>
-                </MantineProvider>
-            </body>
-        </html>
+        <MantineProvider defaultColorScheme='dark'>
+            <ColorSchemeScript defaultColorScheme='dark' />
+            <DatesProvider settings={{ timezone: Intl.DateTimeFormat().resolvedOptions().timeZone }}>
+                <ModalsProvider>
+                    <AppContext.Provider value={appContextValue}>
+                        <Notifications />
+                        <Router />
+                    </AppContext.Provider>
+                </ModalsProvider>
+            </DatesProvider>
+        </MantineProvider>
     )
 }

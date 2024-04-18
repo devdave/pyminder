@@ -1,82 +1,91 @@
-import { Link, Outlet, useNavigate } from 'react-router-dom'
-
+import { ActionIcon, Box, Checkbox, Group, LoadingOverlay, Text } from '@mantine/core'
 import { useAppContext } from '@src/App.context'
-
-import { Text, LoadingOverlay, Box, Group, ActionIcon, Title, Checkbox } from '@mantine/core'
+import { useParams, Link, useNavigate, Outlet } from 'react-router-dom'
+import { Identifier } from '@src/types'
 
 import { DataTable } from 'mantine-datatable'
 import { IconEdit, IconTrash } from '@tabler/icons-react'
-import React, { useCallback, useState } from 'react'
-import { Identifier } from '@src/types'
-import { InputModal } from '@src/components/Modals/InputModal'
-import { c } from 'vite/dist/node/types.d-aGj9QkWt'
+import React, { useCallback } from 'react'
 
-export const ManagePage = () => {
-    const { api, clientBroker } = useAppContext()
+export const ListPage = () => {
+    const { api, projectBroker } = useAppContext()
 
     const navigate = useNavigate()
 
-    const { data: allClients, isLoading: allClientsAreLoading } = clientBroker.getAll()
-
-    const handleDelete = useCallback((recordId: Identifier, name: string) => {
-        alert(`Are you sure you want to delete ${name}(${recordId})`)
-    }, [])
-
-    const handleStatusUpdate = useCallback(
-        (recordId: Identifier, status: boolean) => {
-            api.client_set_status(recordId, status).then(() => {
-                clientBroker.invalidateClients().then()
-            })
-        },
-        [api, clientBroker]
+    const { client_id } = useParams()
+    const { data: allProjects, isLoading: allProjectsAreLoading } = projectBroker.useGetAllByClient(
+        client_id as Identifier,
+        true
     )
 
-    if (allClientsAreLoading) {
+    const handleEdit = useCallback(
+        (project_id: Identifier, name: string) => {
+            navigate(`edit/${project_id}`)
+        },
+        [navigate]
+    )
+
+    const handleProjectDelete = useCallback(
+        (id: Identifier, name: string) => {
+            if (window.confirm(`Are you sure you want to delete ${name} project?`)) {
+                projectBroker.destroy(id).then(() => {
+                    projectBroker.invalidateProjects(client_id as Identifier).then()
+                })
+            }
+        },
+        [projectBroker, client_id]
+    )
+
+    const handleProjectStatusChange = useCallback(
+        (id: Identifier, status: boolean) => {
+            api.project_set_status(id, status).then(() => {
+                projectBroker.invalidateProjects(client_id as Identifier).then()
+                projectBroker.invalidateProject(client_id as Identifier, id).then(() => {})
+            })
+        },
+        [api, client_id, projectBroker]
+    )
+
+    if (allProjectsAreLoading) {
         return <LoadingOverlay visible />
     }
 
-    if (!allClients) {
-        return <Text>Problem loading clients</Text>
+    if (!allProjects) {
+        return <Text>Error loading projects</Text>
     }
 
     return (
         <>
-            <Title>Clients</Title>
             <DataTable
+                shadow='xl'
                 striped
                 highlightOnHover
-                withTableBorder
-                borderRadius='xl'
-                shadow='xl'
-                records={allClients}
+                records={allProjects}
                 columns={[
                     {
                         accessor: 'id',
-                        title: '#',
-                        textAlign: 'right'
+                        title: '#'
                     },
                     {
-                        accessor: 'name'
+                        accessor: 'name',
+                        title: 'Name'
+                    },
+                    {
+                        accessor: 'tasks',
+                        title: 'Tasks',
+                        render: ({ id, tasks_count }) => <Link to={`${id}/tasks`}>Tasks {tasks_count}</Link>
                     },
                     {
                         accessor: 'is_active',
                         title: 'Enabled',
-                        render: ({ id, is_active }) => (
+                        render: ({ is_active, id }) => (
                             <Checkbox
                                 checked={!!is_active}
                                 onChange={(event) => {
-                                    handleStatusUpdate(id, !is_active)
-                                    event.preventDefault()
+                                    handleProjectStatusChange(id, !is_active)
                                     event.stopPropagation()
                                 }}
                             />
-                        )
-                    },
-                    {
-                        title: 'Projects',
-                        accessor: 'count',
-                        render: ({ id, projects_count }) => (
-                            <Link to={`client/${id}/projects`}>View {projects_count || 0}</Link>
                         )
                     },
                     {
@@ -88,8 +97,8 @@ export const ManagePage = () => {
                         title: 'Updated on(UTC)'
                     },
                     {
-                        title: <Box mr={6}>Row actions</Box>,
                         accessor: 'actions',
+                        title: <Box mr={6}>Row actions</Box>,
                         textAlign: 'center',
                         render: ({ id, name }) => (
                             <Group
@@ -101,7 +110,7 @@ export const ManagePage = () => {
                                     size='sm'
                                     variant='subtle'
                                     color='blue'
-                                    onClick={() => navigate(`edit/${id}`)}
+                                    onClick={() => handleEdit(id, name)}
                                 >
                                     <IconEdit size={16} />
                                 </ActionIcon>
@@ -109,7 +118,7 @@ export const ManagePage = () => {
                                     size='sm'
                                     variant='subtle'
                                     color='red'
-                                    onClick={() => handleDelete(id, name)}
+                                    onClick={() => handleProjectDelete(id, name)}
                                 >
                                     <IconTrash size={16} />
                                 </ActionIcon>

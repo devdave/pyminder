@@ -1,9 +1,12 @@
 import { MainTimer } from '@src/components/MainTimer/MainTimer'
 import { Select, Stack } from '@mantine/core'
+import { notifications } from '@mantine/notifications'
+
 import { useAppContext } from '@src/App.context'
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { Client, Identifier, Project, Task, TimeObj, TimeOwner } from '@src/types'
 import { SelectCreatable } from '@src/components/SmartSelect/SmartSelectV2'
+import { IconX } from '@tabler/icons-react'
 
 export function HomePage() {
     const { api, switchboard, clientBroker, projectBroker, taskBroker, shortcutBroker } = useAppContext()
@@ -62,7 +65,7 @@ export function HomePage() {
         }))
     }
 
-    const timeStop = () => {
+    const timeStop = useCallback(() => {
         api.timer_stop().then(() => {
             projectBroker
                 .invalidateProject(selectedClientID as Identifier, selectedProjectID as Identifier)
@@ -73,7 +76,7 @@ export function HomePage() {
             setIsPaused(() => false)
             // setCurrentTime(() => ({ hour: 0, minute: 0, second: 0 }))
         })
-    }
+    }, [api, projectBroker, selectedClientID, selectedProjectID, selectedTaskID, taskBroker])
 
     const startTime = async () => {
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
@@ -189,11 +192,34 @@ export function HomePage() {
         setCurrentTime(() => ({ hour: 0, minute: 0, second: 0 }))
     }
 
-    const addTask = (taskName: string) => {
+    const addTask = async (taskName: string) => {
         if (selectedProjectID) {
-            taskBroker.create(selectedProjectID, taskName).then((record) => {
+            try {
+                const record = await taskBroker.create(selectedProjectID, taskName)
                 setSelectedTaskID(record.id)
-            })
+            } catch (error) {
+                if (error instanceof Error && error.name === 'IntegrityError') {
+                    const record = await api.task_get_by_name(taskName)
+                    await api.task_set_status(record.id, true)
+                    setSelectedTaskID(record.id)
+                    notifications.show({
+                        withCancelable: true,
+                        autoClose: 2500,
+                        title: 'Info',
+                        color: 'green',
+                        message: `${taskName} already existed, re-enabled`
+                    })
+                } else {
+                    notifications.show({
+                        withCloseButton: true,
+                        autoClose: 5500,
+                        title: 'Error',
+                        message: `Unknown/unexpected error: ${JSON.stringify(error)}`,
+                        color: 'red',
+                        icon: <IconX />
+                    })
+                }
+            }
         }
     }
 

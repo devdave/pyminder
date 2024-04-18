@@ -26,12 +26,18 @@ export const CreatePage = () => {
         }
     })
 
+    const localizeDate = (date: Date) => {
+        const offset = new Date().getTimezoneOffset()
+        date.setMinutes(date.getMinutes() - offset)
+        return date
+    }
+
     const handleFormSubmit = (values: FormProps) => {
         console.log('handleFormSubmit', values)
         api.entry_create(
             event_id as Identifier,
-            values.started_on.toISOString(),
-            values.stopped_on.toISOString(),
+            localizeDate(values.started_on).toISOString(),
+            localizeDate(values.stopped_on).toISOString(),
             values.seconds as number
         ).then(() => {
             navigate(-1)
