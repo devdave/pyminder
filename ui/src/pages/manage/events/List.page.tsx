@@ -9,7 +9,7 @@ import { IconEdit, IconTrash } from '@tabler/icons-react'
 export const ListPage = () => {
     const { task_id } = useParams()
 
-    const { eventBroker } = useAppContext()
+    const { eventBroker, api } = useAppContext()
 
     const { data: allEvents, isLoading: allEventsAreLoading } = eventBroker.useGetAllByTask(
         task_id as Identifier
@@ -20,7 +20,9 @@ export const ListPage = () => {
     }
 
     const handleDelete = (event_id: Identifier) => {
-        console.log(event_id)
+        if (confirm('Are you sure you want to delete this?')) {
+            eventBroker.destroy(event_id).then(() => {})
+        }
     }
 
     if (allEventsAreLoading) {
