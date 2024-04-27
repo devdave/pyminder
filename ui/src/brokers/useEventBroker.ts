@@ -56,7 +56,7 @@ export const useEventBroker = (api: APIBridge): UseEventBrokerReturn => {
         mutationFn: (payload) => api.event_update(payload.id, payload.details, payload.notes),
         onSuccess: (event) => {
             if (event) {
-                client.invalidateQueries({ queryKey: ['task', event.task_id, 'event', event.id] })
+                client.invalidateQueries({ queryKey: ['task', event.task_id, 'event', event.id] }).then()
             }
         }
     })
@@ -71,7 +71,7 @@ export const useEventBroker = (api: APIBridge): UseEventBrokerReturn => {
                 payload.reason
             ),
         onSuccess: (event, context) => {
-            client.invalidateQueries({ queryKey: ['task', context.task_id, 'event', event.id] })
+            client.invalidateQueries({ queryKey: ['task', context.task_id, 'event', event.id] }).then()
         }
     })
 
@@ -89,7 +89,18 @@ export const useEventBroker = (api: APIBridge): UseEventBrokerReturn => {
 
     const update = (id: Identifier, details: string, notes: string) => updateMutation({ id, details, notes })
 
-    const destroy = (event_id: Identifier) => api.event_destroy(event_id)
+    const destroy = (event_id: Identifier) =>
+        new Promise<boolean>((resolve) => {
+            api.event_destroy(event_id).then(() => {
+                client
+                    .invalidateQueries({
+                        queryKey: ['events']
+                    })
+                    .then(() => {
+                        resolve(true)
+                    })
+            })
+        })
 
     const addEntry = (
         task_id: Identifier,
