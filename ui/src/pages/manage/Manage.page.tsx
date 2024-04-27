@@ -8,8 +8,6 @@ import { DataTable } from 'mantine-datatable'
 import { IconEdit, IconTrash } from '@tabler/icons-react'
 import React, { useCallback, useState } from 'react'
 import { Identifier } from '@src/types'
-import { InputModal } from '@src/components/Modals/InputModal'
-import { c } from 'vite/dist/node/types.d-aGj9QkWt'
 
 export const ManagePage = () => {
     const { api, clientBroker } = useAppContext()

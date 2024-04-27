@@ -370,7 +370,10 @@ class API:
         :return:
         """
         with self.__app.get_db() as session:
+            if isinstance(start_date, str):
+                start_date = DT.datetime.fromisoformat(start_date)
             my_date = start_date or DT.date.today()
+
             record = models.Event(
                 start_date=my_date,
                 task_id=task_id,
@@ -494,6 +497,7 @@ class API:
         """
         with self.__app.get_db() as session:
             retval = models.Event.Delete_By_Id(session, event_id)
+            session.commit()
             return retval
 
     def event_add_entry(
