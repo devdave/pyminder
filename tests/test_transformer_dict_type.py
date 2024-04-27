@@ -1,17 +1,18 @@
 import ast
 
-from lib import transformer
+from pyminder.lib import transformer
 
 
-def test_transformer_dict_type():
+def test_transformer_dict_type() -> None:
     src2 = """
 def action(self, val: int) -> dict[str, str]:
     return {"val": val}
 """
 
     parsed = ast.parse(src2, "test_data.py", mode="exec")
-    if isinstance(parsed.body[0], ast.FunctionDef):
-        function = parsed.body[0]  # type: ast.FunctionDef
+    element = parsed.body[0]
+    if isinstance(element, ast.FunctionDef):
+        function: ast.FunctionDef = element
         actual: transformer.FuncDef = transformer.process_function(function)
 
         assert len(actual.arg_names) == 1
