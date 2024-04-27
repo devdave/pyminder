@@ -59,17 +59,6 @@ Works but it has some issues.
 - ~~Mantine DataTable styling isn't applying/doesn't load!~~
 
 
-## Major components
-
-The glue that holds it all together - 
-https://pywebview.flowrl.com/
-
-The library that abstracts working with the database - https://www.sqlalchemy.org/
-
-The framework that makes up the frontend - https://react.dev/
-
-The UI library that makes it prettier - https://mantine.dev/
-
 ## How to set up
 
 1. Clone this repo
