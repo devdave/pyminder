@@ -70,11 +70,7 @@ export const ListPage = () => {
                         accessor: 'name',
                         title: 'Name'
                     },
-                    {
-                        accessor: 'tasks',
-                        title: 'Tasks',
-                        render: ({ id, tasks_count }) => <Link to={`${id}/tasks`}>Tasks {tasks_count}</Link>
-                    },
+
                     {
                         accessor: 'is_active',
                         title: 'Enabled',
@@ -87,6 +83,11 @@ export const ListPage = () => {
                                 }}
                             />
                         )
+                    },
+                    {
+                        accessor: 'tasks',
+                        title: 'Tasks',
+                        render: ({ id, tasks_count }) => <Link to={`${id}/tasks`}>Tasks {tasks_count}</Link>
                     },
                     {
                         accessor: 'created_on',
