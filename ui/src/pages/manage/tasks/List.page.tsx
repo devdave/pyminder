@@ -17,7 +17,7 @@ export const TasksListPage = () => {
         direction: 'asc'
     })
 
-    const [showAll, setShowAll] = React.useState(true)
+    const [showAll, setShowAll] = React.useState(false)
 
     const [records, setRecords] = useState<Task[]>([])
 
