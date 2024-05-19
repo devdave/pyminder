@@ -16,7 +16,7 @@ interface FormProps {
 }
 
 export const UpdatePage = () => {
-    const { event_id, entry_id } = useParams()
+    const { entry_id } = useParams()
     const { api, entryBroker } = useAppContext()
     const navigate = useNavigate()
 
@@ -24,6 +24,7 @@ export const UpdatePage = () => {
 
     const form = useForm<FormProps>({
         initialValues: {
+            id: null,
             started_on: null,
             stopped_on: null,
             seconds: 0
@@ -32,6 +33,7 @@ export const UpdatePage = () => {
 
     useEffect(() => {
         if (entryData) {
+            form.values.id = entryData.id
             form.values.started_on = entryData.started_on ? new Date(entryData.started_on) : new Date()
             form.values.stopped_on = entryData.stopped_on ? new Date(entryData.stopped_on) : new Date()
             form.values.seconds = entryData.seconds
