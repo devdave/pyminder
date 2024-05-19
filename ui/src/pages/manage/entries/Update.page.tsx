@@ -41,10 +41,20 @@ export const UpdatePage = () => {
         }
     }, [entryData])
 
+    const localizeDate = (date: Date) => {
+        const offset = new Date().getTimezoneOffset()
+        date.setMinutes(date.getMinutes() - offset)
+        return date.toISOString()
+    }
+
     const handleFormSubmit = (values: FormProps) => {
         console.log('handleFormSubmit', values)
         const changeset: EntryUpdate = { ...values }
+        changeset.started_on = localizeDate(values.started_on || new Date())
+        changeset.stopped_on = localizeDate(values.stopped_on || new Date())
+
         api.entry_update(entry_id as Identifier, changeset as Entry).then(() => navigate(-1))
+        navigate(-1)
     }
 
     const handleCancel = () => {
