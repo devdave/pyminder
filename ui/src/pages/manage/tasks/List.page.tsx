@@ -13,8 +13,8 @@ export const TasksListPage = () => {
     const { project_id } = useParams()
 
     const [sortStatus, setSortStatus] = React.useState<DataTableSortStatus<Task>>({
-        columnAccessor: 'name',
-        direction: 'asc'
+        columnAccessor: 'created_on',
+        direction: 'desc'
     })
 
     const [showAll, setShowAll] = React.useState(false)
