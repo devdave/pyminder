@@ -571,9 +571,9 @@ class API:
 
         with self.__app.get_db() as session:
             record = models.Entry.GetById(session, entry_id)
-            record.started_on = changeset["started_on"]
-            record.stopped_on = changeset["stopped_on"]
-            record.seconds = changeset["seconds"]
+            record.started_on = DT.datetime.fromisoformat(changeset["started_on"])
+            record.stopped_on = DT.datetime.fromisoformat(changeset["stopped_on"])
+            record.seconds = (record.stopped_on - record.started_on).seconds
 
             session.add(record)
             session.commit()
