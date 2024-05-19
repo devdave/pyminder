@@ -68,7 +68,7 @@ class Base(DeclarativeBase):
         default=None, server_default=func.now()
     )
     updated_on: Mapped[DT.datetime] = mapped_column(
-        default=None, server_default=func.now(), onupdate=func.now()
+        default=None, server_default=func.now(), onupdate=func.current_timestamp()
     )
 
     type_annotation_map = {
