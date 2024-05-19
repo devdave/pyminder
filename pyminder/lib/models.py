@@ -578,7 +578,9 @@ class Entry(Base):
 
     @classmethod
     def GetByEvent(cls, session, event_id) -> T.Sequence["Entry"]:
-        stmt = select(cls).where(cls.event_id == event_id)
+        stmt = (
+            select(cls).where(cls.event_id == event_id).order_by(cls.started_on.desc())
+        )
         return session.execute(stmt).scalars().all()
 
 
