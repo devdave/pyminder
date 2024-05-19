@@ -23,7 +23,12 @@ export const ListPage = () => {
     const handleDelete = async (entryId: Identifier) => {
         const response = await ConfirmModal('Delete', 'Are you sure you want to delete this entry?')
         if (response) {
-            console.log('would delete', entryId)
+            api.entry_destroy(entryId).then(() => {
+                alert('Entry deleted')
+                api.entries_lists_by_event_id(event_id as Identifier).then((manifest) => {
+                    setEntries(manifest)
+                })
+            })
         }
     }
 
