@@ -916,10 +916,11 @@ class API:
                 print(f"End:\t{payload['end_date']}")
 
             wage = get_wage(payload)
+
+            total_time = Decimal(report["decimal"])
+            print("Hours:", round(total_time, 2))
             if wage:
                 print("Hourly wage:", payload["wage"])
-                total_time = Decimal(report["decimal"])
-                print("Hours:", round(total_time, 2))
                 print(f"Gross:\t{round(total_time * wage, 2)}")
 
             print()
