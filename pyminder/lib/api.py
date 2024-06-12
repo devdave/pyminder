@@ -35,6 +35,7 @@ from .app_types import (
     ReportTimeValues,
     ReportPayload,
     Shortcut,
+    DayActivityEntry,
 )
 from .log_helper import getLogger
 from .timer import Timer
@@ -962,3 +963,28 @@ class API:
                         print()
 
         return f.getvalue()
+
+    def report_day(self, request_date: str) -> list[DayActivityEntry]:
+        search_date = DT.datetime.fromisoformat(request_date).date()
+        records = []
+
+        with self.__app.get_db() as session:
+            for activity in models.Queries.DayActivities(session, search_date):
+                records.append(
+                    DayActivityEntry(
+                        start_date=activity._mapping["start_date"].isoformat(),
+                        client_name=activity._mapping["client_name"],
+                        project_name=activity._mapping["project_name"],
+                        task_name=activity._mapping["task_name"],
+                        started_on=activity._mapping["started_on"].isoformat(),
+                        stopped_on=activity._mapping["stopped_on"].isoformat(),
+                        seconds=activity._mapping["seconds"],
+                        client_id=activity._mapping["client_id"],
+                        project_id=activity._mapping["project_id"],
+                        task_id=activity._mapping["task_id"],
+                        event_id=activity._mapping["event_id"],
+                        entry_id=activity._mapping["entry_id"],
+                    )
+                )
+
+        return records

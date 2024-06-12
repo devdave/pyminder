@@ -8,6 +8,7 @@ import { DataTable } from 'mantine-datatable'
 import { IconEdit, IconTrash } from '@tabler/icons-react'
 import React, { useCallback, useState } from 'react'
 import { Identifier } from '@src/types'
+import { DayActivities } from '@src/components/DayActivities/DayActivities'
 
 export const ManagePage = () => {
     const { api, clientBroker } = useAppContext()
@@ -117,6 +118,7 @@ export const ManagePage = () => {
                 ]}
             />
             <Outlet />
+            <DayActivities />
         </>
     )
 }

@@ -677,6 +677,34 @@ class Shortcut(Base):
 
 class Queries:
     @classmethod
+    def DayActivities(cls, session: Session, search_day: DT.date):
+        stmt = (
+            select(
+                Event.start_date.label("start_date"),
+                Client.name.label("client_name"),
+                Project.name.label("project_name"),
+                Task.name.label("task_name"),
+                Entry.started_on.label("started_on"),
+                Entry.stopped_on.label("stopped_on"),
+                Entry.seconds.label("seconds"),
+                Entry.id.label("entry_id"),
+                Client.id.label("client_id"),
+                Project.id.label("project_id"),
+                Task.id.label("task_id"),
+                Event.id.label("event_id"),
+            )
+            .select_from(Entry)
+            .join(Event, Entry.event_id == Event.id)
+            .join(Task, Event.task_id == Task.id)
+            .join(Project, Task.project_id == Project.id)
+            .join(Client, Project.client_id == Client.id)
+            .order_by(Entry.started_on)
+            .where(Event.start_date == search_day)
+        )
+
+        return session.execute(stmt).all()
+
+    @classmethod
     def _BaseSelect(cls):
         return (
             select(

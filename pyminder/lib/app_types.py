@@ -149,3 +149,18 @@ class TimeReportCard(T.TypedDict):
     seconds: float
     child_type: str
     children: list[Timeframe]
+
+
+class DayActivityEntry(T.TypedDict):
+    start_date: DT.datetime
+    client_name: str
+    project_name: str
+    task_name: str
+    started_on: DT.datetime
+    stopped_on: DT.datetime
+    seconds: int
+    client_id: Identifier
+    project_id: Identifier
+    task_id: Identifier
+    event_id: Identifier
+    entry_id: Identifier
