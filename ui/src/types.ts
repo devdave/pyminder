@@ -138,3 +138,18 @@ export interface ReportPayload {
     wage: number | undefined
     sort_order: string[]
 }
+
+export interface DayActivityEntry {
+    start_date: string
+    client_name: string
+    project_name: string
+    task_name: string
+    started_on: string
+    stopped_on: string
+    seconds: number
+    client_id: Identifier
+    project_id: Identifier
+    task_id: Identifier
+    event_id: Identifier
+    entry_id: Identifier
+}

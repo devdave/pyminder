@@ -21,6 +21,7 @@ import { useShortcutBroker } from '@src/brokers/use-shortcut-broker'
 import { useEntryBroker } from '@src/brokers/use-entry-broker'
 
 import { Notifications } from '@mantine/notifications'
+import { useReportBroker } from '@src/brokers/use-report-broker'
 
 const boundary = new Boundary()
 const switchboard = new Switchboard()
@@ -41,6 +42,7 @@ export default function App() {
     const eventBroker = useEventBroker(api)
     const shortcutBroker = useShortcutBroker(api)
     const entryBroker = useEntryBroker(api)
+    const reportBroker = useReportBroker(api)
 
     const appContextValue = useMemo<AppContextValue>(
         () => ({
@@ -51,9 +53,10 @@ export default function App() {
             taskBroker,
             eventBroker,
             shortcutBroker,
-            entryBroker
+            entryBroker,
+            reportBroker
         }),
-        [api, clientBroker, projectBroker, taskBroker, eventBroker, shortcutBroker, entryBroker]
+        [api, clientBroker, projectBroker, taskBroker, eventBroker, shortcutBroker, entryBroker, reportBroker]
     )
 
     useEffect(() => {

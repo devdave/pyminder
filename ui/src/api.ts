@@ -14,7 +14,8 @@ import {
     type ClientTime,
     type TimeReport,
     type ReportPayload,
-    type EventDate
+    type EventDate,
+    type DayActivityEntry
 } from '@src/types'
 
 interface Boundary {
@@ -545,6 +546,8 @@ Converts a Report payload dictionary into a text block.
 */
 report_build2text(payload:ReportPayload):Promise<string> {
         return this.boundary.remote('report_build2text', payload) as Promise<string>
+    }report_day(request_date:string):Promise<DayActivityEntry[]> {
+        return this.boundary.remote('report_day', request_date) as Promise<DayActivityEntry[]>
     }
 }
 
