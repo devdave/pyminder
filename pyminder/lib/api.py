@@ -555,18 +555,12 @@ class API:
             if record:
                 return record.to_dict()
 
-        return None
-
     def entry_update(self, entry_id: Identifier, changeset: EntryUpdate) -> Entry:
         """
         Update an entry record.
-        @TODO refactor so its a changeset and not a bunch of arguments
 
         :param entry_id:
-        :param start_dt:
-        :param end_dt:
-        :param seconds:
-        :param reason:
+        :param changeset:
         :return:
         """
 
@@ -680,7 +674,7 @@ class API:
         task_id: Identifier,
     ) -> Event:
         """
-        Create a new event if not exists and then start the timer with the provised event record id.
+        Create a new event if not exists and then start the timer with the provided event record id.
 
         :param listener_id:
         :param task_id:
